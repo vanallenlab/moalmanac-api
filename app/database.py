@@ -20,6 +20,20 @@ class Process:
 
 class SQL:
     @staticmethod
+    def add_about(record, session):
+        last_updated = Process.parse_date(record['last_updated'])
+        about = models.About(
+            id=0,
+            github=record.get('github'),
+            label=record.get('label'),
+            license=record.get('license'),
+            release=record.get('release'),
+            url=record.get('url'),
+            last_updated=last_updated,
+        )
+        session.add(about)
+
+    @staticmethod
     def add_documents(documents, session):
         for doc in documents:
             first_published = Process.parse_date(doc.get('first_published')) if doc.get('first_published') else None
@@ -131,6 +145,44 @@ class SQL:
             session.add(indication)
 
     @staticmethod
+    def add_organizations(records, session):
+        for record in records:
+            last_updated = Process.parse_date(record.get('last_updated'))
+
+            organization = models.Organization(
+                id=record["id"],
+                label=record.get('label'),
+                description=record.get('description'),
+                last_updated=last_updated
+            )
+            session.add(organization)
+
+    @staticmethod
+    def add_statements(records, session):
+        for record in records:
+            last_updated = Process.parse_date(record.get('last_updated'))
+
+            statement = models.Statement(
+                id=record['id'],
+                document_id=record.get('document_id'),
+                context=record.get('context'),
+                description=record.get('description'),
+                evidence=record.get('evidence'),
+                implication=record.get('implication'),
+                indication=record.get('indication'),
+                last_updated=last_updated,
+                deprecated=record.get('deprecated'),
+            )
+            session.add(statement)
+
+            for biomarker_id in record['biomarkers']:
+                biomarker = session.query(models.Biomarker).filter_by(id=biomarker_id).first()
+                if biomarker:
+                    statement.biomarkers.append(biomarker)
+                else:
+                    print(f"biomarker {biomarker_id} not found for {record}")
+
+    @staticmethod
     def add_therapies(records, session):
         for record in records:
             therapy = models.Therapy(
@@ -145,6 +197,14 @@ class SQL:
 def main():
     with models.Session() as session:
         root = "/Users/brendan/GitHub/projects/euro-moalmanac-db/data/referenced"
+
+        about = Process.load_json(f"{root}/about.json")
+        SQL.add_about(record=about, session=session)
+        session.commit()
+
+        organizations = Process.load_json(f"{root}/organizations.json")
+        SQL.add_organizations(records=organizations, session=session)
+        session.commit()
 
         biomarkers = Process.load_json(f"{root}/biomarkers.json")
         SQL.add_biomarkers(records=biomarkers, session=session)
@@ -170,9 +230,13 @@ def main():
         SQL.add_implications(records=implications, session=session)
         session.commit()
 
+        statements = Process.load_json(f"{root}/statements.json")
+        SQL.add_statements(records=statements, session=session)
+        session.commit()
+
         session.close()
 
-    return ''
+    return 'Success!'
 
 
 if __name__ == "__main__":

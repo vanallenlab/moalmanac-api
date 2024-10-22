@@ -10,6 +10,18 @@ class Base(sqlalchemy.orm.DeclarativeBase):
     pass
 
 
+class About(Base):
+    __tablename__ = "about"
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    github = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    label = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    license = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    release = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    last_updated = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
+
+
 class Biomarker(Base):
     __tablename__ = "biomarkers"
 
@@ -51,7 +63,7 @@ class Biomarker(Base):
     status = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     statements = sqlalchemy.orm.relationship(
-        "Statements",
+        "Statement",
         secondary = "statement_biomarker_association",
         back_populates = "biomarkers",
     )
@@ -92,7 +104,7 @@ class Document(Base):
     )
 
     statements = sqlalchemy.orm.relationship(
-        "Statements",
+        "Statement",
         back_populates="document"
     )
 
@@ -128,6 +140,15 @@ class Indication(Base):
     )
 
 
+class Organization(Base):
+    __tablename__ = 'organizations'
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    label = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    last_updated = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
+
+
 class Therapy(Base):
     __tablename__ = "therapies"
 
@@ -151,7 +172,7 @@ class ImplicationTherapyAssociation(Base):
     therapy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapies.id'), nullable=False)
 
 
-class Statements(Base):
+class Statement(Base):
     __tablename__ = 'statements'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
