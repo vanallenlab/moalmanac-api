@@ -14,7 +14,11 @@ class Process:
 
     @staticmethod
     def parse_date(date_string, date_string_format='%Y-%m-%d'):
-        return datetime.datetime.strptime(date_string, date_string_format)
+        try:
+           date_object = datetime.datetime.strptime(date_string, date_string_format)
+           return date_object.date()
+        except ValueError:
+            return None
 
 
 class SQL:
