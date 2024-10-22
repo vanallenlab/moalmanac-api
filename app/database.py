@@ -1,9 +1,8 @@
 import argparse
 import datetime
 import json
-import sqlalchemy
 
-import models
+from . import models
 
 
 class Process:

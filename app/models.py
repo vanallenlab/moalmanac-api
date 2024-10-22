@@ -1,9 +1,16 @@
-import flask_sqlalchemy
+import configparser
+import os
 import sqlalchemy
+from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "sqlite:///moalmanac.sqlite3"
-engine = sqlalchemy.create_engine(DATABASE_URL)
-Session = sqlalchemy.orm.sessionmaker(bind=engine)
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+path = config['database']['path']
+path = os.path.abspath(path)
+engine = sqlalchemy.create_engine(f"sqlite:///{path}")
+#Session = sqlalchemy.orm.sessionmaker(bind=engine)
+Session = sessionmaker(bind=engine)
 
 
 class Base(sqlalchemy.orm.DeclarativeBase):
