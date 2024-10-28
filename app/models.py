@@ -104,6 +104,11 @@ class Context(Base):
     oncotree_term = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     solid_tumor = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
 
+    statements = sqlalchemy.orm.relationship(
+        "Statement",
+        back_populates="context"
+    )
+
 
 class Document(Base):
     __tablename__ = 'documents'
@@ -123,13 +128,13 @@ class Document(Base):
     url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     url_epar = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
-    indications = sqlalchemy.orm.relationship(
-        "Indication",
+    statements = sqlalchemy.orm.relationship(
+        "Statement",
         back_populates="document"
     )
 
-    statements = sqlalchemy.orm.relationship(
-        "Statement",
+    indications = sqlalchemy.orm.relationship(
+        "Indication",
         back_populates="document"
     )
 
@@ -202,18 +207,24 @@ class Statement(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     document_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('documents.id'), nullable=False)
-    biomarkers = sqlalchemy.orm.relationship(
-        "Biomarker",
-        secondary="statement_biomarker_association",
-        back_populates="statements",
-    )
-    context = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('contexts.id'), nullable=False)
+    context_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('contexts.id'), nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     evidence = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     implication = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('implications.id'), nullable=False)
     indication = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('indications.id'), nullable=False)
     last_updated = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
     deprecated = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
+
+    biomarkers = sqlalchemy.orm.relationship(
+        "Biomarker",
+        secondary="statement_biomarker_association",
+        back_populates="statements",
+    )
+
+    context = sqlalchemy.orm.relationship(
+        "Context",
+        back_populates="statements"
+    )
 
     document = sqlalchemy.orm.relationship(
         "Document",

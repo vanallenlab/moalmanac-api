@@ -168,7 +168,7 @@ class SQL:
             statement = models.Statement(
                 id=record['id'],
                 document_id=record.get('document_id'),
-                context=record.get('context'),
+                context_id=record.get('context_id'),
                 description=record.get('description'),
                 evidence=record.get('evidence'),
                 implication=record.get('implication'),
