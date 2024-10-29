@@ -143,7 +143,7 @@ class Implication(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     implication_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    therapies = sqlalchemy.orm.relationship(
+    therapy = sqlalchemy.orm.relationship(
         "Therapy",
         secondary="implication_therapy_association",
         back_populates="implications"
@@ -198,7 +198,7 @@ class Therapy(Base):
     implications = sqlalchemy.orm.relationship(
         "Implication",
         secondary="implication_therapy_association",
-        back_populates="therapies",
+        back_populates="therapy",
     )
 
 

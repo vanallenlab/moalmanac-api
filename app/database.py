@@ -125,7 +125,7 @@ class SQL:
             for therapy_id in record['therapy']:
                 therapy = session.query(models.Therapy).filter_by(id=therapy_id).first()
                 if therapy:
-                    implication.therapies.append(therapy)
+                    implication.therapy.append(therapy)
                 else:
                     print(f"therapy {therapy_id} not found for {record}")
 

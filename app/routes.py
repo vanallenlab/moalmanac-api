@@ -267,6 +267,7 @@ def get_statements():
             data['context'] = serialize_instance(statement.context)
             data['document'] = serialize_instance(statement.document)
             data['implication'] = serialize_instance(statement.implication)
+            data['implication']['therapy'] = [serialize_instance(t) for t in statement.implication.therapy]
             data['indication'] = serialize_instance(statement.indication)
 
             data.pop('context_id', None)
