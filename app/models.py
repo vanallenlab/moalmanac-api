@@ -132,8 +132,7 @@ class Document(Base):
         "Statement",
         back_populates="document"
     )
-
-    indications = sqlalchemy.orm.relationship(
+    indication = sqlalchemy.orm.relationship(
         "Indication",
         back_populates="document"
     )
@@ -151,6 +150,11 @@ class Implication(Base):
     )
     _therapy = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    statements = sqlalchemy.orm.relationship(
+        "Statement",
+        back_populates="implication"
+    )
+
 
 class Indication(Base):
     __tablename__ = 'indications'
@@ -166,7 +170,11 @@ class Indication(Base):
 
     document = sqlalchemy.orm.relationship(
         "Document",
-        back_populates="indications"
+        back_populates="indication"
+    )
+    statements = sqlalchemy.orm.relationship(
+        "Statement",
+        back_populates="indication"
     )
 
 
@@ -210,8 +218,8 @@ class Statement(Base):
     context_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('contexts.id'), nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     evidence = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    implication = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('implications.id'), nullable=False)
-    indication = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('indications.id'), nullable=False)
+    implication_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('implications.id'), nullable=False)
+    indication_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('indications.id'), nullable=False)
     last_updated = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
     deprecated = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
 
@@ -220,14 +228,20 @@ class Statement(Base):
         secondary="statement_biomarker_association",
         back_populates="statements",
     )
-
     context = sqlalchemy.orm.relationship(
         "Context",
         back_populates="statements"
     )
-
     document = sqlalchemy.orm.relationship(
         "Document",
+        back_populates="statements"
+    )
+    implication = sqlalchemy.orm.relationship(
+        "Implication",
+        back_populates="statements"
+    )
+    indication = sqlalchemy.orm.relationship(
+        "Indication",
         back_populates="statements"
     )
 

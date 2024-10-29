@@ -171,8 +171,8 @@ class SQL:
                 context_id=record.get('context_id'),
                 description=record.get('description'),
                 evidence=record.get('evidence'),
-                implication=record.get('implication'),
-                indication=record.get('indication'),
+                implication_id=record.get('implication_id'),
+                indication_id=record.get('indication_id'),
                 last_updated=last_updated,
                 deprecated=record.get('deprecated'),
             )

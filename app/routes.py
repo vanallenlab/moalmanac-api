@@ -251,11 +251,11 @@ def get_statements():
             session
             .query(models.Statement)
             .options(
-                sqlalchemy.orm.joinedload(models.Statement.document),
                 sqlalchemy.orm.joinedload(models.Statement.biomarkers),
                 sqlalchemy.orm.joinedload(models.Statement.context),
-                #sqlalchemy.orm.joinedload(models.Statement.implication),
-                #sqlalchemy.orm.joinedload(models.Statement.indication),
+                sqlalchemy.orm.joinedload(models.Statement.document),
+                sqlalchemy.orm.joinedload(models.Statement.implication),
+                sqlalchemy.orm.joinedload(models.Statement.indication),
             )
         )
         results = query.all()
@@ -263,10 +263,16 @@ def get_statements():
         result = []
         for statement in results:
             data = serialize_instance(statement)
-            data['document'] = serialize_instance(statement.document)
             data['biomarkers'] = [serialize_instance(b) for b in statement.biomarkers]
             data['context'] = serialize_instance(statement.context)
+            data['document'] = serialize_instance(statement.document)
+            data['implication'] = serialize_instance(statement.implication)
+            data['indication'] = serialize_instance(statement.indication)
+
+            data.pop('context_id', None)
             data.pop('document_id', None)
+            data.pop('implication_id', None)
+            data.pop('indication_id', None)
 
             #result.append(data)
 
