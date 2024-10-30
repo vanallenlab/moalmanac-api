@@ -1,0 +1,20 @@
+[
+    {
+        "id": 0,
+        "label": "Food and Drug Administration",
+        "description": "",
+        "last_updated": "2024-10-20"
+    },
+    {
+        "id": 1,
+        "label": "European Medicines Agency",
+        "description": "",
+        "last_updated": "2024-10-20"
+    },
+    {
+        "id": 2,
+        "label": "National Cancer Control Programme",
+        "description": "",
+        "last_updated": "2024-10-16"
+    }
+]

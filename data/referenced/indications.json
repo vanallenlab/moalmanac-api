@@ -1,0 +1,3017 @@
+[
+    {
+        "id": 0,
+        "document_id": 0,
+        "indication": "ADCETRIS is indicated for adult patients with previously untreated CD30+ Stage III or IV Hodgkin lymphoma (HL) in combination with doxorubicin, vinblastine and dacarbazine (AVD)."
+    },
+    {
+        "id": 1,
+        "document_id": 0,
+        "indication": "ADCETRIS is indicated for the treatment of adult patients with CD30+ HL at increased risk of relapse or progression following autologous stem cell transplant (ASCT)."
+    },
+    {
+        "id": 2,
+        "document_id": 0,
+        "indication": "ADCETRIS is indicated for the treatment of adult patients with relapsed or refractory CD30+ Hodgkin lymphoma (HL): (i) following ASCT, or (ii) following at least two prior therapies when ASCT or multi-agent chemotherapy is not a treatment option."
+    },
+    {
+        "id": 3,
+        "document_id": 0,
+        "indication": "ADCETRIS is indicated for the treatment of adult patients with CD30+ cutaneous T-cell lymphoma (CTCL) after at least 1 prior systemic therapy."
+    },
+    {
+        "id": 4,
+        "document_id": 1,
+        "indication": "Afinitor is indicated for the treatment of hormone receptor-positive, HER2/neu negative advanced breast cancer, in combination with exemestane, in postmenopausal women without symptomatic visceral disease after recurrence or progression following a non-steroidal aromatase inhibitor."
+    },
+    {
+        "id": 5,
+        "document_id": 2,
+        "indication": "Akeega is indicated with prednisone or prednisolone for the treatment of adult patients with metastatic castration-resistant prostate cancer (mCRPC) and BRCA 1/2 mutations (germline and/or somatic) in whom chemotherapy is not clinically indicated."
+    },
+    {
+        "id": 6,
+        "document_id": 3,
+        "indication": "Alecensa as monotherapy is indicated for the first-line treatment of adult patients with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC)."
+    },
+    {
+        "id": 7,
+        "document_id": 3,
+        "indication": "Alecensa as monotherapy is indicated for the treatment of adult patients with ALK-positive advanced NSCLC previously treated with crizotinib."
+    },
+    {
+        "id": 8,
+        "document_id": 4,
+        "indication": "Alunbrig is indicated as monotherapy for the treatment of adult patients with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC) previously not treated with an ALK inhibitor."
+    },
+    {
+        "id": 9,
+        "document_id": 4,
+        "indication": "Alunbrig is indicated as monotherapy for the treatment of adult patients with ALK-positive advanced NSCLC previously treated with crizotinib."
+    },
+    {
+        "id": 10,
+        "document_id": 5,
+        "indication": "Bevacizumab, in combination with erlotinib, is indicated for first-line treatment of adult patients with unresectable advanced, metastatic or recurrent non-squamous non-small cell lung cancer with Epidermal Growth Factor Receptor (EGFR) activating mutations."
+    },
+    {
+        "id": 11,
+        "document_id": 6,
+        "indication": "AYVAKYT is indicated as monotherapy for the treatment of adult patients with unresectable or metastatic gastrointestinal stromal tumours (GIST) harbouring the platelet-derived growth factor receptor alpha (PDGFRA) D842V mutation."
+    },
+    {
+        "id": 12,
+        "document_id": 7,
+        "indication": "BESPONSA is indicated as monotherapy for the treatment of adults with relapsed or refractory CD22-positive B cell precursor acute lymphoblastic leukaemia (ALL). Adult patients with Philadelphia chromosome positive (Ph+) relapsed or refractory B cell precursor ALL should have failed treatment with at least 1 tyrosine kinase inhibitor (TKI)."
+    },
+    {
+        "id": 13,
+        "document_id": 8,
+        "indication": "BLINCYTO is indicated as monotherapy for the treatment of adults with CD19 positive relapsed or refractory B-cell precursor acute lymphoblastic leukaemia (ALL). Patients with Philadelphia chromosome-positive B-cell precursor ALL should have failed treatment with at least 2 tyrosine kinase inhibitors (TKIs) and have no alternative treatment options."
+    },
+    {
+        "id": 14,
+        "document_id": 8,
+        "indication": "BLINCYTO is indicated as monotherapy for the treatment of adults with Philadelphia chromosome-negative CD19 positive B-cell precursor ALL in first or second complete remission with minimal residual disease (MRD) greater than or equal to 0.1%."
+    },
+    {
+        "id": 15,
+        "document_id": 8,
+        "indication": "BLINCYTO is indicated as monotherapy for the treatment of paediatric patients aged 1 year or older with Philadelphia chromosome-negative CD19 positive B-cell precursor ALL which is refractory or in relapse after receiving at least two prior therapies or in relapse after receiving prior allogeneic haematopoietic stem cell transplantation."
+    },
+    {
+        "id": 16,
+        "document_id": 8,
+        "indication": "BLINCYTO is indicated as monotherapy for the treatment of paediatric patients aged 1 year or older with high-risk first relapsed Philadelphia chromosome-negative CD19 positive B-cell precursor ALL as part of the consolidation therapy."
+    },
+    {
+        "id": 17,
+        "document_id": 9,
+        "indication": "Bosulif is indicated for the treatment of adult patients with newly-diagnosed chronic phase (CP) Philadelphia chromosome-positive chronic myelogenous leukaemia (Ph+ CML)."
+    },
+    {
+        "id": 18,
+        "document_id": 9,
+        "indication": "Bosulif is indicated for the treatment of adult patients with CP, accelerated phase (AP), and blast phase (BP) Ph+ CML previously treated with one or more tyrosine kinase inhibitor(s) [TKI(s)] and for whom imatinib, nilotinib and dasatinib are not considered appropriate treatment options."
+    },
+    {
+        "id": 19,
+        "document_id": 10,
+        "indication": "Encorafenib is indicated in combination with binimetinib for the treatment of adult patients with unresectable or metastatic melanoma with a BRAF V600 mutation."
+    },
+    {
+        "id": 20,
+        "document_id": 10,
+        "indication": "Encorafenib is indicated in combination with cetuximab, for the treatment of adult patients with metastatic colorectal cancer (CRC) with a BRAF V600E mutation, who have received prior systemic therapy."
+    },
+    {
+        "id": 21,
+        "document_id": 11,
+        "indication": "Caprelsa is indicated for the treatment of aggressive and symptomatic Rearranged during Transfection (RET) mutant medullary thyroid cancer (MTC) in patients with unresectable locally advanced or metastatic disease. Caprelsa is indicated in adults, children and adolescents aged 5 years and older."
+    },
+    {
+        "id": 22,
+        "document_id": 12,
+        "indication": "Cotellic is indicated for use in combination with vemurafenib for the treatment of adult patients with unresectable or metastatic melanoma with a BRAF V600 mutation."
+    },
+    {
+        "id": 23,
+        "document_id": 13,
+        "indication": "Cyramza in combination with erlotinib is indicated for the first-line treatment of adult patients with metastatic non-small cell lung cancer with activating epidermal growth factor receptor (EGFR) mutations."
+    },
+    {
+        "id": 24,
+        "document_id": 14,
+        "indication": "TAXOTERE in combination with trastuzumab is indicated for the treatment of patients with metastatic breast cancer whose tumours over express HER2 and who previously have not received chemotherapy for metastatic disease."
+    },
+    {
+        "id": 25,
+        "document_id": 15,
+        "indication": "Enhertu as monotherapy is indicated for the treatment of adult patients with unresectable or metastatic HER2-positive breast cancer who have received one or more prior anti-HER2-based regimens."
+    },
+    {
+        "id": 26,
+        "document_id": 15,
+        "indication": "Enhertu as monotherapy is indicated for the treatment of adult patients with unresectable or metastatic HER2-low breast cancer who have received prior chemotherapy in the metastatic setting or developed disease recurrence during or within 6 months of completing adjuvant chemotherapy."
+    },
+    {
+        "id": 27,
+        "document_id": 15,
+        "indication": "Enhertu as monotherapy is indicated for the treatment of adult patients with advanced NSCLC whose tumours have an activating HER2 (ERBB2) mutation and who require systemic therapy following platinum-based chemotherapy with or without immunotherapy."
+    },
+    {
+        "id": 28,
+        "document_id": 15,
+        "indication": "Enhertu as monotherapy is indicated for the treatment of adult patients with advanced HER2-positive gastric or gastroesophageal junction (GEJ) adenocarcinoma who have received a prior trastuzumab-based regimen."
+    },
+    {
+        "id": 29,
+        "document_id": 16,
+        "indication": "Erbitux is indicated for the treatment of patients with epidermal growth factor receptor (EGFR)-expressing, RAS wild-type metastatic colorectal cancer as a single agent in patients who have failed oxaliplatin- and irinotecan-based therapy and who are intolerant to irinotecan."
+    },
+    {
+        "id": 30,
+        "document_id": 16,
+        "indication": "Erbitux is indicated for the treatment of patients with epidermal growth factor receptor (EGFR)-expressing, RAS wild-type metastatic colorectal cancer in combination with irinotecan-based chemotherapy."
+    },
+    {
+        "id": 31,
+        "document_id": 16,
+        "indication": "Erbitux is indicated for the treatment of patients with epidermal growth factor receptor (EGFR)-expressing, RAS wild-type metastatic colorectal cancer in first-line in combination with FOLFOX."
+    },
+    {
+        "id": 32,
+        "document_id": 17,
+        "indication": "Faslodex is indicated as monotherapy for the treatment of estrogen receptor positive, locally advanced or metastatic breast cancer in postmenopausal women not previously treated with endocrine therapy, or with disease relapse on or after adjuvant antiestrogen therapy, or disease progression on antiestrogen therapy."
+    },
+    {
+        "id": 33,
+        "document_id": 17,
+        "indication": "Faslodex is indicated in combination with palbociclib for the treatment of hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative locally advanced or metastatic breast cancer in women who have received prior endocrine therapy."
+    },
+    {
+        "id": 34,
+        "document_id": 18,
+        "indication": "Gavreto is indicated as monotherapy for the treatment of adult patients with rearranged during transfection (RET) fusion-positive advanced non-small cell lung cancer (NSCLC) not previously treated with a RET inhibitor."
+    },
+    {
+        "id": 35,
+        "document_id": 19,
+        "indication": "IRESSA is indicated as monotherapy for the treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with activating mutations of EGFR-TK."
+    },
+    {
+        "id": 36,
+        "document_id": 20,
+        "indication": "GIOTRIF as monotherapy is indicated for the treatment of Epidermal Growth Factor Receptor (EGFR) TKI-naive adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with activating EGFR mutation(s)."
+    },
+    {
+        "id": 37,
+        "document_id": 21,
+        "indication": "Herceptin is indicated for the treatment of adult patients with HER2 positive metastatic breast cancer (MBC) as monotherapy for the treatment of those patients who have received at least two chemotherapy regimens for their metastatic disease. Prior chemotherapy must have included at least an anthracycline and a taxane unless patients are unsuitable for these treatments. Hormone receptor positive patients must also have failed hormonal therapy, unless patients are unsuitable for these treatments."
+    },
+    {
+        "id": 38,
+        "document_id": 21,
+        "indication": "Herceptin is indicated for the treatment of adult patients with HER2 positive metastatic breast cancer (MBC) in combination with paclitaxel for the treatment of those patients who have not received chemotherapy for their metastatic disease and for whom an anthracycline is not suitable."
+    },
+    {
+        "id": 39,
+        "document_id": 21,
+        "indication": "Herceptin is indicated for the treatment of adult patients with HER2 positive metastatic breast cancer (MBC) in combination with docetaxel for the treatment of those patients who have not received chemotherapy for their metastatic disease."
+    },
+    {
+        "id": 40,
+        "document_id": 21,
+        "indication": "Herceptin is indicated for the treatment of adult patients with HER2 positive metastatic breast cancer (MBC) in combination with an aromatase inhibitor for the treatment of postmenopausal patients with hormone-receptor positive MBC, not previously treated with trastuzumab."
+    },
+    {
+        "id": 41,
+        "document_id": 21,
+        "indication": "Herceptin is indicated for the treatment of adult patients with HER2 positive early breast cancer (EBC) following surgery, chemotherapy (neoadjuvant or adjuvant) and radiotherapy (if applicable)."
+    },
+    {
+        "id": 42,
+        "document_id": 21,
+        "indication": "Herceptin is indicated for the treatment of adult patients with HER2 positive early breast cancer (EBC) following adjuvant chemotherapy with doxorubicin and cyclophosphamide, in combination with paclitaxel or docetaxel."
+    },
+    {
+        "id": 43,
+        "document_id": 21,
+        "indication": "Herceptin is indicated for the treatment of adult patients with HER2 positive early breast cancer (EBC) in combination with adjuvant chemotherapy consisting of docetaxel and carboplatin."
+    },
+    {
+        "id": 44,
+        "document_id": 21,
+        "indication": "Herceptin is indicated for the treatment of adult patients with HER2 positive early breast cancer (EBC) in combination with neoadjuvant chemotherapy followed by adjuvant Herceptin therapy, for locally advanced (including inflammatory) disease or tumours > 2 cm in diameter."
+    },
+    {
+        "id": 45,
+        "document_id": 21,
+        "indication": "Herceptin in combination with capecitabine or 5-fluorouracil and cisplatin is indicated for the treatment of adult patients with HER2 positive metastatic adenocarcinoma of the stomach or gastro-esophageal junction who have not received prior anti-cancer treatment for their metastatic disease."
+    },
+    {
+        "id": 46,
+        "document_id": 22,
+        "indication": "IBRANCE is indicated for the treatment of hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative locally advanced or metastatic breast cancer in combination with an aromatase inhibitor."
+    },
+    {
+        "id": 47,
+        "document_id": 22,
+        "indication": "IBRANCE is indicated for the treatment of hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative locally advanced or metastatic breast cancer in combination with fulvestrant in women who have received prior endocrine therapy."
+    },
+    {
+        "id": 48,
+        "document_id": 23,
+        "indication": "Glivec is indicated for the treatment of adult and paediatric patients with newly diagnosed Philadelphia chromosome (bcr-abl) positive (Ph+) chronic myeloid leukaemia (CML) for whom bone marrow transplantation is not considered as the first line of treatment."
+    },
+    {
+        "id": 49,
+        "document_id": 23,
+        "indication": "Glivec is indicated for the treatment of adult and paediatric patients with Ph+ CML in chronic phase after failure of interferon-alpha therapy, or in accelerated phase or blast crisis."
+    },
+    {
+        "id": 50,
+        "document_id": 23,
+        "indication": "Glivec is indicated for the treatment of adult and paediatric patients with newly diagnosed Philadelphia chromosome positive acute lymphoblastic leukaemia (Ph+ ALL) integrated with chemotherapy."
+    },
+    {
+        "id": 51,
+        "document_id": 23,
+        "indication": "Glivec is indicated for the treatment of adult patients with relapsed or refractory Ph+ ALL as monotherapy."
+    },
+    {
+        "id": 52,
+        "document_id": 23,
+        "indication": "Glivec is indicated for the treatment of adult patients with myelodysplastic/myeloproliferative diseases (MDS/MPD) associated with platelet-derived growth factor receptor (PDGFR) gene re-arrangements."
+    },
+    {
+        "id": 53,
+        "document_id": 23,
+        "indication": "Glivec is indicated for the treatment of adult patients with advanced hypereosinophilic syndrome (HES) and/or chronic eosinophilic leukaemia (CEL) with FIP1L1-PDGFR_ rearrangement."
+    },
+    {
+        "id": 54,
+        "document_id": 23,
+        "indication": "Glivec is indicated for the treatment of the treatment of adult patients with Kit (CD 117) positive unresectable and/or metastatic malignant gastrointestinal stromal tumours (GIST)."
+    },
+    {
+        "id": 55,
+        "document_id": 23,
+        "indication": "Glivec is indicated for the treatment of the adjuvant treatment of adult patients who are at significant risk of relapse following resection of Kit (CD117)-positive GIST. Patients who have a low or very low risk of recurrence should not receive adjuvant treatment."
+    },
+    {
+        "id": 56,
+        "document_id": 24,
+        "indication": "Iclusig is indicated in adult patients with chronic phase, accelerated phase, or blast phase chronic myeloid leukaemia (CML) who are resistant to dasatinib or nilotinib; who are intolerant to dasatinib or nilotinib and for whom subsequent treatment with imatinib is not clinically appropriate; or who have the T315I mutation."
+    },
+    {
+        "id": 57,
+        "document_id": 24,
+        "indication": "Iclusig is indicated in adult patients with Philadelphia chromosome positive acute lymphoblastic leukaemia (Ph+ ALL) who are resistant to dasatinib; who are intolerant to dasatinib and for whom subsequent treatment with imatinib is not clinically appropriate; or who have the T315I mutation."
+    },
+    {
+        "id": 58,
+        "document_id": 25,
+        "indication": "IMFINZI as monotherapy is indicated for the treatment of locally advanced, unresectable non-small cell lung cancer (NSCLC) in adults whose tumours express PD-L1 on >= 1% of tumour cells and whose disease has not progressed following platinum-based chemoradiation therapy."
+    },
+    {
+        "id": 59,
+        "document_id": 25,
+        "indication": "IMFINZI in combination with tremelimumab and platinum-based chemotherapy is indicated for the first-line treatment of adults with metastatic NSCLC with no sensitising EGFR mutations or ALK positive mutations."
+    },
+    {
+        "id": 60,
+        "document_id": 26,
+        "indication": "IMJUDO in combination with durvalumab and platinum-based chemotherapy is indicated for the first-line treatment of adults with metastatic non-small cell lung cancer (NSCLC) with no sensitising EGFR mutations or ALK positive mutations."
+    },
+    {
+        "id": 61,
+        "document_id": 27,
+        "indication": "JEMPERLI is indicated in combination with carboplatin and paclitaxel for the treatment of adult patients with mismatch repair deficient (dMMR)/ microsatellite instability-high (MSI-H) primary advanced or recurrent endometrial cancer (EC) and who are candidates for systemic therapy."
+    },
+    {
+        "id": 62,
+        "document_id": 27,
+        "indication": "JEMPERLI is indicated as monotherapy for the treatment of adult patients with dMMR/MSI-H recurrent or advanced EC that has progressed on or following prior treatment with a platinum-containing regimen."
+    },
+    {
+        "id": 63,
+        "document_id": 28,
+        "indication": "KEYTRUDA as monotherapy is indicated for the first-line treatment of metastatic non-small cell lung carcinoma in adults whose tumours express PD-L1 with a >= 50% tumour proportion score (TPS) with no EGFR or ALK positive tumour mutations."
+    },
+    {
+        "id": 64,
+        "document_id": 28,
+        "indication": "KEYTRUDA, in combination with pemetrexed and platinum chemotherapy, is indicated for the first-line treatment of metastatic non-squamous non-small cell lung carcinoma in adults whose tumours have no EGFR or ALK positive mutations."
+    },
+    {
+        "id": 65,
+        "document_id": 28,
+        "indication": "KEYTRUDA as monotherapy is indicated for the treatment of locally advanced or metastatic non-small cell lung carcinoma in adults whose tumours express PD-L1 with a >= 1% TPS and who have received at least one prior chemotherapy regimen. Patients with EGFR or ALK positive tumour mutations should also have received targeted therapy before receiving KEYTRUDA."
+    },
+    {
+        "id": 66,
+        "document_id": 28,
+        "indication": "KEYTRUDA as monotherapy is indicated for the treatment of locally advanced or metastatic urothelial carcinoma in adults who are not eligible for cisplatin-containing chemotherapy and whose tumours express PD-L1 with a combined positive score (CPS) >= 10."
+    },
+    {
+        "id": 67,
+        "document_id": 28,
+        "indication": "KEYTRUDA, as monotherapy or in combination with platinum and 5-fluorouracil (5-FU) chemotherapy, is indicated for the first-line treatment of metastatic or unresectable recurrent head and neck squamous cell carcinoma in adults whose tumours express PD-L1 with a CPS >= 1."
+    },
+    {
+        "id": 68,
+        "document_id": 28,
+        "indication": "KEYTRUDA as monotherapy is indicated for the treatment of recurrent or metastatic head and neck squamous cell carcinoma in adults whose tumours express PD-L1 with a >= 50% TPS and progressing on or after platinum -containing chemotherapy."
+    },
+    {
+        "id": 69,
+        "document_id": 28,
+        "indication": "KEYTRUDA as monotherapy is indicated for adults with MSI-H or dMMR colorectal cancer in the following settings: first-line treatment of metastatic colorectal cancer; treatment of unresectable or metastatic colorectal cancer after previous fluoropyrimidine -based combination therapy."
+    },
+    {
+        "id": 70,
+        "document_id": 28,
+        "indication": "KEYTRUDA as monotherapy is indicated for the treatment of the following MSI-H or dMMR tumours in adults with advanced or recurrent endometrial carcinoma, who have disease progression on or following prior treatment with a platinum-containing therapy in any setting and who are not candidates for curative surgery or radiation."
+    },
+    {
+        "id": 71,
+        "document_id": 28,
+        "indication": "KEYTRUDA as monotherapy is indicated for the treatment of the following MSI-H or dMMR tumours in adults with unresectable or metastatic gastric, small intestine, or biliary cancer, who have disease progression on or following at least one prior therapy."
+    },
+    {
+        "id": 72,
+        "document_id": 28,
+        "indication": "KEYTRUDA, in combination with platinum and fluoropyrimidine -based chemotherapy, is indicated for the first-line treatment of locally advanced unresectable or metastatic carcinoma of the oesophagus in adults whose tumours express PD-L1 with a CPS >= 10."
+    },
+    {
+        "id": 73,
+        "document_id": 28,
+        "indication": "KEYTRUDA, in combination with chemotherapy as neoadjuvant treatment, and then continued as monotherapy as adjuvant treatment after surgery, is indicated for the treatment of adults with locally advanced, or early-stage triple-negative breast cancer at high risk of recurrence."
+    },
+    {
+        "id": 74,
+        "document_id": 28,
+        "indication": "KEYTRUDA, in combination with chemotherapy, is indicated for the treatment of locally recurrent unresectable or metastatic triple-negative breast cancer in adults whose tumours express PD-L1 with a CPS >= 10 and who have not received prior chemotherapy for metastatic disease."
+    },
+    {
+        "id": 75,
+        "document_id": 28,
+        "indication": "KEYTRUDA, in combination with chemotherapy with or without bevacizumab, is indicated for the treatment of persistent, recurrent, or metastatic cervical cancer in adults whose tumours express PD-L1 with a CPS >= 1."
+    },
+    {
+        "id": 76,
+        "document_id": 28,
+        "indication": "KEYTRUDA, in combination with trastuzumab, fluoropyrimidine and platinum-containing chemotherapy, is indicated for the first-line treatment of locally advanced unresectable or metastatic HER2-positive gastric or gastro -oesophageal junction adenocarcinoma in adults whose tumours express PD-L1 with a CPS >= 1."
+    },
+    {
+        "id": 77,
+        "document_id": 28,
+        "indication": "KEYTRUDA, in combination with fluoropyrimidine and platinum -containing chemotherapy, is indicated for the first-line treatment of locally advanced unresectable or metastatic HER2-negative gastric or gastro -oesophageal junction adenocarcinoma in adults whose tumours express PD-L1 with a CPS >= 1."
+    },
+    {
+        "id": 78,
+        "document_id": 29,
+        "indication": "Kadcyla, as a single agent, is indicated for the adjuvant treatment of adult patients with HER2-positive early breast cancer who have residual invasive disease, in the breast and/or lymph nodes, after neoadjuvant taxane-based and HER2-targeted therapy."
+    },
+    {
+        "id": 79,
+        "document_id": 29,
+        "indication": "Kadcyla, as a single agent, is indicated for the treatment of adult patients with HER2-positive, unresectable locally advanced or metastatic breast cancer who previously received trastuzumab and a taxane, separately or in combination. Patients should have either: received prior therapy for locally advanced or metastatic disease, or developed disease recurrence during or within six months of completing adjuvant therapy."
+    },
+    {
+        "id": 80,
+        "document_id": 30,
+        "indication": "Kisqali is indicated for the treatment of women with hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative locally advanced or metastatic breast cancer in combination with an aromatase inhibitor or fulvestrant as initial endocrine-based therapy, or in women who have received prior endocrine therapy."
+    },
+    {
+        "id": 81,
+        "document_id": 31,
+        "indication": "KRAZATI as monotherapy is indicated for the treatment of adult patients with advanced non-small cell lung cancer (NSCLC) with KRAS G12C mutation and disease progression after at least one prior systemic therapy."
+    },
+    {
+        "id": 82,
+        "document_id": 32,
+        "indication": "LIBTAYO as monotherapy is indicated for the first-line treatment of adult patients with non-small cell lung cancer (NSCLC) expressing PD-L1 (in >= 50% tumour cells), with no EGFR, ALK or ROS1 aberrations, who have locally advanced NSCLC who are not candidates for definitive chemoradiation, or metastatic NSCLC."
+    },
+    {
+        "id": 83,
+        "document_id": 32,
+        "indication": "LIBTAYO in combination with platinum_based chemotherapy is indicated for the first_line treatment of adult patients with NSCLC expressing PD-L1 (in >= 1% of tumour cells), with no EGFR, ALK or ROS1 aberrations, who have locally advanced NSCLC who are not candidates for definitive chemoradiation, or metastatic NSCLC."
+    },
+    {
+        "id": 84,
+        "document_id": 33,
+        "indication": "Lorviqua as monotherapy is indicated for the treatment of adult patients with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC) previously not treated with an ALK inhibitor."
+    },
+    {
+        "id": 85,
+        "document_id": 33,
+        "indication": "Lorviqua as monotherapy is indicated for the treatment of adult patients with ALK-positive advanced NSCLC whose disease has progressed after alectinib or ceritinib as the first ALK tyrosine kinase inhibitor (TKI) therapy; or crizotinib and at least one other ALK TKI."
+    },
+    {
+        "id": 86,
+        "document_id": 34,
+        "indication": "LUMYKRAS as monotherapy is indicated for the treatment of adults with advanced non-small cell lung cancer (NSCLC) with KRAS G12C mutation and who have progressed after at least one prior line of systemic therapy."
+    },
+    {
+        "id": 87,
+        "document_id": 35,
+        "indication": "Lynparza is indicated as monotherapy for the maintenance treatment of adult patients with advanced (FIGO stages III and IV) BRCA1/2-mutated (germline and/or somatic) high-grade epithelial ovarian, fallopian tube or primary peritoneal cancer who are in response (complete or partial) following completion of first-line platinum-based chemotherapy."
+    },
+    {
+        "id": 88,
+        "document_id": 35,
+        "indication": "Lynparza in combination with durvalumab is indicated for the maintenance treatment of adult patients with primary advanced or recurrent endometrial cancer that is mismatch repair proficient (pMMR) whose disease has not progressed on first-line treatment with durvalumab in combination with carboplatin and paclitaxel."
+    },
+    {
+        "id": 89,
+        "document_id": 35,
+        "indication": "Lynparza in combination with bevacizumab is indicated for the maintenance treatment of adult patients with advanced (FIGO stages III and IV) high-grade epithelial ovarian, fallopian tube or primary peritoneal cancer who are in response (complete or partial) following completion of first-line platinum-based chemotherapy in combination with bevacizumab and whose cancer is associated with homologous recombination deficiency (HRD) positive status defined by either a BRCA1/2 mutation and/or genomic instability."
+    },
+    {
+        "id": 90,
+        "document_id": 35,
+        "indication": "Lynparza is indicated as monotherapy for the treatment of adult patients with germline BRCA1/2-mutations, who have HER2 negative locally advanced or metastatic breast cancer. Patients should have previously been treated with an anthracycline and a taxane in the (neo)adjuvant or metastatic setting unless patients were not suitable for these treatments. Patients with hormone receptor (HR)-positive breast cancer should also have progressed on or after prior endocrine therapy, or be considered unsuitable for endocrine therapy."
+    },
+    {
+        "id": 91,
+        "document_id": 35,
+        "indication": "Lynparza is indicated as monotherapy or in combination with endocrine therapy for the adjuvant treatment of adult patients with germline BRCA1/2-mutations who have HER2-negative, high risk early breast cancer previously treated with neoadjuvant or adjuvant chemotherapy."
+    },
+    {
+        "id": 92,
+        "document_id": 35,
+        "indication": "Lynparza is indicated as monotherapy for the maintenance treatment of adult patients with germline BRCA1/2-mutations who have metastatic adenocarcinoma of the pancreas and have not progressed after a minimum of 16 weeks of platinum treatment within a first-line chemotherapy regimen."
+    },
+    {
+        "id": 93,
+        "document_id": 35,
+        "indication": "Lynparza is indicated as monotherapy for the treatment of adult patients with metastatic castration-resistant prostate cancer (mCRPC) and BRCA1/2-mutations (germline and/or somatic) who have progressed following prior therapy that included a new hormonal agent."
+    },
+    {
+        "id": 94,
+        "document_id": 36,
+        "indication": "Lytgobi monotherapy is indicated for the treatment of adult patients with locally advanced or metastatic cholangiocarcinoma with a fibroblast growth factor receptor 2 (FGFR2) fusion or rearrangement that have progressed after at least one prior line of systemic therapy."
+    },
+    {
+        "id": 95,
+        "document_id": 37,
+        "indication": "MabThera is indicated for the treatment of adult patients with CD20 positive diffuse large B cell non-Hodgkin's lymphoma in combination with CHOP (cyclophosphamide, doxorubicin, vincristine,prednisolone) chemotherapy."
+    },
+    {
+        "id": 96,
+        "document_id": 37,
+        "indication": "MabThera in combination with chemotherapy is indicated for the treatment of paediatric patients (aged >= 6 months to < 18 years old) with previously untreated advanced stage CD20 positive diffuse large B-cell lymphoma (DLBCL), Burkitt lymphoma (BL)/Burkitt leukaemia (mature B-cell acute leukaemia) (BAL) or Burkitt-like lymphoma (BLL)."
+    },
+    {
+        "id": 97,
+        "document_id": 38,
+        "indication": "Trametinib as monotherapy or in combination with dabrafenib is indicated for the treatment of adult patients with unresectable or metastatic melanoma with a BRAF V600 mutation."
+    },
+    {
+        "id": 98,
+        "document_id": 38,
+        "indication": "Trametinib in combination with dabrafenib is indicated for the adjuvant treatment of adult patients with Stage III melanoma with a BRAF V600 mutation, following complete resection."
+    },
+    {
+        "id": 99,
+        "document_id": 38,
+        "indication": "Trametinib in combination with dabrafenib is indicated for the treatment of adult patients with advanced non-small cell lung cancer with a BRAF V600 mutation."
+    },
+    {
+        "id": 100,
+        "document_id": 39,
+        "indication": "Binimetinib in combination with encorafenib is indicated for the treatment of adult patients with unresectable or metastatic melanoma with a BRAF V600 mutation."
+    },
+    {
+        "id": 101,
+        "document_id": 40,
+        "indication": "MYLOTARG is indicated for combination therapy with daunorubicin (DNR) and cytarabine (AraC) for the treatment of patients aged 15 years and above with previously untreated, de novo CD33-positive acute myeloid leukaemia (AML), except acute promyelocytic leukaemia (APL)."
+    },
+    {
+        "id": 102,
+        "document_id": 41,
+        "indication": "Nerlynx is indicated for the extended adjuvant treatment of adult patients with early-stage hormone receptor positive HER2-overexpressed/amplified breast cancer and who completed adjuvant trastuzumab-based therapy less than one year ago."
+    },
+    {
+        "id": 103,
+        "document_id": 42,
+        "indication": "OPDIVO in combination with ipilimumab and 2 cycles of platinum-based chemotherapy is indicated for the first-line treatment of metastatic non-small cell lung cancer in adults whose tumours have no sensitising EGFR mutation or ALK translocation."
+    },
+    {
+        "id": 104,
+        "document_id": 42,
+        "indication": "OPDIVO in combination with platinum-based chemotherapy is indicated for the neoadjuvant treatment of resectable non-small cell lung cancer at high risk of recurrence in adult patients whose tumours have PD-L1 expression >= 1%."
+    },
+    {
+        "id": 105,
+        "document_id": 42,
+        "indication": "OPDIVO as monotherapy is indicated for the adjuvant treatment of adults with muscle invasive urothelial carcinoma (MIUC) with tumour cell PD-L1 expression >= 1%, who are at high risk of recurrence after undergoing radical resection of MIUC."
+    },
+    {
+        "id": 106,
+        "document_id": 42,
+        "indication": "OPDIVO in combination with ipilimumab is indicated for the treatment of adult patients with mismatch repair deficient or microsatellite instability-high metastatic colorectal cancer after prior fluoropyrimidine-based combination chemotherapy."
+    },
+    {
+        "id": 107,
+        "document_id": 42,
+        "indication": "OPDIVO in combination with ipilimumab is indicated for the first-line treatment of adult patients with unresectable advanced, recurrent or metastatic oesophageal squamous cell carcinoma with tumour cell PD-L1 expression >= 1%."
+    },
+    {
+        "id": 108,
+        "document_id": 42,
+        "indication": "OPDIVO in combination with fluoropyrimidine- and platinum-based combination chemotherapy is indicated for the first-line treatment of adult patients with unresectable advanced, recurrent or metastatic oesophageal squamous cell carcinoma with tumour cell PD-L1 expression >= 1%"
+    },
+    {
+        "id": 109,
+        "document_id": 42,
+        "indication": "OPDIVO in combination with fluoropyrimidine- and platinum-based combination chemotherapy is indicated for the first-line treatment of adult patients with HER2-negative advanced or metastatic gastric, gastro-oesophageal junction or oesophageal adenocarcinoma whose tumours express PD-L1 with a combined positive score (CPS) >= 5."
+    },
+    {
+        "id": 110,
+        "document_id": 43,
+        "indication": "Opdualag is indicated for the first-line treatment of advanced (unresectable or metastatic) melanoma in adults and adolescents 12 years of age and older with tumour cell PD-L1 expression < 1%."
+    },
+    {
+        "id": 111,
+        "document_id": 44,
+        "indication": "ORSERDU monotherapy is indicated for the treatment of postmenopausal women, and men, with estrogen receptor (ER)-positive, HER2-negative, locally advanced or metastatic breast cancer with an activating ESR1 mutation who have disease progression following at least one line of endocrine therapy including a CDK 4/6 inhibitor."
+    },
+    {
+        "id": 112,
+        "document_id": 45,
+        "indication": "Pemazyre monotherapy is indicated for the treatment of adults with locally advanced or metastatic cholangiocarcinoma with a fibroblast growth factor receptor 2 (FGFR2) fusion or rearrangement that have progressed after at least one prior line of systemic therapy."
+    },
+    {
+        "id": 113,
+        "document_id": 46,
+        "indication": "Perjeta is indicated for use in combination with trastuzumab and chemotherapy in the neoadjuvant treatment of adult patients with HER2-positive, locally advanced, inflammatory, or early stage breast cancer at high risk of recurrence."
+    },
+    {
+        "id": 114,
+        "document_id": 46,
+        "indication": "Perjeta is indicated for use in combination with trastuzumab and chemotherapy in the adjuvant treatment of adult patients with HER2-positive early breast cancer at high risk of recurrence."
+    },
+    {
+        "id": 115,
+        "document_id": 46,
+        "indication": "Perjeta is indicated for use in combination with trastuzumab and docetaxel in adult patients with HER2-positive metastatic or locally recurrent unresectable breast cancer, who have not received previous anti-HER2 therapy or chemotherapy for their metastatic disease."
+    },
+    {
+        "id": 116,
+        "document_id": 47,
+        "indication": "Phesgo is indicated for use in combination with chemotherapy in the neoadjuvant treatment of adult patients with HER2-positive, locally advanced, inflammatory, or early stage breast cancer at high risk of recurrence."
+    },
+    {
+        "id": 117,
+        "document_id": 47,
+        "indication": "Phesgo is indicated for use in combination with chemotherapy in the adjuvant treatment of adult patients with HER2-positive early breast cancer at high risk of recurrence."
+    },
+    {
+        "id": 118,
+        "document_id": 47,
+        "indication": "Phesgo is indicated for use in combination with docetaxel in adult patients with HER2-positive metastatic or locally recurrent unresectable breast cancer, who have not received previous anti-HER2 therapy or chemotherapy for their metastatic disease."
+    },
+    {
+        "id": 119,
+        "document_id": 48,
+        "indication": "Piqray is indicated in combination with fulvestrant for the treatment of postmenopausal women, and men, with hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative, locally advanced or metastatic breast cancer with a PIK3CA mutation after disease progression following endocrine therapy as monotherapy."
+    },
+    {
+        "id": 120,
+        "document_id": 49,
+        "indication": "Retsevmo as monotherapy is indicated for the treatment of adults with advanced RET fusion-positive non-small cell lung cancer (NSCLC) not previously treated with a RET inhibitor."
+    },
+    {
+        "id": 121,
+        "document_id": 49,
+        "indication": "Retsevmo as monotherapy is indicated for the treatment of adults and adolescents 12 years and older with advanced RET fusion-positive thyroid cancer who are radioactive iodine-refractory (if radioactive iodine is appropriate)."
+    },
+    {
+        "id": 122,
+        "document_id": 49,
+        "indication": "Retsevmo as monotherapy is indicated for the treatment of adults and adolescents 12 years and older with advanced RET-mutant medullary thyroid cancer (MTC)."
+    },
+    {
+        "id": 123,
+        "document_id": 49,
+        "indication": "Retsevmo as monotherapy is indicated for the treatment of adults with advanced RET fusion-positive solid tumours, when treatment options not targeting RET provide limited clinical benefit, or have been exhausted."
+    },
+    {
+        "id": 124,
+        "document_id": 50,
+        "indication": "Revlimid as monotherapy is indicated for the treatment of adult patients with transfusion-dependent anaemia due to low- or intermediate-1-risk myelodysplastic syndromes associated with an isolated deletion 5q cytogenetic abnormality when other therapeutic options are insufficient or inadequate."
+    },
+    {
+        "id": 125,
+        "document_id": 51,
+        "indication": "Rozlytrek as monotherapy is indicated for the treatment of adult patients with ROS1-positive, advanced non-small cell lung cancer (NSCLC) not previously treated with ROS1 inhibitors."
+    },
+    {
+        "id": 126,
+        "document_id": 51,
+        "indication": "Rozlytrek as monotherapy is indicated for the treatment of adult and paediatric patients older than one month with solid tumours expressing a neurotrophic tyrosine receptor kinase (NTRK) gene fusion (i) who have a disease that is locally advanced, metastatic or where surgical resection is likely to result in severe morbidity, and (ii) who have not received a prior NTRK inhibitor, (iii) who have no satisfactory treatment options."
+    },
+    {
+        "id": 127,
+        "document_id": 52,
+        "indication": "Rydapt is indicated in combination with standard daunorubicin and cytarabine induction and high-dose cytarabine consolidation chemotherapy, and for patients in complete response followed by Rydapt single agent maintenance therapy, for adult patients with newly diagnosed acute myeloid leukaemia (AML) who are FLT3 mutation-positive."
+    },
+    {
+        "id": 128,
+        "document_id": 53,
+        "indication": "Scemblix is indicated for the treatment of adult patients with Philadelphia chromosome-positive chronic myeloid leukaemia in chronic phase (Ph+ CML-CP) previously treated with two or more tyrosine kinase inhibitors."
+    },
+    {
+        "id": 129,
+        "document_id": 54,
+        "indication": "Spexotras in combination with dabrafenib is indicated for the treatment of paediatric patients aged 1 year and older with low-grade glioma (LGG) with a BRAF V600E mutation who require systemic therapy."
+    },
+    {
+        "id": 130,
+        "document_id": 54,
+        "indication": "Spexotras in combination with dabrafenib is indicated for the treatment of paediatric patients aged 1 year and older with high-grade glioma (HGG) with a BRAF V600E mutation who have received at least one prior radiation and/or chemotherapy treatment."
+    },
+    {
+        "id": 131,
+        "document_id": 55,
+        "indication": "SPRYCEL is indicated for the treatment of adult patients with newly diagnosed Philadelphia chromosome positive (Ph+) chronic myelogenous leukaemia (CML) in the chronic phase."
+    },
+    {
+        "id": 132,
+        "document_id": 55,
+        "indication": "SPRYCEL is indicated for the treatment of adult patients with Ph+ acute lymphoblastic leukaemia (ALL) and lymphoid blast CML with resistance or intolerance to prior therapy."
+    },
+    {
+        "id": 133,
+        "document_id": 55,
+        "indication": "SPRYCEL is indicated for the treatment of paediatric patients with newly diagnosed Ph+ CML in chronic phase (Ph+ CML-CP) or Ph+ CML-CP resistant or intolerant to prior therapy including imatinib."
+    },
+    {
+        "id": 134,
+        "document_id": 55,
+        "indication": "SPRYCEL is indicated for the treatment of paediatric patients with newly diagnosed Ph+ ALL in combination with chemotherapy."
+    },
+    {
+        "id": 135,
+        "document_id": 56,
+        "indication": "Tabrecta as monotherapy is indicated for the treatment of adult patients with advanced non-small cell lung cancer (NSCLC) harbouring alterations leading to mesenchymal-epithelial transition factor gene exon 14 (METex14) skipping, who require systemic therapy following prior treatment with immunotherapy and/or platinum-based chemotherapy."
+    },
+    {
+        "id": 136,
+        "document_id": 57,
+        "indication": "Dabrafenib as monotherapy or in combination with trametinib is indicated for the treatment of adult patients with unresectable or metastatic melanoma with a BRAF V600 mutation."
+    },
+    {
+        "id": 137,
+        "document_id": 57,
+        "indication": "Dabrafenib in combination with trametinib is indicated for the adjuvant treatment of adult patients with Stage III melanoma with a BRAF V600 mutation, following complete resection."
+    },
+    {
+        "id": 138,
+        "document_id": 57,
+        "indication": "Dabrafenib in combination with trametinib is indicated for the treatment of adult patients with advanced non-small cell lung cancer with a BRAF V600 mutation."
+    },
+    {
+        "id": 139,
+        "document_id": 58,
+        "indication": "TAGRISSO as monotherapy is indicated for the adjuvant treatment after complete tumour resection in adult patients with stage IB-IIIA non-small cell lung cancer (NSCLC) whose tumours have epidermal growth factor receptor (EGFR) exon 19 deletions or exon 21 (L858R) substitution mutations."
+    },
+    {
+        "id": 140,
+        "document_id": 58,
+        "indication": "TAGRISSO as monotherapy is indicated for the first-line treatment of adult patients with locally advanced or metastatic NSCLC with activating EGFR mutations."
+    },
+    {
+        "id": 141,
+        "document_id": 58,
+        "indication": "TAGRISSO as monotherapy is indicated for the treatment of adult patients with locally advanced or metastatic EGFR T790M mutation-positive NSCLC."
+    },
+    {
+        "id": 142,
+        "document_id": 59,
+        "indication": "Talzenna is indicated as monotherapy for the treatment of adult patients with germline BRCA1/2-mutations, who have HER2-negative locally advanced or metastatic breast cancer. Patients should have been previously treated with an anthracycline and/or a taxane in the (neo)adjuvant, locally advanced or metastatic setting unless patients were not suitable for these treatments. Patients with hormone receptor (HR)-positive breast cancer should have been treated with a prior endocrine-based therapy, or be considered unsuitable for endocrine-based therapy."
+    },
+    {
+        "id": 143,
+        "document_id": 60,
+        "indication": "Tarceva is indicated for the first-line treatment of patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with EGFR activating mutations."
+    },
+    {
+        "id": 144,
+        "document_id": 60,
+        "indication": "Tarceva is also indicated for switch maintenance treatment in patients with locally advanced or metastatic NSCLC with EGFR activating mutations and stable disease after first-line chemotherapy"
+    },
+    {
+        "id": 145,
+        "document_id": 25,
+        "indication": "IMFINZI in combination with carboplatin and paclitaxel is indicated for the first-line treatment of adults with primary advanced or recurrent endometrial cancer who are candidates for systemic therapy, followed by maintenance treatment with IMFINZI as monotherapy in endometrial cancer that is mismatch repair deficient (dMMR) or IMFINZI in combination with olaparib in endometrial cancer that is mismatch repair proficient (pMMR)."
+    },
+    {
+        "id": 146,
+        "document_id": 61,
+        "indication": "Tasigna is indicated for the treatment of adult and paediatric patients with newly diagnosed Philadelphia chromosome positive chronic myelogenous leukaemia (CML) in the chronic phase."
+    },
+    {
+        "id": 147,
+        "document_id": 61,
+        "indication": "Tasigna is indicated for the treatment of adult patients with chronic phase and accelerated phase Philadelphia chromosome positive CML with resistance or intolerance to prior therapy including imatinib. Efficacy data in patients with CML in blast crisis are not available."
+    },
+    {
+        "id": 148,
+        "document_id": 61,
+        "indication": "Tasigna is indicated for the treatment of paediatric patients with chronic phase Philadelphia chromosome positive CML with resistance or intolerance to prior therapy including imatinib."
+    },
+    {
+        "id": 149,
+        "document_id": 62,
+        "indication": "Tecentriq as monotherapy is indicated for the treatment of adult patients with locally advanced or metastatic UC (i) after prior platinum-containing chemotherapy, or (ii) who are considered cisplatin ineligible, and whose tumours have a PD-L1 expression >= 5%."
+    },
+    {
+        "id": 150,
+        "document_id": 62,
+        "indication": "Tecentriq as monotherapy is indicated as adjuvant treatment following complete resection and platinum-based chemotherapy for adult patients with NSCLC with a high risk of recurrence whose tumours have PD-L1 expression on >= 50% of tumour cells (TC) and who do not have EGFR mutant or ALK-positive NSCLC."
+    },
+    {
+        "id": 151,
+        "document_id": 62,
+        "indication": "Tecentriq, in combination with bevacizumab, paclitaxel and carboplatin, is indicated for the first-line treatment of adult patients with metastatic non-squamous NSCLC. In patients with EGFR mutant or ALK-positive NSCLC, Tecentriq, in combination with bevacizumab, paclitaxel and carboplatin, is indicated only after failure of appropriate targeted therapies."
+    },
+    {
+        "id": 152,
+        "document_id": 62,
+        "indication": "Tecentriq, in combination with nab-paclitaxel and carboplatin, is indicated for the first-line treatment of adult patients with metastatic non-squamous NSCLC who do not have EGFR mutant or ALK-positive NSCLC."
+    },
+    {
+        "id": 153,
+        "document_id": 62,
+        "indication": "Tecentriq as monotherapy is indicated for the first-line treatment of adult patients with metastatic NSCLC whose tumours have a PD-L1 expression >= 50% TC or >= 10% tumour-infiltrating immune cells (IC) and who do not have EGFR mutant or ALK-positive NSCLC."
+    },
+    {
+        "id": 154,
+        "document_id": 62,
+        "indication": "Tecentriq as monotherapy is indicated for the treatment of adult patients with locally advanced or metastatic NSCLC after prior chemotherapy. Patients with EGFR mutant or ALK-positive NSCLC should also have received targeted therapies before receiving Tecentriq."
+    },
+    {
+        "id": 155,
+        "document_id": 62,
+        "indication": "Tecentriq in combination with nab-paclitaxel is indicated for the treatment of adult patients with unresectable locally advanced or metastatic TNBC whose tumours have PD-L1 expression >= 1% and who have not received prior chemotherapy for metastatic disease."
+    },
+    {
+        "id": 156,
+        "document_id": 63,
+        "indication": "TEPMETKO as monotherapy is indicated for the treatment of adult patients with advanced non-small cell lung cancer (NSCLC) harbouring alterations leading to mesenchymal-epithelial transition factor gene exon 14 (METex14) skipping, who require systemic therapy following prior treatment with immunotherapy and/or platinum-based chemotherapy."
+    },
+    {
+        "id": 157,
+        "document_id": 64,
+        "indication": "Tibsovo in combination with azacitidine is indicated for the treatment of adult patients with newly diagnosed acute myeloid leukaemia (AML) with an isocitrate dehydrogenase-1 (IDH1) R132 mutation who are not eligible to receive standard induction chemotherapy."
+    },
+    {
+        "id": 158,
+        "document_id": 64,
+        "indication": "Tibsovo monotherapy is indicated for the treatment of adult patients with locally advanced or metastatic cholangiocarcinoma with an IDH1 R132 mutation who were previously treated by at least one prior line of systemic therapy."
+    },
+    {
+        "id": 159,
+        "document_id": 65,
+        "indication": "Tremelimumab AstraZeneca in combination with durvalumab and platinum-based chemotherapy is indicated for the first-line treatment of adults with metastatic non-small cell lung cancer (NSCLC) with no sensitising EGFR mutations or ALK positive mutations."
+    },
+    {
+        "id": 160,
+        "document_id": 66,
+        "indication": "RISENOX is indicated for induction of remission, and consolidation in adult patients with either newly diagnosed low-to-intermediate risk acute promyelocytic leukemia (APL) (white blood cell count, <= 10 x 10^3 / ul) in combination with all-trans-retinoic acid (ATRA) or relapsed / refractory acute promyelocytic leukemia (APL) (previous treatment should have included a retinoid and chemotherapy). Both contexts should be characterized by the presence of the t(15;17) translocation and/or the presence of the promyelocytic leukemia / retinoic-acid-receptor-alpha (PML/RAR-alpha) gene."
+    },
+    {
+        "id": 161,
+        "document_id": 67,
+        "indication": "Trodelvy as monotherapy is indicated for the treatment of adult patients with unresectable or metastatic triple-negative breast cancer (mTNBC) who have received two or more prior systemic therapies, including at least one of them for advanced disease."
+    },
+    {
+        "id": 162,
+        "document_id": 67,
+        "indication": "Trodelvy as monotherapy is indicated for the treatment of adult patients with unresectable or metastatic hormone receptor (HR)-positive, HER2-negative breast cancer who have received endocrine-based therapy, and at least two additional systemic therapies in the advanced setting."
+    },
+    {
+        "id": 163,
+        "document_id": 68,
+        "indication": "TUKYSA is indicated in combination with trastuzumab and capecitabine for the treatment of adult patients with HER2-positive locally advanced or metastatic breast cancer who have received at least 2 prior anti-HER2 treatment regimens."
+    },
+    {
+        "id": 164,
+        "document_id": 69,
+        "indication": "Tyverb is indicated for the treatment of adult patients with breast cancer, whose tumours overexpress HER2 (ErbB2) in combination with capecitabine for patients with advanced or metastatic disease with progression following prior therapy, which must have included anthracyclines and taxanes and therapy with trastuzumab in the metastatic setting."
+    },
+    {
+        "id": 165,
+        "document_id": 69,
+        "indication": "Tyverb is indicated for the treatment of adult patients with breast cancer, whose tumours overexpress HER2 (ErbB2) in combination with trastuzumab for patients with hormone receptor-negative metastatic disease that has progressed on prior trastuzumab therapy(ies) in combination with chemotherapy."
+    },
+    {
+        "id": 166,
+        "document_id": 69,
+        "indication": "Tyverb is indicated for the treatment of adult patients with breast cancer, whose tumours overexpress HER2 (ErbB2) in combination with an aromatase inhibitor for postmenopausal women with hormone receptor positive metastatic disease, not currently intended for chemotherapy. The patients in the registration study were not previously treated with trastuzumab or an aromatase inhibitor. No data are available on the efficacy of this combination relative to trastuzumab in combination with an aromatase inhibitor in this patient population."
+    },
+    {
+        "id": 167,
+        "document_id": 70,
+        "indication": "Vectibix is indicated for the treatment of adult patients with wild-type RAS metastatic colorectal cancer (mCRC) in first-line in combination with FOLFOX or FOLFIRI."
+    },
+    {
+        "id": 168,
+        "document_id": 70,
+        "indication": "Vectibix is indicated for the treatment of adult patients with wild-type RAS metastatic colorectal cancer (mCRC) in second-line in combination with FOLFIRI for patients who have received first-line fluoropyrimidine-based chemotherapy (excluding irinotecan)."
+    },
+    {
+        "id": 169,
+        "document_id": 70,
+        "indication": "Vectibix is indicated for the treatment of adult patients with wild-type RAS metastatic colorectal cancer (mCRC) as monotherapy after failure of fluoropyrimidine-, oxaliplatin-, and irinotecan-containing chemotherapy regimens."
+    },
+    {
+        "id": 170,
+        "document_id": 71,
+        "indication": "Venclyxto monotherapy is indicated for the treatment of CLL in the presence of 17p deletion or TP53 mutation in adult patients who are unsuitable for or have failed a B-cell receptor pathway inhibitor."
+    },
+    {
+        "id": 171,
+        "document_id": 71,
+        "indication": "Venclyxto monotherapy is indicated for the treatment of CLL in the absence of 17p deletion or TP53 mutation in adult patients who have failed chemoimmunotherapy and a B-cell receptor pathway inhibitor."
+    },
+    {
+        "id": 172,
+        "document_id": 72,
+        "indication": "Verzenios in combination with endocrine therapy is indicated for the adjuvant treatment of adult patients with hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative, node-positive early breast cancer at high risk of recurrence."
+    },
+    {
+        "id": 173,
+        "document_id": 72,
+        "indication": "Verzenios is indicated for the treatment of women with hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative locally advanced or metastatic breast cancer in combination with an aromatase inhibitor or fulvestrant as initial endocrine-based therapy, or in women who have received prior endocrine therapy."
+    },
+    {
+        "id": 174,
+        "document_id": 73,
+        "indication": "VITRAKVI as monotherapy is indicated for the treatment of adult and paediatric patients with solid tumours that display a Neurotrophic Tyrosine Receptor Kinase (NTRK) gene fusion, who have a disease that is locally advanced, metastatic or where surgical resection is likely to result in severe morbidity, and who have no satisfactory treatment options."
+    },
+    {
+        "id": 175,
+        "document_id": 74,
+        "indication": "Vizimpro, as monotherapy, is indicated for the first-line treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with epidermal growth factor receptor (EGFR)-activating mutations."
+    },
+    {
+        "id": 176,
+        "document_id": 75,
+        "indication": "XALKORI as monotherapy is indicated for the first-line treatment of adults with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC)."
+    },
+    {
+        "id": 177,
+        "document_id": 75,
+        "indication": "XALKORI as monotherapy is indicated for the treatment of adults with previously treated anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC)."
+    },
+    {
+        "id": 178,
+        "document_id": 75,
+        "indication": "XALKORI as monotherapy is indicated for the treatment of adults with ROS1-positive advanced non-small cell lung cancer (NSCLC)."
+    },
+    {
+        "id": 179,
+        "document_id": 75,
+        "indication": "XALKORI as monotherapy is indicated for the treatment of paediatric patients (age >= 1 to <18 years) with relapsed or refractory systemic anaplastic lymphoma kinase (ALK)-positive anaplastic large cell lymphoma (ALCL)."
+    },
+    {
+        "id": 180,
+        "document_id": 75,
+        "indication": "XALKORI as monotherapy is indicated for the treatment of paediatric patients (age >= 1 to <18 years) with recurrent or refractory anaplastic lymphoma kinase (ALK)-positive unresectable inflammatory myofibroblastic tumour (IMT)."
+    },
+    {
+        "id": 181,
+        "document_id": 76,
+        "indication": "Xospata is indicated as monotherapy for the treatment of adult patients who have relapsed or refractory acute myeloid leukaemia (AML) with a FLT3 mutation."
+    },
+    {
+        "id": 182,
+        "document_id": 77,
+        "indication": "YERVOY in combination with nivolumab and 2 cycles of platinum-based chemotherapy is indicated for the first-line treatment of metastatic non-small cell lung cancer in adults whose tumours have no sensitising EGFR mutation or ALK translocation."
+    },
+    {
+        "id": 183,
+        "document_id": 77,
+        "indication": "YERVOY in combination with nivolumab is indicated for the treatment of adult patients with mismatch repair deficient or microsatellite instability-high metastatic colorectal cancer after prior fluoropyrimidine-based combination chemotherapy."
+    },
+    {
+        "id": 184,
+        "document_id": 77,
+        "indication": "YERVOY in combination with nivolumab is indicated for the first-line treatment of adult patients with unresectable advanced, recurrent or metastatic oesophageal squamous cell carcinoma with tumour cell PD-L1 expression >= 1%."
+    },
+    {
+        "id": 185,
+        "document_id": 78,
+        "indication": "Vemurafenib is indicated in monotherapy for the treatment of adult patients with BRAF V600 mutation- positive unresectable or metastatic melanoma."
+    },
+    {
+        "id": 186,
+        "document_id": 79,
+        "indication": "Zydelig is indicated in combination with rituximab for the treatment of adult patients with chronic lymphocytic leukaemia (CLL) as first line treatment in the presence of 17p deletion or TP53 mutation in patients who are not eligible for any other therapies."
+    },
+    {
+        "id": 187,
+        "document_id": 80,
+        "indication": "Zykadia as monotherapy is indicated for the first-line treatment of adult patients with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC)."
+    },
+    {
+        "id": 188,
+        "document_id": 80,
+        "indication": "Zykadia as monotherapy is indicated for the treatment of adult patients with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC) previously treated with crizotinib."
+    },
+    {
+        "id": 189,
+        "document_id": 58,
+        "indication": "TAGRISSO is indicated in combination with pemetrexed and platinum-based chemotherapy for the first-line treatment of adult patients with advanced NSCLC whose tumours have EGFR exon 19 deletions or exon 21 (L858R) substitution mutations."
+    },
+    {
+        "id": 190,
+        "document_id": 81,
+        "indication": "Tevimbra in combination with pemetrexed and platinum-containing chemotherapy is indicated for the first-line treatment of adult patients with non-squamous NSCLC whose tumors have PD-L1 expression on >= 50% of tumor cells with no EGFR or ALK positive mutations and who have (i) locally advanced NSCLC and are not candidates for surgical resection or platinum-based chemoradiation, or (ii) metastatic NSCLC."
+    },
+    {
+        "id": 191,
+        "document_id": 82,
+        "indication": "Rybrevant is indicated in combination with carboplatin and pemetrexed for the first-line treatment of adult patients with advanced non-small cell lung cancer (NSCLC) with activating EGFR Exon 20 insertion mutations."
+    },
+    {
+        "id": 192,
+        "document_id": 82,
+        "indication": "Rybrevant is indicated as monotherapy for treatment of adult patients with advanced NSCLC with activating EGFR Exon 20 insertion mutations, after failure of platinum-based chemotherapy."
+    },
+    {
+        "id": 193,
+        "document_id": 3,
+        "indication": "Alecensa as monotherapy is indicated as adjuvant treatment following complete tumour resection for adult patients with ALK-positive non-small cell lung cancer (NSCLC) at high risk of recurrence."
+    },
+    {
+        "id": 194,
+        "document_id": 83,
+        "indication": "TRUQAP is indicated in combination with fulvestrant for the treatment of adult patients with oestrogen receptor (ER)-positive, HER2-negative locally advanced or metastatic breast cancer with one or more PIK3CA/AKT1/PTEN-alterations following recurrence or progression on or after an endocrine-based regimen. In pre- or perimenopausal women, TRUQAP plus fulvestrant should be combined with a luteinising hormone releasing hormone (LHRH) agonist. For men, administration of LHRH agonist according to current clinical practices should be considered."
+    },
+    {
+        "id": 195,
+        "document_id": 84,
+        "indication": "Balversa as monotherapy is indicated for the treatment of adult patients with unresectable or metastatic urothelial carcinoma (UC), harbouring susceptible FGFR3 genetic alterations who have previously received at least one line of therapy containing a PD-1 or PD-L1 inhibitor in the unresectable or metastatic treatment setting."
+    },
+    {
+        "id": 196,
+        "document_id": 39,
+        "indication": "Binimetinib in combination with encorafenib is indicated for the treatment of adult patients with advanced non-small cell lung cancer with a BRAF V600E mutation."
+    },
+    {
+        "id": 197,
+        "document_id": 10,
+        "indication": "Encorafenib in combination with binimetinib is indicated for the treatment of adult patients with advanced non-small cell lung cancer with a BRAF V600E mutation."
+    },
+    {
+        "id": 198,
+        "document_id": 85,
+        "indication": "Vyloy, in combination with fluoropyrimidine- and platinum-containing chemotherapy, is indicated for the first-line treatment of adult patients with locally advanced unresectable or metastatic HER2-negative gastric or gastro-oesophageal junction (GEJ) adenocarcinoma whose tumours are Claudin (CLDN) 18.2 positive."
+    },
+    {
+        "id": 199,
+        "document_id": 86,
+        "indication": "Treatment of Epidermal Growth Factor Receptor (EGFR) TKI- naive adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with activating EGFR mutation(s).",
+        "icd10": "C34",
+        "regimen_code": "00221a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 200,
+        "document_id": 87,
+        "indication": "Treatment of adult patients with anaplastic lymphoma kinase (ALK)- positive advanced non-small cell lung cancer (NSCLC) previously treated with crizotinib.",
+        "icd10": "C34",
+        "regimen_code": "00401a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2017-11-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 201,
+        "document_id": 87,
+        "indication": "As monotherapy is indicated for the first-line treatment of adult patients with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC).",
+        "icd10": "C34",
+        "regimen_code": "00401b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2019-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 202,
+        "document_id": 88,
+        "indication": "Treatment of adult patients with Philadelphia chromosome positive chronic myeloid leukaemia (Ph+ CML) in the chronic phase (CP), who have previously been treated with two or more tyrosine kinase inhibitors (TKIs).",
+        "icd10": "C92",
+        "regimen_code": "847",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2023-11-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 203,
+        "document_id": 89,
+        "indication": "Treatment of adult patients with chronic phase (CP), accelerated phase (AP), and blast phase (BP) Philadelphia chromosome positive chronic myelogenous leukaemia (Ph+CML) previously treated with one or more tyrosine kinase inhibitor(s) and for whom imatinib, nilotonib and dasatinib are not considered appropriate treatment options.",
+        "icd10": "C92",
+        "regimen_code": "00224a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 204,
+        "document_id": 90,
+        "indication": "For the treatment of adult patients with anaplastic lymphoma kinase (ALK) positive advanced non-small cell lung cancer (NSCLC) previously treated with crizotinib.",
+        "icd10": "C34",
+        "regimen_code": "00562a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2019-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 205,
+        "document_id": 90,
+        "indication": "Monotherapy for the treatment of adult patients with anaplastic lymphoma kinase (ALK) positive advanced non-small cell lung cancer (NSCLC) previously not treated with an ALK inhibitor.",
+        "icd10": "C34",
+        "regimen_code": "00562b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2020-10-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 206,
+        "document_id": 91,
+        "indication": "Treatment of adult patients with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC) previously treated with crizotinib.",
+        "icd10": "C34",
+        "regimen_code": "00340a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 207,
+        "document_id": 92,
+        "indication": "Cobimetinib and vemurafenib in combination are indicated for the treatment of adult patients with unresectable or metastatic melanoma with a BRAF V600 mutation.",
+        "icd10": "C43",
+        "regimen_code": "00373a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2018-04-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 208,
+        "document_id": 93,
+        "indication": "Treatment of adults with previously treated anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC).",
+        "icd10": "C34",
+        "regimen_code": "00243a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 209,
+        "document_id": 94,
+        "indication": "Treatment of adult patients with unresectable or metastatic melanoma with a BRAF V600 mutation.",
+        "icd10": "C43",
+        "regimen_code": "00237a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 210,
+        "document_id": 95,
+        "indication": "Monotherapy, for the first-line treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with epidermal growth factor receptor (EGFR)-activating mutations",
+        "icd10": "C34",
+        "regimen_code": "00565a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2019-11-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 211,
+        "document_id": 96,
+        "indication": "Treatment of adult patients with advanced (unresectable or metastatic) melanoma with a BRAF V600 mutation.",
+        "icd10": "C43",
+        "regimen_code": "00563a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2019-05-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 212,
+        "document_id": 97,
+        "indication": "As monotherapy for the treatment of adult patients with ROS1-positive, advanced non-small cell lung cancer (NSCLC) not previously treated with ROS1 inhibitors",
+        "icd10": "C34",
+        "regimen_code": "00702a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2022-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 213,
+        "document_id": 98,
+        "indication": "As monotherapy for the treatment of adult patients with anaplastic lymphoma kinase (ALK)-positive advanced non-small cell lung cancer (NSCLC), following disease progression on (i) alectinib or ceritinib as the first ALK-targeted treatment or (ii) crizotinib and at least one other ALK-targeted treatment.",
+        "icd10": "C34",
+        "regimen_code": "00570a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2019-10-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 214,
+        "document_id": 98,
+        "indication": "As monotherapy for the treatment of adult patients with ALK-positive advanced NSCLC previously not treated with an ALK inhibitor.",
+        "icd10": "C34",
+        "regimen_code": "00570b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2022-10-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 215,
+        "document_id": 99,
+        "indication": "Midostaurin is indicated in combination with standard DAUNOrubicin and cytarabine induction chemotherapy for adult patients with newly diagnosed acute myeloid leukaemia (AML) who are FLT3 mutation positive.",
+        "icd10": "C92",
+        "regimen_code": "00682a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2021-10-01",
+        "reimbursement_details": "Midostaurin - CDS; DAUNOrubicin, Cyarabine - N/A"
+    },
+    {
+        "id": 216,
+        "document_id": 100,
+        "indication": "Extended adjuvant treatment of adults with early-stage hormone receptor-positive, HER2-overexpressed/amplified breast cancer and who completed adjuvant trastuzumab-based therapy less than one year ago.",
+        "icd10": "C50",
+        "regimen_code": "00720a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2022-03-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 217,
+        "document_id": 101,
+        "indication": "Niraparib in combination with abiraterone acetate (Akeega) and predniSONE/prednisoLONE for the treatment of adults with metastatic castration resistant prostate cancer (mCRPC) and BRCA1/2 mutations (germline and/or somatic) in whom chemotherapy is not clinically indicated.",
+        "icd10": "C61",
+        "regimen_code": "848",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2023-11-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 218,
+        "document_id": 102,
+        "indication": "Olaparib in combination with bevacizumab for the maintenance treatment of adult patients with advanced (FIGO stages III and IV) high-grade epithelial ovarian, fallopian tube or primary peritoneal cancer who are in response (complete or partial) following first-line platinum-based chemotherapy in combination with bevacizumab and whose cancer is associated with homologous recombination deficiency (HRD) positive status defined by either a BRCA1/2 mutation and/or genomic instability.",
+        "icd10": "C56; C48; C57",
+        "regimen_code": "00746a; 00746b; 00746c",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2023-09-01",
+        "reimbursement_details": "Olaparib - CDS; Bevacizumab - Hospital"
+    },
+    {
+        "id": 219,
+        "document_id": 103,
+        "indication": "Maintenance treatment of adult patients with advanced (FIGO stages III and IV) BRCA 1/2-mutated (germline and/or somatic) high-grade epithelial ovarian, fallopian tube cancer, and primary peritoneal carcinoma who are in response (complete or partial) following completion of first-line platinum based chemotherapy",
+        "icd10": "C56; C48; C57",
+        "regimen_code": "00588a; 00588b; 00588c",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2020-12-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 220,
+        "document_id": 103,
+        "indication": "Maintenance treatment of adult patients with platinum-sensitive relapsed BRCA-mutated (germline and/or somatic) high grade serous epithelial ovarian cancer, fallopian tube cancer, primary peritoneal cancer who are in response (complete response or partial) to platinum-based chemotherapy",
+        "icd10": "C56; C48; C57",
+        "regimen_code": "00588d; 00588e; 00588f",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 221,
+        "document_id": 103,
+        "indication": "As monotherapy for the treatment of adult patients with metastatic castration-resistant prostate cancer and BRCA1/2-mutations (germline and/or somatic) who have progressed following prior therapy that included a new hormonal agent.",
+        "icd10": "C61",
+        "regimen_code": "00588g",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2023-03-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 222,
+        "document_id": 104,
+        "indication": "Treatment of adult patients with locally advanced or metastatic epidermal growth factor receptor (EGFR) T790M mutation-positive non-small cell lung cancer (NSCLC).",
+        "icd10": "C34",
+        "regimen_code": "00353a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2020-07-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 223,
+        "document_id": 104,
+        "indication": "First-line treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with activating epidermal growth factor receptor (EGFR) mutations.",
+        "icd10": "C34",
+        "regimen_code": "00353b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2020-10-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 224,
+        "document_id": 104,
+        "indication": "As monotherapy for adjuvant treatment after complete tumour resection in adult patients with stage IB-IIIA Non-Small Cell Lung Cancer (NSCLC) whose tumour has epidermal growth factor receptor (EGFR) exon 19 deletions (Ex19del) or exon 21 (L858R) substitution mutations.",
+        "icd10": "C34",
+        "regimen_code": "00353c",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2024-03-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 225,
+        "document_id": 105,
+        "indication": "Treatment of adult patients with chronic phase, accelerated phase, or blast phase chronic myeloid leukaemia (CML) who are resistant to dasatinib or nilotinib; who are intolerant to dasatinib, nilotinib and bosutinib and for whom subsequent treatment with imatinib is not clinically appropriate; or who have the T315I mutation.",
+        "icd10": "C92",
+        "regimen_code": "00302a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 226,
+        "document_id": 105,
+        "indication": "Treatment of adult patients with Philadelphia chromosome positive acute lymphoblastic leukaemia (Ph+ ALL) who are resistant to dasatinib; who are intolerant to dasatinib and for whom subsequent treatment with imatinib is not clinically appropriate; or who have the T315I mutation.",
+        "icd10": "C91",
+        "regimen_code": "00302b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 227,
+        "document_id": 106,
+        "indication": "Talazoparib is indicated as monotherapy for the treatment of adult patients with germline BRCA1/2-mutations, who have HER2-negative locally advanced or metastatic breast cancer. Patients should have been previously treated with an anthracycline and/or a taxane in the (neo)adjuvant, locally advanced or metastatic setting unless patients were not suitable for these treatments. Patients with hormone receptor (HR)-positive breast cancer should have been treated with a prior endocrine-based therapy or be considered unsuitable for endocrine-based therapy.",
+        "icd10": "C50",
+        "regimen_code": "00605a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2021-05-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 228,
+        "document_id": 107,
+        "indication": "Treatment of adult patients with unresectable or metastatic melanoma with a BRAF V600 mutation.",
+        "icd10": "C43",
+        "regimen_code": "00415a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2018-04-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 229,
+        "document_id": 107,
+        "indication": "Adjuvant treatment of adult patients with Stage III melanoma with a BRAF V600 mutation, following complete resection.",
+        "icd10": "C43",
+        "regimen_code": "00415b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2021-12-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 230,
+        "document_id": 108,
+        "indication": "Treatment of adult patients with BRAF V600 mutation-positive unresectable or metastatic melanoma.",
+        "icd10": "C43",
+        "regimen_code": "00102a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 231,
+        "document_id": 109,
+        "indication": "Treatment of chronic lymphocytic leukaemia (CLL) in the presence of 17p deletion or TP53 mutation in adult patients who are unsuitable for or have failed a B-cell receptor pathway inhibitor.",
+        "icd10": "C91",
+        "regimen_code": "00400a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2018-12-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 232,
+        "document_id": 109,
+        "indication": "Treatment of CLL in the absence of 17p deletion or TP53 mutation in adult patients who have failed both chemoimmunotherapy and a B-cell receptor pathway inhibitor",
+        "icd10": "C91",
+        "regimen_code": "00400b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2018-12-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 233,
+        "document_id": 110,
+        "indication": "As monotherapy for the treatment of adult patients with chronic lymphocytic leukaemia (CLL), who are treatment naive and have del(17p) and/or TP53-mutated disease.",
+        "icd10": "C91",
+        "regimen_code": "00708b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2023-09-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 234,
+        "document_id": 111,
+        "indication": "As monotherapy for the treatment of previously untreated CLL in the presence of 17p deletion or TP53 mutation in adult patients unsuitable for chemoimmunotherapy.",
+        "icd10": "C91",
+        "regimen_code": "00840b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2023-07-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 235,
+        "document_id": 112,
+        "indication": "As a single agent for the treatment of adult patients with chronic lymphocytic leukaemia (CLL) in first line in the presence of 17p deletion or TP53 mutation in patients unsuitable for chemo-immunotherapy.",
+        "icd10": "C91",
+        "regimen_code": "00296b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 236,
+        "document_id": 113,
+        "indication": "In combination with riTUXimab for the treatment of adult patients with chronic lymphocytic leukaemia (CLL) as first line treatment in the presence of 17p deletion or TP53 mutation in patients who are not eligible for any other therapies.",
+        "icd10": "C91",
+        "regimen_code": "00389b",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Idelalisib - CDS; riTUXimab - Hospital"
+    },
+    {
+        "id": 237,
+        "document_id": 114,
+        "indication": "Nivolumab in combination with ipilimumab for the treatment of adult patients with mismatch repair deficient or microsatellite instability-high metastatic colorectal cancer (MSI-H mCRC) after prior fluoropyrimidine-based combination chemotherapy.",
+        "icd10": "C18",
+        "regimen_code": "00551c",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2023-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 238,
+        "document_id": 115,
+        "indication": "First-line treatment of metastatic non-small cell lung carcinoma (NSCLC) in adults whose tumours express PD-L1 with a >= 50% tumour proportion score (TPS) with no EGFR mutations or ALK translocations.",
+        "icd10": "C34",
+        "regimen_code": "00455a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2018-04-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 239,
+        "document_id": 115,
+        "indication": "As monotherapy is indicated for the treatment of locally advanced or metastatic urothelial carcinoma in adults who are not eligible for cisplatin-containing chemotherapy whose tumours express PD-L1 with a combined positive score (CPS) >= 10.",
+        "icd10": "C67",
+        "regimen_code": "00455f",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-02-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 240,
+        "document_id": 115,
+        "indication": "As monotherapy for the first-line treatment of metastatic or unresectable recurrent head and neck squamous cell carcinoma (HNSCC) in adults whose tumours express PD-L1 with a CPS >= 1",
+        "icd10": "C67",
+        "regimen_code": "00455h",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-12-20",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 241,
+        "document_id": 115,
+        "indication": "As monotherapy for the treatment of recurrent, or metastatic cervical cancer with disease progression on or after chemotherapy in adults whose tumours express PD-L1 with a CPS >= 1",
+        "icd10": "C53",
+        "regimen_code": "00455j",
+        "reimbursement_category": "Reimbursement by exception",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 242,
+        "document_id": 115,
+        "indication": "First-line treatment of metastatic microsatellite instability-high (MSI-H) or mismatch repair deficient (dMMR) colorectal cancer (CRC) in adults",
+        "icd10": "C18",
+        "regimen_code": "00455k",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2023-04-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 243,
+        "document_id": 116,
+        "indication": "For the treatment of paediatric patients with solid tumours that display a Neurotrophic Tyrosine Receptor Kinase (NTRK) gene fusion, (i) who have a disease that is locally advanced, metastatic or where surgical resection is likely to result in severe morbidity, and (ii) who have no satisfactory treatment options",
+        "icd10": "Multiple",
+        "regimen_code": "P00760a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2023-05-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 244,
+        "document_id": 117,
+        "indication": "For the treatment of adult patients with solid tumours that display a Neurotrophic Tyrosine Receptor Kinase (NTRK) gene fusion, (i) who have a disease that is locally advanced, metastatic or where surgical resection is likely to result in severe morbidity, and (ii) who have no satisfactory treatment options",
+        "icd10": "Multiple",
+        "regimen_code": "00758a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2023-05-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 245,
+        "document_id": 118,
+        "indication": "Treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with activating mutations of EGFR-TK",
+        "icd10": "C34",
+        "regimen_code": "00220a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 246,
+        "document_id": 119,
+        "indication": "First-line treatment of patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) with EGFR activating mutations",
+        "icd10": "C34",
+        "regimen_code": "00219a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 247,
+        "document_id": 119,
+        "indication": "Switch maintenance treatment in patients with locally advanced or metastatic NSCLC with EGFR activating mutations and stable disease after first-line chemotherapy",
+        "icd10": "C34",
+        "regimen_code": "00219b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 248,
+        "document_id": 120,
+        "indication": "Treatment of adult patients with HER2-positive, unresectable locally advanced or metastatic breast cancer who previously received trastuzumab and a taxane, separately or in combination. Patients should have either: (i) Received prior therapy for locally advanced or metastatic disease, or (ii) Developed disease recurrence during or within six months of completing adjuvant therapy.",
+        "icd10": "C50",
+        "regimen_code": "00206a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 249,
+        "document_id": 121,
+        "indication": "Treatment of hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative locally advanced or metastatic breast cancer in combination with an aromatase inhibitor",
+        "icd10": "C50",
+        "regimen_code": "00414a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2018-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 250,
+        "document_id": 121,
+        "indication": "Treatment of hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative locally advanced or metastatic breast cancer in combination with fulvestrant in women who have received prior endocrine therapy",
+        "icd10": "C50",
+        "regimen_code": "00414b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2018-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 251,
+        "document_id": 122,
+        "indication": "Treatment of postmenopausal women with hormone receptor (HR) positive, human epidermal growth factor receptor 2 (HER2) negative locally advanced or metastatic breast cancer as initial endocrine-based therapy in combination with an aromatase inhibitor.",
+        "icd10": "C50",
+        "regimen_code": "00525a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2019-02-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 252,
+        "document_id": 122,
+        "indication": "Treatment of women with hormone receptor (HR) positive, human epidermal growth factor receptor 2 (HER2) negative locally advanced or metastatic breast cancer in combination with an aromatase inhibitor or fulvestrant as initial endocrine based therapy or in women who have received prior endocrine therapy. In pre or perimenopausal women, the endocrine therapy should be combined with a luteinising hormone releasing hormone (LHRH) agonist.",
+        "icd10": "C50",
+        "regimen_code": "00525b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2020-09-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 253,
+        "document_id": 123,
+        "indication": "Monotherapy for the treatment of adults with relapsed or refractory CD22-positive B cell precursor acute lymphoblastic leukaemia (ALL). Adult patients with Philadelphia chromosome positive (Ph+) relapsed or refractory B cell precursor ALL should have failed treatment with at least 1 tyrosine kinase inhibitor (TKI).",
+        "icd10": "C91",
+        "regimen_code": "00537a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2019-05-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 254,
+        "document_id": 124,
+        "indication": "As monotherapy for the treatment of paediatric patients aged 1 year or older with Philadelphia chromosome negative CD19 positive B-cell precursor ALL which is refractory or in relapse after receiving at least two prior therapies or in relapse after receiving prior allogeneic hematopoietic stem cell transplantation",
+        "icd10": "C91",
+        "regimen_code": "P0567a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2019-05-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 255,
+        "document_id": 125,
+        "indication": "Treatment of adult patients with relapsed/refractory CD30+ Hodgkin's lymphoma",
+        "icd10": "C81",
+        "regimen_code": "00530a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Brentuximab vedotin - ODMS; Etoposide, cisplatin, and cytarabine - Hospital"
+    },
+    {
+        "id": 256,
+        "document_id": 219,
+        "indication": "Treatment of adult patients with relapsed or refractory CD30+ Hodgkin lymphoma (HL).",
+        "icd10": "C81",
+        "regimen_code": "00529a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Brentuximab - ODMS; Bendamustine - Hospital"
+    },
+    {
+        "id": 257,
+        "document_id": 126,
+        "indication": "Pertuzumab in combination with trastuzumab and chemotherapy for the neoadjuvant treatment of adult patients with HER2-positive, locally advanced, inflammatory, or early stage breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00350a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2020-07-01",
+        "reimbursement_details": "Pertuzumab ODMS 2020-07-01; Trastuzumab, Chemotherapy - Hospital"
+    },
+    {
+        "id": 258,
+        "document_id": 127,
+        "indication": "Gemtuzumab ozogamicin is indicated for combination therapy with DAUNOrubicin and cytarabine for the treatment of patients age 15 years and above with previously untreated, de novo CD33 positive Acute Myeloid Leukemia (AML), except acute promyelocytic leukaemia",
+        "icd10": "C92",
+        "regimen_code": "00612a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2020-11-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 259,
+        "document_id": 128,
+        "indication": "Pembrolizumab is indicated in combination with PEMEtrexed and CARBOplatin for the first-line treatment of metastatic non-squamous NSCLC in adults whose tumors have no EGFR or ALK positive mutations",
+        "icd10": "C34",
+        "regimen_code": "00568a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2021-02-01",
+        "reimbursement_details": "Pembrolizumab - ODMS; Pemetrexed, Carboplatin - Hospital"
+    },
+    {
+        "id": 260,
+        "document_id": 129,
+        "indication": "Pembrolizumab is indicated in combination with PEMEtrexed and CISplatin for the first-line treatment of metastatic non-squamous NSCLC in adults whose tumors have no EGFR or ALK positive mutations",
+        "icd10": "C34",
+        "regimen_code": "00569a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2021-02-01",
+        "reimbursement_details": "Pembrolizumab - ODMS; Pemetrexed, Cisplatin - Hospital"
+    },
+    {
+        "id": 261,
+        "document_id": 130,
+        "indication": "As monotherapy is indicated for the treatment of locally advanced, unresectable non-small cell lung cancer (NSCLC) in adults whose tumours express PD-L1 >= 1% on tumour cells and whose disease has not progressed following platinum-based chemo-radiation therapy (CRT)",
+        "icd10": "C34",
+        "regimen_code": "00576a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-02-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 262,
+        "document_id": 131,
+        "indication": "Treatment of adult patients with locally advanced or metastatic urothelial carcinoma (UC) who are considered cisplatin ineligible and whose tumours have a PD-L1 expression >= 5%.",
+        "icd10": "C67",
+        "regimen_code": "00544c",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-07-01",
+        "reimbursement_details": "ODMS; 2021-10-01 (IV); 2024-06-01 (SC)"
+    },
+    {
+        "id": 263,
+        "document_id": 131,
+        "indication": "As monotherapy for the first-line treatment of adult patients with metastatic non-small cell lung cancer (NSCLC) whose tumours have a PD-L1 expression >= 50% tumour cells (TC) or >= 10% tumour-infiltrating immune cells (IC) and who do not have EGFR mutant or ALK-positive NSCLC.",
+        "icd10": "C34",
+        "regimen_code": "00544d",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-10-01",
+        "reimbursement_details": "ODMS; 2021-10-01 (IV); 2024-06-01 (SC)"
+    },
+    {
+        "id": 264,
+        "document_id": 131,
+        "indication": "Adjuvant treatment following complete resection and platinum-based chemotherapy for adult patients with non-small cell lung cancer (NSCLC) with a high risk of recurrence whose tumours have PD-L1 expression on >= 50% of tumour cells and who do not have EGFR mutant or ALK-positive mutations.",
+        "icd10": "C34",
+        "regimen_code": "00544e",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-03-05",
+        "reimbursement_details": "ODMS; 2024-03-05 (IV); 2024-06-01 (SC)"
+    },
+    {
+        "id": 265,
+        "document_id": 132,
+        "indication": "As a single agent, is indicated for the adjuvant treatment of adult patients with HER2-positive early breast cancer who have residual invasive disease, in the breast and/or lymph nodes, after neoadjuvant taxane-based and HER2-targeted therapy",
+        "icd10": "C50",
+        "regimen_code": "00659a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-12-20",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 266,
+        "document_id": 133,
+        "indication": "Pembrolizumab is indicated, in combination with CARBOplatin and 5-Fluorouracil, for the first-line treatment of metastatic or unresectable recurrent head and neck squamous cell carcinoma (HNSCC) in adults whose tumours express PD-L1 with a CPS >= 1.",
+        "icd10": "C76",
+        "regimen_code": "00705a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2021-12-20",
+        "reimbursement_details": "Pembrolizumab - ODMS; Carboplatin, 5-Fluorouracil - N/A"
+    },
+    {
+        "id": 267,
+        "document_id": 134,
+        "indication": "Pembrolizumab is indicated, in combination with CISplatin and 5-fluorouracil, for the first-line treatment of metastatic or unresectable recurrent head and neck squamous cell carcinoma (HNSCC) in adults whose tumours express PD-L1 with a CPS >= 1.",
+        "icd10": "C76",
+        "regimen_code": "00706a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2021-12-20",
+        "reimbursement_details": "Pembrolizumab - ODMS; Cisplatin, 5-Fluorouracil - N/A"
+    },
+    {
+        "id": 268,
+        "document_id": 135,
+        "indication": "First-line treatment of metastatic squamous non-small cell lung cancer (NSCLC) in adults whose tumours have no sensitising EGFR mutation or ALK translocation.",
+        "icd10": "C34",
+        "regimen_code": "00712a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2022-03-01",
+        "reimbursement_details": "Nivolumab, Ipilimumab - ODMS; Pemetrexed, Carboplatin - Hospital"
+    },
+    {
+        "id": 269,
+        "document_id": 136,
+        "indication": "First-line treatment of metastatic non-squamous non-small cell lung cancer (NSCLC) in adults whose tumours have no sensitising EGFR mutation or ALK translocation.",
+        "icd10": "C34",
+        "regimen_code": "00713a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2022-03-01",
+        "reimbursement_details": "Nivolumab, Ipilimumab - ODMS; Pemetrexed, Carbolatin - Hospital"
+    },
+    {
+        "id": 270,
+        "document_id": 137,
+        "indication": "First-line treatment of metastatic non-squamous non-small cell lung cancer (NSCLC) in adults whose tumours have no sensitising EGFR mutation or ALK translocation.",
+        "icd10": "C34",
+        "regimen_code": "00714a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2022-03-01",
+        "reimbursement_details": "Nivolumab, Ipilimumab - ODMS; Pemetrexed, Cisplatin - Hospital"
+    },
+    {
+        "id": 271,
+        "document_id": 138,
+        "indication": "Treatment of adult patients with unresectable locally advanced or metastatic triple-negative breast cancer (TNBC) whose tumours have PD-L1 expression >= 1% and who have not received prior chemotherapy for metastatic disease",
+        "icd10": "C50",
+        "regimen_code": "00688a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2022-03-01",
+        "reimbursement_details": "Atezolizumab - ODMS 2022-03-01; nab-Paclitaxel - Hospital"
+    },
+    {
+        "id": 272,
+        "document_id": 139,
+        "indication": "As monotherapy for the treatment of adults with Philadelphia chromosome negative CD19 positive B-precursor acute lymphoblastic leukaemia (ALL) in first or second complete remission with minimal residual disease (MRD) greater than or equal to 0.1%",
+        "icd10": "C91",
+        "regimen_code": "590",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-02-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 273,
+        "document_id": 140,
+        "indication": "As monotherapy for the treatment of paediatric patients aged 1 year or older with high-risk first relapsed Philadelphia chromosome negative CD19 positive B-precursor acute lymphoblastic leukaemia (ALL) as part of the consolidation therapy.",
+        "icd10": "C91",
+        "regimen_code": "P00707a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2022-05-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 274,
+        "document_id": 141,
+        "indication": "Neoadjuvant treatment of adult patients with HER2-positive, locally advanced, inflammatory, or early stage breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00790a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2022-12-20",
+        "reimbursement_details": "Pertuzumab / Trastuzumab (Phesgo) - ODMS 2022-12-20; Carboplatin, Paclitaxel - Hospital"
+    },
+    {
+        "id": 275,
+        "document_id": 142,
+        "indication": "Treatment of adult patients with CD30+ cutaneous T-cell lymphoma (CTCL) after at least 1 prior systemic therapy",
+        "icd10": "C84",
+        "regimen_code": "00234d",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2022-12-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 276,
+        "document_id": 142,
+        "indication": "Treatment of adult patients with CD30+ Hodgkins Lymphoma (HL) at increased risk of relapse or progression following an autologous haematopoietic stem cell transplant (ASCT).",
+        "icd10": "C81",
+        "regimen_code": "00234e",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2022-12-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 277,
+        "document_id": 142,
+        "indication": "Treatment of adult patients with relapsed or refractory CD30+ Hodgkin lymphoma (HL) following at least two prior therapies when ASCT or multi-agent chemotherapy is not a treatment option",
+        "icd10": "C81",
+        "regimen_code": "00234b",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2014-08-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 278,
+        "document_id": 143,
+        "indication": "Treatment of adult patients with relapsed or refractory CD30+ Hodgkin lymphoma (HL)",
+        "icd10": "C81",
+        "regimen_code": "00528a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Brentuxima - ODMS; Carboplatin, Etoposide, Ifosfamide - Hospital"
+    },
+    {
+        "id": 279,
+        "document_id": 144,
+        "indication": "Pembrolizumab in combination with platinum and fluoropyrimidine-based chemotherapy, for the first line treatment of patients with locally advanced unresectable or metastatic carcinoma of the oesophagus or HER-2 negative gastro-oesophageal junction adenocarcinoma in adults whose tumours express PD-L1 with CPS >= 10.",
+        "icd10": "C15/C16",
+        "regimen_code": "00739a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2023-06-01",
+        "reimbursement_details": "Pembrolizumab - ODMS; Cisplatin, 5-Fluorouracil - N/A"
+    },
+    {
+        "id": 280,
+        "document_id": 145,
+        "indication": "Nivolumab in combination with fluoropyrimidine and platinum-based combination chemotherapy for the first-line treatment of adult patients with unresectable advanced, recurrent or metastatic oesophageal squamous cell carcinoma (OSCC) with tumour cell programmed death ligand 1 (PD-L1) expression >= 1%.",
+        "icd10": "C15",
+        "regimen_code": "00832a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2023-07-01",
+        "reimbursement_details": "Nivolumab - ODMS; Cisplatin, 5-fluorouracil - Hospital"
+    },
+    {
+        "id": 281,
+        "document_id": 146,
+        "indication": "Treatment of adult patients with locally advanced or metastatic urothelial carcinoma (UC) who are considered cisplatin ineligible, and whose tumours have a PD-L1 expression >= 5%",
+        "icd10": "C67",
+        "regimen_code": "00593c",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-07-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 282,
+        "document_id": 146,
+        "indication": "As monotherapy for the first-line treatment of adult patients with metastatic non-small cell lung cancer (NSCLC) whose tumours have a PD-L1 expression >= 50% tumour cells (TC) or >= 10% tumour-infiltrating immune cells (IC) and who do not have EGFR mutant or ALK-positive NSCLC",
+        "icd10": "C34",
+        "regimen_code": "00593d",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-10-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 283,
+        "document_id": 146,
+        "indication": "Adjuvant treatment following complete resection and platinum-based chemotherapy for adult patients with non-small cell lung cancer (NSCLC) with a high risk of recurrence whose tumours have PD-L1 expression on >= 50% of tumour cells and who do not have EGFR mutant or ALK-positive mutations.",
+        "icd10": "C34",
+        "regimen_code": "00593f",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-03-05",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 284,
+        "document_id": 147,
+        "indication": "Pembrolizumab in combination with platinum and fluoropyrimidine-based chemotherapy, for the first line treatment of patients with locally advanced unresectable or metastatic carcinoma of the oesophagus or HER-2 negative gastro-oesophageal junction adenocarcinoma in adults whose tumours express PD-L1 with CPS >= 10.",
+        "icd10": "C15/C16",
+        "regimen_code": "00839a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2023-06-01",
+        "reimbursement_details": "Pembrolizumab - ODMS; Oxaliplatin, 5-fluorouracil - N/A"
+    },
+    {
+        "id": 285,
+        "document_id": 148,
+        "indication": "Treatment of adult patients with relapsed or refractory B cell precursor (BCP) Philadelphia chromosome negative acute lymphoblastic leukaemia (ALL) who have received no prior salvage treatment for relapsed/refractory (R/R) disease and are considered eligible for transplant (i.e. as a bridge-to-transplant).",
+        "icd10": "C91",
+        "regimen_code": "00538a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2019-05-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 286,
+        "document_id": 149,
+        "indication": "Pertuzumab/trastuzumab (Phesgo) is indicated in combination with PACLitaxel in adult patients with HER2- positive metastatic or locally recurrent unresectable breast cancer, who have not received previous anti- HER2 therapy or chemotherapy for their metastatic disease where patients are intolerant of, have had significant toxicity to or are deemed clinically unsuitable for DOCEtaxel",
+        "icd10": "C50",
+        "regimen_code": "00797a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2022-12-20",
+        "reimbursement_details": "Pertuzumab / Trastuzumab (Phesgo) - ODMS 2022-12-20; Paclitaxel - Hospital"
+    },
+    {
+        "id": 287,
+        "document_id": 150,
+        "indication": "Pertuzumab is indicated in combination with trastuzumab and PACLitaxel in adult patients with HER2- positive metastatic or locally recurrent unresectable breast cancer, who have not received previous anti- HER2 therapy or chemotherapy for their metastatic disease where patients are intolerant of, have had significant toxicity to or are deemed clinically unsuitable for DOCEtaxel",
+        "icd10": "C50",
+        "regimen_code": "00507a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2014-02-01",
+        "reimbursement_details": "Pertuzumab - ODMS 2014-02-01; Trastuzumab, Paclitaxel - Hospital"
+    },
+    {
+        "id": 288,
+        "document_id": 151,
+        "indication": "Pertuzumab/ trastuzumab (Phesgo) is indicated in combination with DOCEtaxel in adult patients with HER2-positive metastatic or locally recurrent unresectable breast cancer, who have not received previous anti- HER2 therapy or chemotherapy for their metastatic disease.",
+        "icd10": "C50",
+        "regimen_code": "00796a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2022-12-20",
+        "reimbursement_details": "Pertuzumab / Trastuzumab (Phesgo) - ODMS 2022-12-20; Docetaxel - Hospital"
+    },
+    {
+        "id": 289,
+        "document_id": 152,
+        "indication": "Pertuzumab is indicated in combination with trastuzumab and DOCEtaxel in adult patients with HER2- positive metastatic or locally recurrent unresectable breast cancer, who have not received previous anti- HER2 therapy or chemotherapy for their metastatic disease.",
+        "icd10": "C50",
+        "regimen_code": "00204a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-02-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 290,
+        "document_id": 153,
+        "indication": "Pertuzumab/trastuzumab (Phesgo) and vinorelbine for the treatment of adult patients with HER2- positive metastatic or locally recurrent unresectable breast cancer, who have not received previous anti- HER2 therapy or chemotherapy for their metastatic disease where patients are deemed clinically unsuitable for taxane based therapy.",
+        "icd10": "C50",
+        "regimen_code": "00798a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2022-12-20",
+        "reimbursement_details": "Pertuzumab / Trastuzumab (Phesgo) - ODMS 2022-12-20; Vinorelbine - Hospital"
+    },
+    {
+        "id": 291,
+        "document_id": 154,
+        "indication": "Pertuzumab in combination with trastuzumab and vinorelbine for the treatment of adult patients with HER2- positive metastatic or locally recurrent unresectable breast cancer, who have not received previous anti- HER2 therapy or chemotherapy for their metastatic disease where patients are deemed clinically unsuitable for taxane based therapy",
+        "icd10": "C50",
+        "regimen_code": "00526a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Pertuzumab - ODMS; Trastuzumab, Vinorelbine - Hospital"
+    },
+    {
+        "id": 292,
+        "document_id": 155,
+        "indication": "Pertuzumab/ trastuzumab (Phesgo) for the maintenance treatment of adult patients with HER2- positive metastatic or locally recurrent unresectable breast cancer, where this is a continuation of treatment for patients who have completed the chemotherapy component of the treatment.",
+        "icd10": "C50",
+        "regimen_code": "785",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2022-12-20",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 293,
+        "document_id": 156,
+        "indication": "Neoadjuvant treatment of adult patients with HER2-positive locally advanced, inflammatory or early breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00722a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2020-07-01",
+        "reimbursement_details": "Pertuzumab - ODMS 2020-07-01; Trastuzumab, Carboplatin, Docetaxel - Hospital"
+    },
+    {
+        "id": 294,
+        "document_id": 157,
+        "indication": "Nivolumab in combination with platinum-based chemotherapy is indicated for the neoadjuvant treatment of resectable NSCLC at high risk of recurrence in adult patients whose tumours have PD-L1 expression >= 1%.",
+        "icd10": "C34",
+        "regimen_code": "00849a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2024-05-01",
+        "reimbursement_details": "Nivolumab - ODMS; Chemotherapy - N/A"
+    },
+    {
+        "id": 295,
+        "document_id": 158,
+        "indication": "Pembrolizumab in combination with chemotherapy as neoadjuvant treatment, and then continued as monotherapy as adjuvant treatment after surgery, is indicated for the treatment of adults with locally advanced, or early stage triple negative breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00858a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 296,
+        "document_id": 142,
+        "indication": "Treatment of adult patients with relapsed or refractory CD30+ Hodgkin lymphoma (HL) following autologous stem cell transplant (ASCT)",
+        "icd10": "C81",
+        "regimen_code": "00234a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2014-08-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 297,
+        "document_id": 178,
+        "indication": "Abemaciclib in combination with endocrine therapy for the adjuvant treatment of adult patients with hormone receptor (HR)-positive, human epidermal growth factor receptor 2 (HER2)-negative, node-positive early breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00619a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2024-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 298,
+        "document_id": 166,
+        "indication": "Treatment of hormone receptor positive locally advanced or metastatic breast cancer in post-menopausal women.",
+        "icd10": "C50",
+        "regimen_code": "254a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 299,
+        "document_id": 166,
+        "indication": "Adjuvant treatment of postmenopausal women with hormone receptor positive invasive early breast cancer.",
+        "icd10": "C50",
+        "regimen_code": "254b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 300,
+        "document_id": 161,
+        "indication": "In combination with paclitaxel is indicated for first-line treatment of adult patients with HER2-negative metastatic breast cancer.",
+        "icd10": "C50",
+        "regimen_code": "00212c",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 301,
+        "document_id": 162,
+        "indication": "In combination with PACLitaxel is indicated for first-line treatment of adult patients with HER2-negative metastatic breast cancer.",
+        "icd10": "C50",
+        "regimen_code": "00215e",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 302,
+        "document_id": 162,
+        "indication": "In combination with erlotinib is indicated for the first-line treatment of adult patients with unresectable advanced, metastatic or recurrent non-squamous cell lung cancer with Epidermal Growth Factor (EGFR) activating mutations",
+        "icd10": "C34",
+        "regimen_code": "00215g",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 303,
+        "document_id": 163,
+        "indication": "Adjuvant treatment of stage I to IIIB, triple negative breast cancer (TNBC) in patients with residual invasive disease after neoadjuvant chemotherapy treatment.",
+        "icd10": "C50",
+        "regimen_code": "00216f",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 304,
+        "document_id": 181,
+        "indication": "Neoadjuvant treatment of triple negative breast carcinoma",
+        "icd10": "C50",
+        "regimen_code": "00734a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 305,
+        "document_id": 171,
+        "indication": "Neoadjuvant treatment of triple negative breast carcinoma.",
+        "icd10": "C50",
+        "regimen_code": "00348a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 306,
+        "document_id": 183,
+        "indication": "Neoadjuvant treatment of adult patients with HER2-positive locally advanced, inflammatory or early breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00789a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2022-12-20",
+        "reimbursement_details": "Pertuzumab/trastuzumab (Phesgo) - ODMS 2022-12-20; CARBOPLATIN and DOCEtaxel - N/A"
+    },
+    {
+        "id": 307,
+        "document_id": 167,
+        "indication": "Adjuvant treatment HER2 positive early breast cancer",
+        "icd10": "C50",
+        "regimen_code": "00258a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 308,
+        "document_id": 180,
+        "indication": "Neoadjuvant treatment of adult patients with HER2-positive locally advanced, inflammatory or early breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00731a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Trastuzumab, Carboplatin, and Docetaxel - Hospital; Pertuzumab - ODMS 2020-07-01"
+    },
+    {
+        "id": 309,
+        "document_id": 185,
+        "indication": "Adjuvant Treatment of HER2 positive, High Risk Node Negative or Node Positive Breast Cancer.",
+        "icd10": "C50",
+        "regimen_code": "00433a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 310,
+        "document_id": 185,
+        "indication": "Neoadjuvant Treatment of HER2 positive, High Risk Node Negative or Node Positive Breast Cancer.",
+        "icd10": "C50",
+        "regimen_code": "00433b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 311,
+        "document_id": 176,
+        "indication": "Adjuvant Treatment of HER2 positive, High Risk Node Negative or Node Positive Breast Cancer.",
+        "icd10": "C50",
+        "regimen_code": "00432a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 312,
+        "document_id": 176,
+        "indication": "Neoadjuvant Treatment of HER2 positive, High Risk Node Negative or Node Positive Breast Cancer.",
+        "icd10": "C50",
+        "regimen_code": "00432b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 313,
+        "document_id": 170,
+        "indication": "Treatment of hormone receptor-positive, HER2/neu negative advanced breast cancer, in combination with exemestane, in postmenopausal women without symptomatic visceral disease after recurrence or progression following a non-steroidal aromatase inhibitor.",
+        "icd10": "C50",
+        "regimen_code": "00322a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 314,
+        "document_id": 174,
+        "indication": "Adjuvant treatment of postmenopausal women with hormone receptor positive invasive early breast cancer",
+        "icd10": "C50",
+        "regimen_code": "00376a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 315,
+        "document_id": 172,
+        "indication": "Treatment of postmenopausal women with oestrogen receptor positive, locally advanced or metastatic breast cancer for disease relapse on or after adjuvant anti-oestrogen therapy.",
+        "icd10": "C50",
+        "regimen_code": "00361a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 316,
+        "document_id": 172,
+        "indication": "Treatment of postmenopausal women with oestrogen receptor positive, locally advanced or metastatic breast cancer for disease progression on or after adjuvant anti-oestrogen therapy.",
+        "icd10": "C50",
+        "regimen_code": "00361b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 317,
+        "document_id": 175,
+        "indication": "Treatment of locally recurrent metastatic triple negative breast cancer.",
+        "icd10": "C50",
+        "regimen_code": "00430a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 318,
+        "document_id": 164,
+        "indication": "Treatment of adult patients with breast cancer, whose tumours overexpress HER2 in combination with capecitabine for patients with advanced or metastatic disease with progression following prior therapy, which should have included anthracyclines and taxanes and therapy with trastuzumab in the metastatic setting.",
+        "icd10": "C50",
+        "regimen_code": "00217a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 319,
+        "document_id": 173,
+        "indication": "Adjuvant treatment of postmenopausal women with hormone receptor positive invasive early breast cancer.",
+        "icd10": "C50",
+        "regimen_code": "00371a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 320,
+        "document_id": 173,
+        "indication": "Neo-adjuvant treatment of postmenopausal women with hormone receptor positive breast cancer.",
+        "icd10": "C50",
+        "regimen_code": "00371d",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 321,
+        "document_id": 177,
+        "indication": "Adjuvant Treatment of HER2 positive, Node-Negative Breast Cancer of tumour size <= 3cm.",
+        "icd10": "C50",
+        "regimen_code": "00512a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 322,
+        "document_id": 184,
+        "indication": "Pembrolizumab in combination with chemotherapy as neoadjuvant treatment, and then continued as monotherapy as adjuvant treatment after surgery, is indicated for the treatment of adults with locally advanced, or early stage triple negative breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00857a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 323,
+        "document_id": 179,
+        "indication": "Pertuzumab in combination with trastuzumab for the maintenance treatment of adult patients with HER2-positive metastatic or locally recurrent unresectable breast cancer, where this is a continuation of treatment for patients who have completed the chemotherapy component of the treatment.",
+        "icd10": "C50",
+        "regimen_code": "00726a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2014-02-01",
+        "reimbursement_details": "Pertuzumab - ODMS Feb 2014; Trastuzumab - N/A"
+    },
+    {
+        "id": 324,
+        "document_id": 182,
+        "indication": "Neoadjuvant treatment of adult patients with HER2-positive, locally advanced, inflammatory, or early stage breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00775a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2020-07-01",
+        "reimbursement_details": "Trastuzumab, Carboplatin, and Paclitaxel - Hospital; Pertuzumab - ODMS 2020-07-01"
+    },
+    {
+        "id": 325,
+        "document_id": 165,
+        "indication": "Adjuvant treatment of oestrogen receptor positive breast cancer in pre- or post-menopausal women.",
+        "icd10": "C50",
+        "regimen_code": "00253a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 326,
+        "document_id": 165,
+        "indication": "Treatment of oestrogen receptor positive advanced breast cancer in pre- or post-menopausal women.",
+        "icd10": "C50",
+        "regimen_code": "00253b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 327,
+        "document_id": 159,
+        "indication": "HER2 positive metastatic breast cancer (MBC).",
+        "icd10": "C50",
+        "regimen_code": "00200a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 328,
+        "document_id": 159,
+        "indication": "HER2 positive early breast cancer (EBC).",
+        "icd10": "C50",
+        "regimen_code": "00200b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 329,
+        "document_id": 160,
+        "indication": "Treatment of patients with HER2 positive metastatic breast cancer (MBC).",
+        "icd10": "C50",
+        "regimen_code": "00201a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 330,
+        "document_id": 169,
+        "indication": "HER2 positive early breast cancer (EBC) following surgery, chemotherapy (neoadjuvant or adjuvant) and radiotherapy (if applicable).",
+        "icd10": "C50",
+        "regimen_code": "00285a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 331,
+        "document_id": 169,
+        "indication": "HER2 positive early breast cancer (EBC) following adjuvant chemotherapy with doxorubicin and cyclophosphamide, in combination with PACLitaxel or DOCEtaxel.",
+        "icd10": "C50",
+        "regimen_code": "00285b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 332,
+        "document_id": 169,
+        "indication": "HER2 positive early breast cancer (EBC) in combination with adjuvant chemotherapy consisting of DOCEtaxel and CARBOplatin.",
+        "icd10": "C50",
+        "regimen_code": "00285c",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 333,
+        "document_id": 169,
+        "indication": "HER2 positive early breast cancer (EBC) in combination with neoadjuvant chemotherapy followed by adjuvant trastuzumab therapy, for locally advanced (including inflammatory) disease or tumours >2cm in diameter.",
+        "icd10": "C50",
+        "regimen_code": "00285d",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 334,
+        "document_id": 168,
+        "indication": "HER2 positive metastatic breast cancer (MBC) as monotherapy for the treatment of those patients who have received at least two chemotherapy regimens for their metastatic disease. Prior chemotherapy must have included at least an anthracycline and a taxane unless patients are unsuitable for these treatments. Hormone receptor positive patients must also have failed hormonal therapy, unless patients are unsuitable for these treatments.",
+        "icd10": "C50",
+        "regimen_code": "00272a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 335,
+        "document_id": 168,
+        "indication": "HER2 positive metastatic breast cancer (MBC) in combination with PACLitaxel for the treatment of those patients who have not received chemotherapy for their metastatic disease and for whom an anthracycline is not suitable.",
+        "icd10": "C50",
+        "regimen_code": "00272b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 336,
+        "document_id": 168,
+        "indication": "HER2 positive metastatic breast cancer (MBC) in combination with DOCEtaxel for the treatment of those patients who have not received chemotherapy for their metastatic disease.",
+        "icd10": "C50",
+        "regimen_code": "00272c",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 337,
+        "document_id": 168,
+        "indication": "HER2 positive metastatic breast cancer (MBC) in combination with an aromatase inhibitor for the treatment of postmenopausal patients with hormone-receptor positive MBC, not previously treated with trastuzumab.",
+        "icd10": "C50",
+        "regimen_code": "00272d",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 338,
+        "document_id": 194,
+        "indication": "Treatment of patients with RAS wild type metastatic colorectal cancer.",
+        "icd10": "C18",
+        "regimen_code": "00585a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 339,
+        "document_id": 190,
+        "indication": "Second line therapy for metastatic colorectal cancer with non-mutated (wild type) RAS after failure of or contraindication to oxaliplatin based therapy.",
+        "icd10": "C18",
+        "regimen_code": "00331a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 340,
+        "document_id": 189,
+        "indication": "Second line therapy for metastatic colorectal cancer with non-mutated (wild type) RAS after failure of or contraindication to oxaliplatin based therapy.",
+        "icd10": "C18",
+        "regimen_code": "00330a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 341,
+        "document_id": 186,
+        "indication": "As monotherapy for the treatment of patients with epidermal growth factor receptor (EGFR)-expressing RAS wild-type metastatic colorectal cancer (mCRC) in patients who have failed oxaliplatin- and irinotecan-based therapy and who are intolerant to irinotecan.",
+        "icd10": "C18",
+        "regimen_code": "00207a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 342,
+        "document_id": 188,
+        "indication": "Treatment of patients with RAS wild type metastatic colorectal cancer.",
+        "icd10": "C18",
+        "regimen_code": "00328a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 343,
+        "document_id": 195,
+        "indication": "Nivolumab in combination with fluoropyrimidine and platinum-based combination chemotherapy for the first-line treatment of adult patients with unresectable advanced, recurrent or metastatic oesophageal squamous cell carcinoma (OSCC) with tumour cell programmed death ligand 1 (PD-L1) expression >= 1%.",
+        "icd10": "C15",
+        "regimen_code": "00816a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "PDF notes that the platinum and fluoropyrimidine based chemo is not defined in the EMA licensed indication. Nivolumab ODMS 2023-07-01; Cisplatin, 5-fluorouracil - Hospital"
+    },
+    {
+        "id": 344,
+        "document_id": 196,
+        "indication": "Nivolumab in combination with fluoropyrimidine and platinum-based combination chemotherapy for the first-line treatment of adult patients with unresectable advanced, recurrent or metastatic oesophageal squamous cell carcinoma (OSCC) with tumour cell programmed death ligand 1 (PD-L1) expression >= 1%.",
+        "icd10": "C15",
+        "regimen_code": "00844a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "2023-07-01",
+        "reimbursement_details": "Nivolumab - ODMS 2023-07-01; Oxaliplatin, 5-fluorouracil - Hospital"
+    },
+    {
+        "id": 345,
+        "document_id": 192,
+        "indication": "First line treatment of adult patients with wild-type RAS metastatic colorectal cancer (mCRC).",
+        "icd10": "C18",
+        "regimen_code": "00448a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 346,
+        "document_id": 192,
+        "indication": "Second line treatment of adult patients with wild-type RAS mCRC who have received first-line fluoropyrimidine-based chemotherapy (excluding irinotecan).",
+        "icd10": "C18",
+        "regimen_code": "00448b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 347,
+        "document_id": 191,
+        "indication": "First line treatment of adult patients with wild-type RAS metastatic colorectal cancer (mCRC).",
+        "icd10": "C18,C19,C20",
+        "regimen_code": "00447a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 348,
+        "document_id": 187,
+        "indication": "Treatment of adult patients with wild-type RAS metastatic colorectal cancer (mCRC) as monotherapy after failure of fluoropyrimidine, oxaliplatin, and irinotecan containing chemotherapy regimens.",
+        "icd10": "C18",
+        "regimen_code": "00225c",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 349,
+        "document_id": 197,
+        "indication": "First-line treatment of metastatic non-small cell lung carcinoma (NSCLC) in adults whose tumours express PD-L1 with a >= 50% tumour proportion score (TPS) with no EGFR mutations or ALK translocations.",
+        "icd10": "C34",
+        "regimen_code": "00558a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2018-04-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 350,
+        "document_id": 197,
+        "indication": "As monotherapy is indicated for the treatment of locally advanced or metastatic urothelial carcinoma in adults who are not eligible for cisplatin-containing chemotherapy whose tumours express PD-L1 with a combined positive score (CPS) >= 10.",
+        "icd10": "C67",
+        "regimen_code": "00558f",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-02-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 351,
+        "document_id": 197,
+        "indication": "As monotherapy for the first-line treatment of metastatic or unresectable recurrent head and neck squamous cell carcinoma (HNSCC) in adults whose tumours express PD-L1 with a CPS >= 1",
+        "icd10": "C67",
+        "regimen_code": "00558h",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-12-20",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 352,
+        "document_id": 197,
+        "indication": "As monotherapy for the treatment of recurrent, or metastatic cervical cancer with disease progression on or after chemotherapy in adults whose tumours express PD-L1 with a CPS >= 1",
+        "icd10": "C53",
+        "regimen_code": "00558j",
+        "reimbursement_category": "Reimbursement by exception",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 353,
+        "document_id": 197,
+        "indication": "First-line treatment of metastatic microsatellite instability-high (MSI-H) or mismatch repair deficient (dMMR) colorectal cancer (CRC) in adults",
+        "icd10": "C18",
+        "regimen_code": "00558k",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2023-04-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 354,
+        "document_id": 193,
+        "indication": "Treatment of adult patients with HER2 positive metastatic adenocarcinoma of the stomach or gastroesophageal junction who have not received prior anti-cancer treatment for their metastatic disease.",
+        "icd10": "C16",
+        "regimen_code": "00502a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 355,
+        "document_id": 208,
+        "indication": "Treatment of adult patients with locally advanced or metastatic urothelial carcinoma (UC) who are considered cisplatin ineligible and whose tumours have a PD-L1 expression >= 5%.",
+        "icd10": "C67",
+        "regimen_code": "00592c",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-07-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 356,
+        "document_id": 208,
+        "indication": "As monotherapy for the first-line treatment of adult patients with metastatic non-small cell lung cancer (NSCLC) whose tumours have a PDL1 expression >= 50% tumour cells (TC) or >= 10% tumour-infiltrating immune cells (IC) and who do not have EGFR mutant or ALK-positive NSCLC.",
+        "icd10": "C34",
+        "regimen_code": "00592d",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-10-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 357,
+        "document_id": 208,
+        "indication": "Adjuvant treatment following complete resection and platinum-based chemotherapy for adult patients with non-small cell lung cancer (NSCLC) with a high risk of recurrence whose tumours have PD-L1 expression on >= 50% of tumour cells and who do not have EGFR mutant or ALK-positive mutations.",
+        "icd10": "C34",
+        "regimen_code": "00592e",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-03-05",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 358,
+        "document_id": 198,
+        "indication": "Treatment of persistent, recurrent, or metastatic cervical cancer in adults whose tumours express PD-L1 with a CPS >= 1.",
+        "icd10": "C53",
+        "regimen_code": "00811a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Pembrolizumab - Reimbursement by exception; Paclitaxel, Carboplatin, and Bevacizumab - Hospital"
+    },
+    {
+        "id": 359,
+        "document_id": 199,
+        "indication": "Treatment of persistent, recurrent, or metastatic cervical cancer in adults whose tumours express PD-L1 with a CPS >= 1.",
+        "icd10": "C53",
+        "regimen_code": "00817a",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Pembrolizumab - Reimbursement by exception; Paclitaxel, and Carboplatin - Hospital"
+    },
+    {
+        "id": 360,
+        "document_id": 202,
+        "indication": "Midostaurin is indicated in combination with intermediate dose cytarabine consolidation chemotherapy for adult patients with newly diagnosed acute myeloid leukaemia (AML) who are FLT3 mutation positive",
+        "icd10": "C92",
+        "regimen_code": "00683a",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2021-10-01",
+        "reimbursement_details": "Midostaurin - CDS 2021-10-01; Cytarabine - N/A"
+    },
+    {
+        "id": 361,
+        "document_id": 201,
+        "indication": "Midostaurin is indicated as single agent maintenance therapy for adult patients with FLT3 mutation positive acute myeloid leukaemia (AML) in complete response after completion of induction and consolidation chemotherapy.",
+        "icd10": "C92",
+        "regimen_code": "00661a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2021-10-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 362,
+        "document_id": 204,
+        "indication": "In combination with nivolumab for the neoadjuvant treatment of resectable NSCLC at high risk of recurrence in adult patients whose tumours have PD-L1 expression >= 1% (3 cycles only). This combination is available in NCIS (00849.1)",
+        "icd10": "C34",
+        "regimen_code": "00304c",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2024-05-01",
+        "reimbursement_details": "Nivolumab - ODMS 2024-05-01; Chemotherapy - N/A"
+    },
+    {
+        "id": 363,
+        "document_id": 209,
+        "indication": "As monotherapy is indicated for the treatment of locally advanced, unresectable non-small cell lung cancer (NSCLC) in adults whose tumours express PD-L1 >= 1% on tumour cells and whose disease has not progressed following platinum-based chemo-radiation therapy (CRT).",
+        "icd10": "C34",
+        "regimen_code": "00655a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2021-02-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 364,
+        "document_id": 205,
+        "indication": "In combination with nivolumab for the neoadjuvant treatment of resectable NSCLC at high risk of recurrence in adult patients whose tumours have PD-L1 expression >= 1% (3 cycles only). This combination is available in NCIS (00849.2)",
+        "icd10": "C34",
+        "regimen_code": "00310c",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2024-05-01",
+        "reimbursement_details": "Nivolumab - ODMS 2024-05-01; Chemotherapy - N/A"
+    },
+    {
+        "id": 365,
+        "document_id": 203,
+        "indication": "In combination with nivolumab for the neoadjuvant treatment of resectable NSCLC at high risk of recurrence in adult patients whose tumours have PD-L1 expression >= 1% (3 cycles only). This combination is available in NCIS (00849.3)",
+        "icd10": "C34",
+        "regimen_code": "00281b",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2024-05-01",
+        "reimbursement_details": "Nivolumab - ODMS 2024-05-01; Chemotherapy - N/A"
+    },
+    {
+        "id": 366,
+        "document_id": 207,
+        "indication": "In combination with nivolumab for the neoadjuvant treatment of resectable NSCLC at high risk of recurrence in adult patients whose tumours have PD-L1 expression >= 1% (3 cycles only). This combination is available in NCIS (00849.4)",
+        "icd10": "C34",
+        "regimen_code": "00318c",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2024-05-01",
+        "reimbursement_details": "Nivolumab - ODMS 2024-05-01; Chemotherapy - N/A"
+    },
+    {
+        "id": 367,
+        "document_id": 206,
+        "indication": "In combination with nivolumab for the neoadjuvant treatment of resectable NSCLC at high risk of recurrence in adult patients whose tumours have PD-L1 expression >= 1% (3 cycles only). This combination is available in NCIS (00849.5)",
+        "icd10": "C34",
+        "regimen_code": "00317c",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "2024-05-01",
+        "reimbursement_details": "Nivolumab - ODMS 2024-05-01; Chemotherapy - N/A"
+    },
+    {
+        "id": 368,
+        "document_id": 225,
+        "indication": "First line treatment of patients with low grade B cell Non Hodgkin's lymphoma (NHL). Rituximab to be included in CD20 positive patients.",
+        "icd10": "C82",
+        "regimen_code": "00293a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 369,
+        "document_id": 225,
+        "indication": "Treatment of patients with relapsed/refractory low grade B cell Non Hodgkin's lymphoma (NHL).",
+        "icd10": "C85",
+        "regimen_code": "00293b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 370,
+        "document_id": 215,
+        "indication": "Treatment of Non Hodgkin's Lymphoma (NHL). Rituximab to be included in CD20 positive patients.",
+        "icd10": "C85",
+        "regimen_code": "409",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 371,
+        "document_id": 210,
+        "indication": "Treatment of Non Hodgkins Lymphoma (NHL). Rituximab to be included in CD20 positive patients.",
+        "icd10": "C85",
+        "regimen_code": "00307a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 372,
+        "document_id": 216,
+        "indication": "Treatment of Non Hodgkin Lymphoma in patients aged greater than 80 or with significant co-morbidities. Rituximab to be included in all CD20 positive patients.",
+        "icd10": "C85",
+        "regimen_code": "00436a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 373,
+        "document_id": 212,
+        "indication": "Treatment of relapsed Non Hodgkin Lymphoma. Rituximab to be included in CD20 positive patients.",
+        "icd10": "C85",
+        "regimen_code": "00395a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 374,
+        "document_id": 214,
+        "indication": "Treatment of relapsed / refractory Non Hodgkin's Lymphoma. Rituximab to be included in CD20 positive patients.",
+        "icd10": "C85",
+        "regimen_code": "00397a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 375,
+        "document_id": 224,
+        "indication": "Treatment of patients with CD20 positive diffuse large B-cell Non Hodgkin's lymphoma (NHL).",
+        "icd10": "C83",
+        "regimen_code": "00672a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 376,
+        "document_id": 213,
+        "indication": "Treatment of patients with CD20 positive diffuse large B-cell Non Hodgkins lymphoma (NHL).",
+        "icd10": "C83",
+        "regimen_code": "00355a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 377,
+        "document_id": 218,
+        "indication": "Treatment of Non Hodgkin CD20 positive Lymphoma for patients not suitable for anthracycline therapy.",
+        "icd10": "C85",
+        "regimen_code": "00510a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 378,
+        "document_id": 217,
+        "indication": "Relapsed or refractory CD20 positive diffuse large B cell lymphoma in patients ineligible for stem cell transplant.",
+        "icd10": "C83",
+        "regimen_code": "00506a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 379,
+        "document_id": 223,
+        "indication": "Maintenance therapy for the treatment of previously untreated follicular CD20 positive, B-cell Non Hodgkin Lymphoma patients responding to induction therapy.",
+        "icd10": "C82",
+        "regimen_code": "00600a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 380,
+        "document_id": 222,
+        "indication": "Maintenance therapy for the treatment of relapsed/refractory follicular CD20 positive, B-cell Non Hodgkin Lymphoma (NHL) in patients who have responded to induction therapy.",
+        "icd10": "C82",
+        "regimen_code": "00599a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 381,
+        "document_id": 220,
+        "indication": "In combination with chemotherapy for induction treatment of previously untreated or relapsed/ refractory CD 20 positive patients with follicular lymphoma.",
+        "icd10": "C82",
+        "regimen_code": "00542a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 382,
+        "document_id": 221,
+        "indication": "Maintenance therapy for the treatment of previously untreated follicular CD20 positive, B-cell Non Hodgkin Lymphoma patients responding to induction therapy.",
+        "icd10": "C82",
+        "regimen_code": "00543a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 383,
+        "document_id": 226,
+        "indication": "Maintenance therapy for the treatment of relapsed/refractory follicular CD20 positive, B-cell Non Hodgkin Lymphoma (NHL) in patients who have responded to induction therapy.",
+        "icd10": "C82",
+        "regimen_code": "00540a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 384,
+        "document_id": 211,
+        "indication": "Treatment of patients with previously untreated indolent CD20-positive, stage III-IV non-hodgkin lymphoma (NHL).",
+        "icd10": "C82",
+        "regimen_code": "00345a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 385,
+        "document_id": 211,
+        "indication": "Treatment of patients with previously untreated CD20-positive, stage III-IV mantle cell lymphoma (MCL), ineligible for autologous stem cell transplant.",
+        "icd10": "C83",
+        "regimen_code": "00345b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 386,
+        "document_id": 200,
+        "indication": "In combination with Ofatumumab for the treatment of adult patients with chronic lymphocytic leukaemia (CLL) as first line treatment in the presence of 17p deletion or TP53 mutation in patients who are not eligible for any other therapies.",
+        "icd10": "C91",
+        "regimen_code": "00390b",
+        "reimbursement_category": "Hybrid",
+        "reimbursement_date": "",
+        "reimbursement_details": "Idelalisib - CDS; Ofatumumab - Hospital"
+    },
+    {
+        "id": 387,
+        "document_id": 227,
+        "indication": "Treatment of adult patients with Kit (CD117) positive unresectable and/or metastatic malignant gastrointestinal stromal tumours (GIST).",
+        "icd10": "C16",
+        "regimen_code": "00335a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 388,
+        "document_id": 227,
+        "indication": "Adjuvant treatment of adult patients who are at significant risk of relapse following resection of Kit (CD117)-positive GIST.",
+        "icd10": "C16",
+        "regimen_code": "00335b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 389,
+        "document_id": 228,
+        "indication": "As monotherapy for the treatment of adult patients with advanced non-small cell lung cancer (NSCLC) harbouring alterations leading to mesenchymal-epithelial transition factor gene exon 14 (METex14) skipping, who require systemic therapy following prior treatment with immunotherapy and/or platinum-based chemotherapy.",
+        "icd10": "C34",
+        "regimen_code": "00823a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-08-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 390,
+        "document_id": 229,
+        "indication": "As monotherapy for the treatment of adult patients with unresectable or metastatic HER2-positive breast cancer who have received one or more prior anti-HER2-based regimens.",
+        "icd10": "C50",
+        "regimen_code": "00776a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-08-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 391,
+        "document_id": 230,
+        "indication": "Pembrolizumab in combination with chemotherapy as neoadjuvant treatment, and then continued as monotherapy as adjuvant treatment after surgery, is indicated for the treatment of adults with locally advanced, or early stage triple negative breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00860a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 392,
+        "document_id": 231,
+        "indication": "Pembrolizumab in combination with chemotherapy as neoadjuvant treatment, and then continued as monotherapy as adjuvant treatment after surgery, is indicated for the treatment of adults with locally advanced, or early stage triple negative breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00861a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-06-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 393,
+        "document_id": 232,
+        "indication": "Treatment of medullary thyroid cancer (MTC) in patients with Rearranged during Transfection (RET) mutation positive, unresectable locally advanced or metastatic disease.",
+        "icd10": "C73",
+        "regimen_code": "00242a",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 394,
+        "document_id": 126,
+        "indication": "Pertuzumab in combination with trastuzumab and chemotherapy for the adjuvant treatment of adult patients with HER2-positive breast cancer at high risk of recurrence.",
+        "icd10": "C50",
+        "regimen_code": "00350b",
+        "reimbursement_category": "Incomplete",
+        "reimbursement_date": "",
+        "reimbursement_details": "Pertuzumab - Reimbursement not approved; Trastuzumab, Chemotherapy - Hospital"
+    },
+    {
+        "id": 395,
+        "document_id": 146,
+        "indication": "Treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) after prior chemotherapy.",
+        "icd10": "C34",
+        "regimen_code": "00593a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2019-03-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 396,
+        "document_id": 131,
+        "indication": "Treatment of adult patients with locally advanced or metastatic non-small cell lung cancer (NSCLC) after prior chemotherapy.",
+        "icd10": "C34",
+        "regimen_code": "00544a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2019-03-01",
+        "reimbursement_details": "ODMS; 2019-03-01 (IV); 2024-06-01 (SC)"
+    },
+    {
+        "id": 397,
+        "document_id": 233,
+        "indication": "Treatement of patients with newly diagnosed low to intermediate risk Acute Promyelocytic Leukaemia (APL) (defined as WCC count <= 10x10^9/L)",
+        "icd10": "C92",
+        "regimen_code": "00356a",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 398,
+        "document_id": 233,
+        "indication": "Treatement of patients with relapsed or refractory APL after ATRA/chemotherapy",
+        "icd10": "C92",
+        "regimen_code": "00356b",
+        "reimbursement_category": "Hospital",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 399,
+        "document_id": 234,
+        "indication": "As monotherapy for the treatment of adult patients with unresectable or metastatic triple-negative breast cancer (mTNBC) who have received two or more prior systemic therapies, including at least one of them for advanced disease.",
+        "icd10": "C50",
+        "regimen_code": "00794a",
+        "reimbursement_category": "ODMS",
+        "reimbursement_date": "2024-09-01",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 400,
+        "document_id": 235,
+        "indication": "For the treatment of adult patients with solid tumors expressing a neurotrophic tyrosine receptor kinase (NTRK) gene fusion, who: (i) have a disease that is locally advanced, metastatic, or where surgical resection is likely to result in severe morbidity, and (ii) who have not received a prior NTRK inhibitor, and (iii) who have no satisfactory treatment options.",
+        "icd10": "Multiple",
+        "regimen_code": "00702b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "2024-10-01",
+        "reimbursement_details": "Subject to a managed access protocol"
+    }
+]
