@@ -197,9 +197,9 @@ class SQL:
             session.add(therapy)
 
 
-def main():
+def main(referenced_dictionary):
     with models.Session() as session:
-        root = "/Users/brendan/GitHub/projects/euro-moalmanac-db/data/referenced"
+        root = f"{referenced_dictionary}"
 
         about = Process.load_json(f"{root}/about.json")
         SQL.add_about(record=about, session=session)
@@ -247,6 +247,14 @@ if __name__ == "__main__":
         prog='Create MOAlmanac SQLite3 file from referenced JSONs',
         description='Using referenced JSON files, create SQLite3 db'
     )
+    arg_parser.add_argument(
+        '--input',
+        '-i',
+        default='data/referenced',
+        help='Directory for referenced moalmanac db json files'
+    )
     args = arg_parser.parse_args()
 
-    main()
+    main(
+        referenced_dictionary=args.input
+    )
