@@ -3013,5 +3013,30 @@
         "reimbursement_category": "CDS",
         "reimbursement_date": "2024-10-01",
         "reimbursement_details": "Subject to a managed access protocol"
+    },
+    {
+        "id": 401,
+        "document_id": 236,
+        "indication": "Treatment of hormone receptor-positive advanced breast cancer in postmenopausal women."
+    },
+    {
+        "id": 402,
+        "document_id": 236,
+        "indication": "Adjuvant treatment of hormone receptor-positive early invasive breast cancer in postmenopausal women."
+    },
+    {
+        "id": 403,
+        "document_id": 236,
+        "indication": "Adjuvant treatment of hormone receptor-positive early invasive breast cancer in postmenopausal women who have received 2 to 3 years of adjuvant tamoxifen."
+    },
+    {
+        "id": 404,
+        "document_id": 166,
+        "indication": "Extended adjuvant treatment of hormone-dependent-invasive breast cancer in postmenopausal women who have received 2 to 3 years of adjuvant tamoxifen.",
+        "icd10": "C50",
+        "regimen_code": "254c",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
     }
 ]

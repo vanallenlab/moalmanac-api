@@ -11993,5 +11993,176 @@
         "indication_id": 400,
         "last_updated": "2024-10-16",
         "deprecated": false
+    },
+    {
+        "id": 829,
+        "document_id": 236,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the treatment of patients who are postmenopausal women with hormone receptor-positive advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 401,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 830,
+        "document_id": 236,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the treatment of patients who are postmenopausal women with hormone receptor-positive advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 401,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 831,
+        "document_id": 236,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the treatment of patients who are postmenopausal women with hormone receptor-positive advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 401,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 832,
+        "document_id": 236,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 402,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 833,
+        "document_id": 236,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 402,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 834,
+        "document_id": 236,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 402,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 835,
+        "document_id": 236,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 403,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 836,
+        "document_id": 236,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 403,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 837,
+        "document_id": 236,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 403,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 838,
+        "document_id": 236,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved anastrozole as a treatment option for extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 404,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 839,
+        "document_id": 236,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved anastrozole as a treatment option for extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 404,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },{
+        "id": 840,
+        "document_id": 236,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved anastrozole as a treatment option for extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 404,
+        "last_updated": "2024-11-10",
+        "deprecated": false
     }
 ]

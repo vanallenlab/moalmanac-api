@@ -3174,5 +3174,18 @@
         "organization": "National Cancer Control Programme",
         "publication_date": "2024-10-01",
         "url": "https://www.hse.ie/eng/services/list/5/cancer/profinfo/chemoprotocols/lung/702-entrectinib-therapy.pdf"
+    },
+    {
+        "id": 236,
+        "label": "",
+        "description": "",
+        "alternativeLabels": "",
+        "citation": "Laboratoires Juvise Pharmaceuticals. Arimidex 1mg Film-coated Tablets (Anastrozole) [Summary of Product Characteristics]. Health Products Regulatory Authority website. http://www.hpra.ie/img/uploaded/swedocuments/Licence_PA23154-001-001_09062021161903.pdf. Revised June 2021. Accessed November 10, 2024.",
+        "document_type": "Government agency",
+        "last_updated": "2024-11-10",
+        "organization": "Health Products Regulatory Authority",
+        "publication_date": "2021-06-09",
+        "url": "http://www.hpra.ie/img/uploaded/swedocuments/Licence_PA23154-001-001_09062021161903.pdf",
+        "url_other": "http://www.hpra.ie/homepage/medicines/medicines-information/find-a-medicine/results/item?pano=PA23154/001/001&t=Arimidex%201mg%20Film-coated%20Tablets"
     }
 ]
