@@ -3038,5 +3038,10 @@
         "reimbursement_category": "CDS",
         "reimbursement_date": "",
         "reimbursement_details": ""
+    },
+    {
+        "id": 405,
+        "document_id": 237,
+        "indication": "Aromasin is indicated for the adjuvant treatment of postmenopausal women with oestrogen receptor positive invasive early breast cancer (EBC), following 2 – 3 years of initial adjuvant tamoxifen therapy."
     }
 ]
