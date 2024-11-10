@@ -2707,7 +2707,9 @@
     {
         "id": 290,
         "implication_type": "therapeutic sensitivity",
-        "therapy": [],
+        "therapy": [
+
+        ],
         "_therapy": "Abemaciclib in combination with endocrine therapy"
     },
     {
