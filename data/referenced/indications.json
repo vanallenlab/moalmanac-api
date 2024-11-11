@@ -3063,5 +3063,25 @@
         "id": 409,
         "document_id": 238,
         "indication": "Neo-adjuvant treatment of postmenopausal women with hormone receptor positive, HER-2 negative breast cancer where chemotherapy is not suitable and immediate surgery not indicated."
+    },
+    {
+        "id": 410,
+        "document_id": 173,
+        "indication": "Extended adjuvant treatment of hormone-dependent-invasive breast cancer in postmenopausal women who have received prior adjuvant endocrine therapy for 5 years.",
+        "icd10": "C50",
+        "regimen_code": "00371b",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
+    },
+    {
+        "id": 411,
+        "document_id": 173,
+        "indication": "Advanced breast cancer after relapse or disease progression, in women with natural or artificially induced postmenopausal endocrine status.",
+        "icd10": "C50",
+        "regimen_code": "00371c",
+        "reimbursement_category": "CDS",
+        "reimbursement_date": "",
+        "reimbursement_details": ""
     }
 ]
