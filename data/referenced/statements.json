@@ -12355,7 +12355,6 @@
         "last_updated": "2024-11-10",
         "deprecated": false
     },
-    #
     {
         "id": 854,
         "document_id": 173,
@@ -12399,7 +12398,6 @@
         "last_updated": "2024-11-11",
         "deprecated": false
     },
-    #
     {
         "id": 857,
         "document_id": 173,
@@ -12407,7 +12405,7 @@
             1
         ],
         "context_id": 2,
-        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression.",
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression. This therapy regimen lists hormone receptor-negative status as an exclusion criteria.",
         "evidence": "Approval",
         "implication_id": 285,
         "indication_id": 411,
@@ -12421,7 +12419,7 @@
             3
         ],
         "context_id": 2,
-        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression.",
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression. This therapy regimen lists hormone receptor-negative status as an exclusion criteria.",
         "evidence": "Approval",
         "implication_id": 285,
         "indication_id": 411,
@@ -12436,7 +12434,7 @@
             3
         ],
         "context_id": 2,
-        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression.",
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression. This therapy regimen lists hormone receptor-negative status as an exclusion criteria.",
         "evidence": "Approval",
         "implication_id": 285,
         "indication_id": 411,
