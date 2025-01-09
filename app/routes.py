@@ -18,11 +18,23 @@ TABLE_MAP = {
         'statements': models.Statement
 }
 
-def apply_filters(model, filter_criteria, query):
+def apply_filters(filter_criteria, query):
     filter_map = {
-        'organization': lambda value: model.organization == value,
-        'drug_name_brand': lambda value: model.drug_name_brand == value,
-        'drug_name_generic': lambda value: model.drug_name_generic == value
+        'biomarker_type': lambda value: models.Biomarker.biomarker_type == value,
+        'biomarker': lambda value: models.Biomarker.biomarker.display == value,
+        'gene': lambda value: sqlalchemy.or_ (
+            models.Biomarker.gene == value,
+            models.Biomarker.gene1 == value,
+            models.Biomarker.gene2 == value
+        ),
+        'cancer_type': lambda value: models.Context.display == value,
+        'oncotree_code': lambda value: models.Context.oncotree_code == value,
+        'oncotree_term': lambda value: models.Context.oncotree_term == value,
+        'organization': lambda value: models.Document.organization == value,
+        'drug_name_brand': lambda value: models.Document.drug_name_brand == value,
+        'drug_name_generic': lambda value: models.Document.drug_name_generic == value,
+        'therapy_name': lambda value: models.Therapy.therapy_name == value,
+        'therapy_type': lambda value: models.Therapy.therapy_type == value
     }
 
     and_filters = []
@@ -192,15 +204,13 @@ def get_documents():
             )
          )
 
-        # Get filters
+        # Get and apply filters
         filter_criteria = []
         for field in ['organization', 'drug_name_brand', 'drug_name_generic']:
             filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
             filter_criteria.append(filter_field)
 
-        # Apply filters
         query = apply_filters(
-            model = models.Document,
             filter_criteria = filter_criteria,
             query = query
         )
@@ -303,14 +313,16 @@ def get_unique_values():
 def get_statements():
     session = models.Session()
     try:
-
-
         # Base query
         query = (
             session
             .query(
                 models.Statement
             )
+            .join(models.Statement.biomarkers)
+            .join(models.Statement.context)
+            .join(models.Statement.document)
+            .join(models.Statement.implication)
             .options(
                 # Join tables that are referenced in Statements
                 sqlalchemy.orm.joinedload(models.Statement.biomarkers),
@@ -319,6 +331,29 @@ def get_statements():
                 sqlalchemy.orm.joinedload(models.Statement.implication),
                 sqlalchemy.orm.joinedload(models.Statement.indication),
             )
+        )
+
+        # Get and apply filters
+        fields = [
+            'cancer_type',
+            'biomarker',
+            'biomarker_type',
+            'drug_name_brand', # This field is not present in the Statement table natively, and instead comes in a dictionary once joined
+            'gene', # I need to split gene off to its own table
+            'oncotree_code',
+            'oncotree_term',
+            'organization',
+            'therapy_name',
+            'therapy_type',
+        ]
+        filter_criteria = []
+        for field in fields:
+            filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
+            filter_criteria.append(filter_field)
+
+        query = apply_filters(
+            filter_criteria = filter_criteria,
+            query = query
         )
 
         # Execute query and return all results
