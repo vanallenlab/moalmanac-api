@@ -16,24 +16,6 @@ Session = sessionmaker(bind=engine)
 class Base(sqlalchemy.orm.DeclarativeBase):
     pass
 
-import configparser
-import os
-import sqlalchemy
-from sqlalchemy.orm import sessionmaker
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-path = config['database']['path']
-path = os.path.abspath(path)
-engine = sqlalchemy.create_engine(f"sqlite:///{path}")
-#Session = sqlalchemy.orm.sessionmaker(bind=engine)
-Session = sessionmaker(bind=engine)
-
-
-class Base(sqlalchemy.orm.DeclarativeBase):
-    pass
-
 
 class About(Base):
     __tablename__ = "about"
