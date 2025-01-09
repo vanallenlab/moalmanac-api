@@ -209,7 +209,7 @@ def get_documents():
         results = query.all()
         result = []
         for document, indication_count, statement_count in results:
-            data = document.__dict__
+            data = serialize_instance(document)
             data.pop('_sa_instance_state', None)
             data['indication_count'] = indication_count or 0
             data['statement_count'] = statement_count or 0
@@ -303,10 +303,16 @@ def get_unique_values():
 def get_statements():
     session = models.Session()
     try:
+
+
+        # Base query
         query = (
             session
-            .query(models.Statement)
+            .query(
+                models.Statement
+            )
             .options(
+                # Join tables that are referenced in Statements
                 sqlalchemy.orm.joinedload(models.Statement.biomarkers),
                 sqlalchemy.orm.joinedload(models.Statement.context),
                 sqlalchemy.orm.joinedload(models.Statement.document),
@@ -314,8 +320,9 @@ def get_statements():
                 sqlalchemy.orm.joinedload(models.Statement.indication),
             )
         )
-        results = query.all()
 
+        # Execute query and return all results
+        results = query.all()
         result = []
         for statement in results:
             data = serialize_instance(statement)
@@ -326,53 +333,11 @@ def get_statements():
             data['implication']['therapy'] = [serialize_instance(t) for t in statement.implication.therapy]
             data['indication'] = serialize_instance(statement.indication)
 
+            # Remove referenced ids
             data.pop('context_id', None)
             data.pop('document_id', None)
             data.pop('implication_id', None)
             data.pop('indication_id', None)
-
-            #result.append(data)
-
-            # data = {
-            #     'id': statement.id,
-            #     'description': statement.description,
-            #     'evidence': statement.evidence,
-            #     'last_updated': statement.last_updated,
-            #     'deprecated': statement.deprecated,
-            #     'document': {
-            #         'id': statement.document.id,
-            #         'label': statement.document.label,
-            #         'description': statement.document.description,
-            #         'alternative_labels': statement.document.alternative_labels,
-            #         'citation': statement.document.citation,
-            #         'document_type': statement.document.document_type,
-            #         'drug_name_brand': statement.document.drug_name_brand,
-            #         'drug_name_generic': statement.document.drug_name_generic,
-            #         'first_published': statement.document.first_published,
-            #         'last_updated': statement.document.last_updated,
-            #         'organization': statement.document.organization,
-            #         'publication_date': statement.document.publication_date,
-            #         'url': statement.document.url,
-            #         'url_epar': statement.document.url_epar
-            #     },
-            #     'biomarkers': [
-            #         {
-            #             'id': biomarker.id,
-            #             'bioamrker_type': biomarker.biomarker_type
-            #         }
-            #         for biomarker in statement.biomarkers
-            #     ],
-            #     'context': {
-            #         'id': statement.context
-            #     },
-            #     'implication': {
-            #         'id': statement.implication
-            #     },
-            #     'indication': {
-            #         'id': statement.indication
-            #     }
-            # }
-            # data.pop('_sa_instance_state', None)
             result.append(data)
 
         return create_response(
