@@ -21,7 +21,7 @@ TABLE_MAP = {
 def apply_filters(filter_criteria, query):
     filter_map = {
         'biomarker_type': lambda value: models.Biomarker.biomarker_type == value,
-        'biomarker': lambda value: models.Biomarker.biomarker.display == value,
+        'biomarker': lambda value: models.Biomarker.display == value,
         'gene': lambda value: sqlalchemy.or_ (
             models.Biomarker.gene == value,
             models.Biomarker.gene1 == value,
