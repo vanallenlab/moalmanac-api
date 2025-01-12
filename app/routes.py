@@ -75,10 +75,10 @@ def apply_filters(filter_criteria, query):
 def create_response(data, message="", status=200):
     """Wrapper function to create a response with metadata."""
     response = {
-        "status": status,
+        "status_code": status,
         "message": message,
+        "count": data if isinstance(data, int) else len(data),
         "data": data,
-        "count": data if isinstance(data, int) else len(data)
     }
     return flask.jsonify(response), status
 
