@@ -11993,5 +11993,452 @@
         "indication_id": 400,
         "last_updated": "2024-10-16",
         "deprecated": false
+    },
+    {
+        "id": 829,
+        "document_id": 236,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the treatment of patients who are postmenopausal women with hormone receptor-positive advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 401,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 830,
+        "document_id": 236,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the treatment of patients who are postmenopausal women with hormone receptor-positive advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 401,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 831,
+        "document_id": 236,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the treatment of patients who are postmenopausal women with hormone receptor-positive advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 401,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 832,
+        "document_id": 236,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 402,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 833,
+        "document_id": 236,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 402,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 834,
+        "document_id": 236,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 402,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 835,
+        "document_id": 236,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 403,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 836,
+        "document_id": 236,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 403,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 837,
+        "document_id": 236,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized anastrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive early invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 403,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 838,
+        "document_id": 166,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved anastrozole as a treatment option for extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 404,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 839,
+        "document_id": 166,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved anastrozole as a treatment option for extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 404,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 840,
+        "document_id": 166,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved anastrozole as a treatment option for extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received 2 to 3 years of adjuvant tamoxifen.",
+        "evidence": "Approval",
+        "implication_id": 272,
+        "indication_id": 404,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 841,
+        "document_id": 237,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized exemestane for the adjuvant treatment of patients who are postmenopausal women with hormone receptor-positive invasive early breast cancer (EBC) who have received 2 to 3 years of initial tamoxifen therapy.",
+        "evidence": "Approval",
+        "implication_id": 286,
+        "indication_id": 405,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 842,
+        "document_id": 238,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor positive invasive early breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 406,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 843,
+        "document_id": 238,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor positive invasive early breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 406,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 844,
+        "document_id": 238,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the adjuvant treatment of patients who are postmenopausal women with hormone receptor positive invasive early breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 406,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 845,
+        "document_id": 238,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received prior standard adjuvant tamoxifen therapy for 5 years.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 407,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 846,
+        "document_id": 238,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received prior standard adjuvant tamoxifen therapy for 5 years.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 407,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 847,
+        "document_id": 238,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received prior standard adjuvant tamoxifen therapy for 5 years.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 407,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 848,
+        "document_id": 238,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the first-line treatment of patients who are postmenopausal women with hormone-dependent advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 408,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 849,
+        "document_id": 238,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the first-line treatment of patients who are postmenopausal women with hormone-dependent advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 408,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 850,
+        "document_id": 238,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the first-line treatment of patients who are postmenopausal women with hormone-dependent advanced breast cancer.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 408,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 851,
+        "document_id": 238,
+        "biomarkers": [
+            1,
+            2
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the neo-adjuvant treatment of patients who are postmenopausal women with hormone receptor positive, HER-2 negative breast cancer where chemotherapy is not suitable and immediate surgery is not indicated.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 409,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 852,
+        "document_id": 238,
+        "biomarkers": [
+            2,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the neo-adjuvant treatment of patients who are postmenopausal women with hormone receptor positive, HER-2 negative breast cancer where chemotherapy is not suitable and immediate surgery is not indicated.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 409,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 853,
+        "document_id": 238,
+        "biomarkers": [
+            1,
+            2,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Products Regulatory Authority (HPRA) has authorized letrozole for the neo-adjuvant treatment of patients who are postmenopausal women with hormone receptor positive, HER-2 negative breast cancer where chemotherapy is not suitable and immediate surgery is not indicated.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 409,
+        "last_updated": "2024-11-10",
+        "deprecated": false
+    },
+    {
+        "id": 854,
+        "document_id": 173,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received prior adjuvant treatment for 5 years.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 410,
+        "last_updated": "2024-11-11",
+        "deprecated": false
+    },
+    {
+        "id": 855,
+        "document_id": 173,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received prior adjuvant treatment for 5 years.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 410,
+        "last_updated": "2024-11-11",
+        "deprecated": false
+    },
+    {
+        "id": 856,
+        "document_id": 173,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the extended adjuvant treatment of patients who are postmenopausal women with hormone-dependent-invasive breast cancer who have received prior adjuvant treatment for 5 years.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 410,
+        "last_updated": "2024-11-11",
+        "deprecated": false
+    },
+    {
+        "id": 857,
+        "document_id": 173,
+        "biomarkers": [
+            1
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression. This therapy regimen lists hormone receptor-negative status as an exclusion criteria.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 411,
+        "last_updated": "2024-11-11",
+        "deprecated": false
+    },
+    {
+        "id": 858,
+        "document_id": 173,
+        "biomarkers": [
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression. This therapy regimen lists hormone receptor-negative status as an exclusion criteria.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 411,
+        "last_updated": "2024-11-11",
+        "deprecated": false
+    },
+    {
+        "id": 859,
+        "document_id": 173,
+        "biomarkers": [
+            1,
+            3
+        ],
+        "context_id": 2,
+        "description": "The Republic of Ireland's Health Service Executive (HSE) has approved letrozole as a treatment option for the treatment of patients who are women with natural or artificially induced postmenopausal endocrine status with advanced breast cancer after relapse or disease progression. This therapy regimen lists hormone receptor-negative status as an exclusion criteria.",
+        "evidence": "Approval",
+        "implication_id": 285,
+        "indication_id": 411,
+        "last_updated": "2024-11-11",
+        "deprecated": false
     }
 ]

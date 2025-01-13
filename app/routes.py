@@ -18,16 +18,68 @@ TABLE_MAP = {
         'statements': models.Statement
 }
 
+def apply_filters(filter_criteria, query):
+    filter_map = {
+        'biomarker_type': lambda value: models.Biomarker.biomarker_type == value,
+        'biomarker': lambda value: models.Biomarker.display == value,
+        'gene': lambda value: sqlalchemy.or_ (
+            models.Biomarker.gene == value,
+            models.Biomarker.gene1 == value,
+            models.Biomarker.gene2 == value
+        ),
+        'cancer_type': lambda value: models.Context.display == value,
+        'oncotree_code': lambda value: models.Context.oncotree_code == value,
+        'oncotree_term': lambda value: models.Context.oncotree_term == value,
+        'organization': lambda value: models.Document.organization == value,
+        'drug_name_brand': lambda value: models.Document.drug_name_brand == value,
+        'drug_name_generic': lambda value: models.Document.drug_name_generic == value,
+        'therapy_name': lambda value: models.Therapy.therapy_name == value,
+        'therapy_type': lambda value: models.Therapy.therapy_type == value
+    }
+
+    and_filters = []
+    or_filters = []
+
+    for criteria in filter_criteria:
+        filter_name = criteria.get('filter')
+        filter_values = criteria.get('values')
+        if (filter_name in filter_map) and filter_values:
+            # ^ This may be problematic for filter names that do not match
+            # Queries across different categories will be combined with an AND operator
+            # Queries across the same category will be combined with an OR operator
+
+            processed_values = []
+            for value in filter_values:
+                formatted_value = value
+                # formatted_value = value.replace(' ', '%20')
+                # Add additional formatting, such as checking against aliase, here
+                processed_values.append(formatted_value)
+
+            if len(processed_values) > 1:
+                # Create an OR condition if multiple of the same filter are passed
+                filter_conditions = [filter_map[filter_name](value) for value in processed_values]
+                or_filters.append(sqlalchemy.or_(*filter_conditions))
+            else:
+                # Otherwise, filter for a single value
+                filter_condition = filter_map[filter_name](processed_values[0])
+                and_filters.append(filter_condition)
+
+    if and_filters:
+        query = query.filter(sqlalchemy.and_(*and_filters))
+    if or_filters:
+        query = query.filter(sqlalchemy.or_(*or_filters))
+
+    return query
+
 
 def create_response(data, message="", status=200):
     """Wrapper function to create a response with metadata."""
     response = {
-        "status": status,
+        "status_code": status,
         "message": message,
+        "count": data if isinstance(data, int) else len(data),
         "data": data,
-        "count": data if isinstance(data, int) else len(data)
     }
-    #print(response)
     return flask.jsonify(response), status
 
 
@@ -36,11 +88,6 @@ def serialize_instance(instance):
     return {
         column.name: getattr(instance, column.name) for column in instance.__table__.columns
     }
-
-
-@flask.current_app.route('/test', methods=['GET'])
-def test_route():
-    return "Test route is working"
 
 
 @flask.current_app.route('/about', methods=['GET'])
@@ -63,10 +110,10 @@ def get_about():
                 status=404
             )
     except Exception as e:
-        print(f"Error occured: {e}")
+        print(f"Error occurred: {e}")
         return create_response(
             data={"error": {e}},
-            message="An error occured while retrieving about metadata",
+            message="An error occurred while retrieving about metadata",
             status=500
         )
     finally:
@@ -82,6 +129,10 @@ def list_tables():
 
 @flask.current_app.route('/rows', methods=['GET'])
 def get_row_count():
+    """
+    This is in progress
+    :return:
+    """
     table_name = flask.request.args.get('table')
     if not table_name:
         return create_response(
@@ -112,12 +163,9 @@ def get_row_count():
 
 @flask.current_app.route('/documents', methods=['GET'])
 def get_documents():
-    # This should have a statement count instead of indication count
-    organization = flask.request.args.get('organization')
-    drug_name_brand = flask.request.args.get('drug_name_brand')
-    drug_name_generic = flask.request.args.get('drug_name_generic')
     session = models.Session()
     try:
+        # Subqueries to join other tables
         indication_count_subquery = (
             session
             .query(
@@ -128,11 +176,27 @@ def get_documents():
             .subquery()
         )
 
+        statement_count_subquery = (
+            session
+            .query(
+                models.Statement.document_id,
+                sqlalchemy.func.count(models.Statement.id).label('statement_count')
+            )
+            .group_by(models.Statement.document_id)
+            .subquery()
+        )
+
+        # Base query
         query = (
             session
             .query(
                 models.Document,
-                indication_count_subquery.c.indication_count
+                indication_count_subquery.c.indication_count,
+                statement_count_subquery.c.statement_count
+            )
+            .outerjoin(
+                statement_count_subquery,
+                models.Document.id == statement_count_subquery.c.document_id
             )
             .outerjoin(
                 indication_count_subquery,
@@ -140,23 +204,25 @@ def get_documents():
             )
          )
 
-        filters = []
-        if organization:
-            filters.append(models.Document.organization == organization)
-        if drug_name_brand:
-            filters.append(models.Document.drug_name_brand == drug_name_brand)
-        if drug_name_generic:
-            filters.append(models.Document.drug_name_generic == drug_name_generic)
-        if filters:
-            query = query.filter(sqlalchemy.and_(*filters))
+        # Get and apply filters
+        filter_criteria = []
+        for field in ['organization', 'drug_name_brand', 'drug_name_generic']:
+            filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
+            filter_criteria.append(filter_field)
 
+        query = apply_filters(
+            filter_criteria = filter_criteria,
+            query = query
+        )
+
+        # Execute query and return all results
         results = query.all()
-
         result = []
-        for document, indication_count in results:
-            data = document.__dict__
+        for document, indication_count, statement_count in results:
+            data = serialize_instance(document)
             data.pop('_sa_instance_state', None)
             data['indication_count'] = indication_count or 0
+            data['statement_count'] = statement_count or 0
             result.append(data)
 
         return create_response(
@@ -247,10 +313,18 @@ def get_unique_values():
 def get_statements():
     session = models.Session()
     try:
+        # Base query
         query = (
             session
-            .query(models.Statement)
+            .query(
+                models.Statement
+            )
+            .join(models.Statement.biomarkers)
+            .join(models.Statement.context)
+            .join(models.Statement.document)
+            .join(models.Statement.implication)
             .options(
+                # Join tables that are referenced in Statements
                 sqlalchemy.orm.joinedload(models.Statement.biomarkers),
                 sqlalchemy.orm.joinedload(models.Statement.context),
                 sqlalchemy.orm.joinedload(models.Statement.document),
@@ -258,8 +332,32 @@ def get_statements():
                 sqlalchemy.orm.joinedload(models.Statement.indication),
             )
         )
-        results = query.all()
 
+        # Get and apply filters
+        fields = [
+            'cancer_type',
+            'biomarker',
+            'biomarker_type',
+            'drug_name_brand', # This field is not present in the Statement table natively, and instead comes in a dictionary once joined
+            'gene', # I need to split gene off to its own table
+            'oncotree_code',
+            'oncotree_term',
+            'organization',
+            'therapy_name',
+            'therapy_type',
+        ]
+        filter_criteria = []
+        for field in fields:
+            filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
+            filter_criteria.append(filter_field)
+
+        query = apply_filters(
+            filter_criteria = filter_criteria,
+            query = query
+        )
+
+        # Execute query and return all results
+        results = query.all()
         result = []
         for statement in results:
             data = serialize_instance(statement)
@@ -270,53 +368,11 @@ def get_statements():
             data['implication']['therapy'] = [serialize_instance(t) for t in statement.implication.therapy]
             data['indication'] = serialize_instance(statement.indication)
 
+            # Remove referenced ids
             data.pop('context_id', None)
             data.pop('document_id', None)
             data.pop('implication_id', None)
             data.pop('indication_id', None)
-
-            #result.append(data)
-
-            # data = {
-            #     'id': statement.id,
-            #     'description': statement.description,
-            #     'evidence': statement.evidence,
-            #     'last_updated': statement.last_updated,
-            #     'deprecated': statement.deprecated,
-            #     'document': {
-            #         'id': statement.document.id,
-            #         'label': statement.document.label,
-            #         'description': statement.document.description,
-            #         'alternative_labels': statement.document.alternative_labels,
-            #         'citation': statement.document.citation,
-            #         'document_type': statement.document.document_type,
-            #         'drug_name_brand': statement.document.drug_name_brand,
-            #         'drug_name_generic': statement.document.drug_name_generic,
-            #         'first_published': statement.document.first_published,
-            #         'last_updated': statement.document.last_updated,
-            #         'organization': statement.document.organization,
-            #         'publication_date': statement.document.publication_date,
-            #         'url': statement.document.url,
-            #         'url_epar': statement.document.url_epar
-            #     },
-            #     'biomarkers': [
-            #         {
-            #             'id': biomarker.id,
-            #             'bioamrker_type': biomarker.biomarker_type
-            #         }
-            #         for biomarker in statement.biomarkers
-            #     ],
-            #     'context': {
-            #         'id': statement.context
-            #     },
-            #     'implication': {
-            #         'id': statement.implication
-            #     },
-            #     'indication': {
-            #         'id': statement.indication
-            #     }
-            # }
-            # data.pop('_sa_instance_state', None)
             result.append(data)
 
         return create_response(
