@@ -1,8 +1,11 @@
-{
-    "github": "https://github.com/vanallenlab/moalmanac-db",
-    "label": "Molecular Oncology Almanac",
-    "license": "GPL-2.0",
-    "release": "draft specification",
-    "url": "https://moalmanac.org",
-    "last_updated": "2024-10-20"
-}
+[
+    {
+        "id": 0,
+        "github": "https://github.com/vanallenlab/moalmanac-db",
+        "label": "Molecular Oncology Almanac",
+        "license": "GPL-2.0",
+        "release": "draft specification",
+        "url": "https://moalmanac.org",
+        "last_updated": "2024-10-20"
+    }
+]

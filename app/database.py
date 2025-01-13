@@ -24,6 +24,7 @@ class Process:
 class SQL:
     @staticmethod
     def add_about(record, session):
+        record = record[0]
         last_updated = Process.parse_date(record['last_updated'])
         about = models.About(
             id=0,
