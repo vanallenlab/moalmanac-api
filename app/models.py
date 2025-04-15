@@ -219,6 +219,8 @@ class Indication(Base):
     reimbursement_category = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     reimbursement_date = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     reimbursement_details = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    date_regular_approval = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
+    date_accelerated_approval = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
 
     """
     document = sqlalchemy.orm.Relationship(

@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import json
+from curses.ascii import controlnames
 
 from . import models
 
@@ -25,7 +26,6 @@ class SQL:
     @staticmethod
     def add_about(record, session):
         record = record[0]
-        last_updated = Process.parse_date(record['last_updated'])
         about = models.About(
             id=0,
             github=record.get('github'),
@@ -33,169 +33,249 @@ class SQL:
             license=record.get('license'),
             release=record.get('release'),
             url=record.get('url'),
-            last_updated=last_updated,
+            last_updated=Process.parse_date(record.get('last_updated'))
         )
         session.add(about)
 
     @staticmethod
-    def add_documents(documents, session):
-        for doc in documents:
-            first_published = Process.parse_date(doc.get('first_published')) if doc.get('first_published') else None
-            last_updated = Process.parse_date(doc.get('last_updated'))
-            publication_date = Process.parse_date(doc.get('publication_date'))
-
-            document = models.Document(
-                id=doc["id"],
-                label=doc.get('label'),
-                description=doc.get('description'),
-                alternative_labels=doc.get('alternativeLabels'),
-                citation=doc.get('citation'),
-                document_type=doc.get('document_type'),
-                drug_name_brand=doc.get('drug_name_brand'),
-                drug_name_generic=doc.get('drug_name_generic'),
-                first_published=first_published,
-                last_updated=last_updated,
-                organization=doc.get('organization'),
-                publication_date=publication_date,
-                url=doc.get('url'),
-                url_epar=doc.get('url_epar')
+    def add_agents(records, session):
+        for record in records:
+            agent = models.Agents(
+                id=record.get('id'),
+                type=record.get('type'),
+                subtype=record.get('subtype'),
+                name=record.get('name'),
+                description=record.get('description')
             )
-            session.add(document)
+            session.add(agent)
 
     @staticmethod
     def add_biomarkers(records, session):
         for record in records:
-            biomarker = models.Biomarker(
-                id=record['id'],
-                biomarker_type=record['biomarker_type'],
-                display=record.get('_display'),
-                present=record.get('_present'),
-                marker=record.get('marker'),
-                unit=record.get('unit'),
-                equality=record.get('equality'),
-                value=record.get('value'),
-                gene=record.get('gene'),
-                chromosome=record.get('chromosome'),
-                start_position=record.get('start_position'),
-                end_position=record.get('end_position'),
-                reference_allele=record.get('reference_allele'),
-                alternate_allele=record.get('alterante_allele'),
-                cdna_change=record.get('cdna_change'),
-                protein_change=record.get('protein_change'),
-                variant_annotation=record.get('variant_annotation'),
-                exon=record.get('exon'),
-                rsid=record.get('rsid'),
-                hgvsg=record.get('hgvsg'),
-                hgvsc=record.get('hgvsc'),
-                requires_oncogenic=record.get('requires_oncogenic'),
-                requires_pathogenic=record.get('requires_pathogenic'),
-                gene1=record.get('gene1'),
-                gene2=record.get('gene2'),
-                rearrangement_type=record.get('rearrangement_type'),
-                locus=record.get('locus'),
-                direction=record.get('direction'),
-                cytoband=record.get('cytoband'),
-                arm=record.get('arm'),
-                status=record.get('status')
+            moalmanac_representation = {}
+            for item in record.get('extensions'):
+                moalmanac_representation[item.get('name')] = item.get('value')
+            biomarker = models.Biomarkers(
+                id=record.get('id'),
+                name=record.get('name'),
+                genes= record.get('genes', None),
+                biomarker_type=moalmanac_representation.get('biomarker_type', None),
+                present=moalmanac_representation.get('_present', None),
+                marker=moalmanac_representation.get('marker', None),
+                unit=moalmanac_representation.get('unit', None),
+                equality=moalmanac_representation.get('equality', None),
+                value=moalmanac_representation.get('value', None),
+                chromosome=moalmanac_representation.get('chromosome', None),
+                start_position=moalmanac_representation.get('start_position', None),
+                end_position=moalmanac_representation.get('end_position', None),
+                reference_allele=moalmanac_representation.get('reference_allele', None),
+                alternate_allele=moalmanac_representation.get('alterante_allele', None),
+                cdna_change=moalmanac_representation.get('cdna_change', None),
+                protein_change=moalmanac_representation.get('protein_change', None),
+                variant_annotation=moalmanac_representation.get('variant_annotation', None),
+                exon=moalmanac_representation.get('exon', None),
+                rsid=moalmanac_representation.get('rsid', None),
+                hgvsg=moalmanac_representation.get('hgvsg', None),
+                hgvsc=moalmanac_representation.get('hgvsc', None),
+                requires_oncogenic=moalmanac_representation.get('requires_oncogenic', None),
+                requires_pathogenic=moalmanac_representation.get('requires_pathogenic', None),
+                rearrangement_type=moalmanac_representation.get('rearrangement_type', None),
+                locus=moalmanac_representation.get('locus', None),
+                direction=moalmanac_representation.get('direction', None),
+                cytoband=moalmanac_representation.get('cytoband', None),
+                arm=moalmanac_representation.get('arm', None),
+                status=moalmanac_representation.get('status', None)
             )
             session.add(biomarker)
 
     @staticmethod
-    def add_contexts(records, session):
+    def add_codings(records, session):
         for record in records:
-            context = models.Context(
-                id=record["id"],
-                disease=record.get('disease'),
-                display=record.get('display'),
-                oncotree_code=record.get('oncotree_code'),
-                oncotree_term=record.get('oncotree_term'),
-                solid_tumor=record.get('solid_tumor')
+            coding = models.Codings(
+                id=record.get('id'),
+                code=record.get('code'),
+                name=record.get('name'),
+                system=record.get('system'),
+                systemVersion=record.get('systemVersion'),
+                iris=record.get('iris')[0] # This will be a list, eventually
             )
-            session.add(context)
+            session.add(coding)
 
     @staticmethod
-    def add_implications(records, session):
+    def add_contributions(records, session):
         for record in records:
-            implication = models.Implication(
-                id=record['id'],
-                implication_type=record.get('implication_type'),
-                _therapy=record.get('_therapy')
+            contribution = models.Contributions(
+                id=record.get('id'),
+                type=record.get('type'),
+                agent_id=record.get('agent_id'),
+                description=record.get('description'),
+                date=Process.parse_date(record.get('last_updated'))
             )
-            session.add(implication)
+            session.add(contribution)
 
-            for therapy_id in record['therapy']:
-                therapy = session.query(models.Therapy).filter_by(id=therapy_id).first()
-                if therapy:
-                    implication.therapy.append(therapy)
-                else:
-                    print(f"therapy {therapy_id} not found for {record}")
+    @staticmethod
+    def add_diseases(records, session):
+        for record in records:
+            disease = models.Diseases(
+                id=record.get('id'),
+                concept_type=record.get('concept_type'),
+                name=record.get('name'),
+                primary_coding_id=record.get('primary_coding_id'),
+                mappings=record.get('mappings', None),
+                solid_tumor=record.get('extensions')[0].get('value')
+            )
+            session.add(disease)
+
+    @staticmethod
+    def add_documents(records, session):
+        for record in records:
+            document = models.Documents(
+                id=record.get('id'),
+                type=record.get('type'),
+                subtype=record.get('subtype'),
+                name=record.get('name'),
+                aliases=record.get('aliases', None),
+                citations=record.get('citation', None),
+                company=record.get('company', None),
+                drug_name_brand=record.get('drug_name_brand', None),
+                drug_name_generic=record.get('drug_name_generic', None),
+                first_published=Process.parse_date(record.get('first_published', None)),
+                access_date=Process.parse_date(record.get('access_date', None)),
+                organization_id=record.get('organization_id', None),
+                publication_date=Process.parse_date(record.get('publication_date', None)),
+                url=record.get('url', None),
+                url_drug=record.get('url_drug', None),
+                application_number=record.get('application_number', None)
+            )
+            session.add(document)
+
+    @staticmethod
+    def add_genes(records, session):
+        for record in records:
+            gene = models.Genes(
+                id=record.get('id'),
+                concept_type=record.get('concept_type'),
+                name=record.get('name'),
+                primary_coding_id=record.get('primary_coding_id'),
+                mappings=record.get('mappings', None),
+                location=record.get('extensions')[0].get('value'),
+                location_id=record.get('extensions')[1].get('value')
+            )
+            session.add(gene)
 
     @staticmethod
     def add_indications(records, session):
         for record in records:
-            reimbursement_date = datetime.datetime.strptime(record.get('reimbursement_date'), '%Y-%m-%d') if record.get(
-                'reimbursement_date') else None
-
             indication = models.Indication(
-                id=record['id'],
+                id=record.get('id'),
                 document_id=record.get('document_id'),
                 indication=record.get('indication'),
                 icd10=record.get('icd10'),
                 regimen_code=record.get('regimen_code'),
                 reimbursement_category=record.get('reimbursement_category'),
-                reimbursement_date=reimbursement_date,
-                reimbursement_details=record.get('reimbursement_details')
+                reimbursement_date=Process.parse_date(record.get('reimbursement_date', None)),
+                reimbursement_details=record.get('reimbursement_details'),
+                description=record.get('description', None),
+                initial_approval_date=Process.parse_date(record.get('initial_approval_date', None)),
+                initial_approval_url=record.get('initial_approval_url', None),
+                raw_biomarkers=record.get('raw_biomarkers', None),
+                raw_therapeutics=record.get('raw_therapeutics', None),
+                raw_cancer_type=record.get('raw_cancer_type', None),
+                date_regular_approval=Process.parse_date(record.get('date_regular_approval', None)),
+                date_accelerated_approval=Process.parse_date(record.get('date_accelerated_approval', None))
             )
             session.add(indication)
 
     @staticmethod
+    def add_mappings(records, session):
+        for record in records:
+            mapping = models.Mappings(
+                id=record.get('id'),
+                primary_coding_id=record.get('primary_coding_id'),
+                coding_id=record.get('coding_id'),
+                relation=record.get('relation')
+            )
+            session.add(mapping)
+
+    @staticmethod
     def add_organizations(records, session):
         for record in records:
-            last_updated = Process.parse_date(record.get('last_updated'))
-
             organization = models.Organization(
-                id=record["id"],
-                label=record.get('label'),
+                id=record['id'],
+                name=record.get('name'),
                 description=record.get('description'),
-                last_updated=last_updated
+                url=record.get('url'),
+                last_updated=Process.parse_date(record.get('last_updated'))
             )
             session.add(organization)
 
     @staticmethod
+    def add_propositions(records, session):
+        for record in records:
+            proposition = models.Propositions(
+                id=record.get('id'),
+                type=record.get('type'),
+                predicate=record.get('predicate'),
+                biomarkers=record.get('biomarkers'),
+                condition_qualifier_id=record.get('condition_qualifier_id'),
+                therapy_id=record.get('therapy_id'),
+                therapy_group_id=record.get('therapy_group_id')
+            )
+            session.add(proposition)
+
+    @staticmethod
     def add_statements(records, session):
         for record in records:
-            last_updated = Process.parse_date(record.get('last_updated'))
-
-            statement = models.Statement(
+            statement = models.Statements(
                 id=record['id'],
-                document_id=record.get('document_id'),
-                context_id=record.get('context_id'),
+                type=record.get('type'),
                 description=record.get('description'),
-                evidence=record.get('evidence'),
-                implication_id=record.get('implication_id'),
-                indication_id=record.get('indication_id'),
-                last_updated=last_updated,
-                deprecated=record.get('deprecated'),
+                contributions=record.get('contributions'),
+                documents=record.get('documents'),
+                proposition_id=record.get('proposition_id'),
+                direction=record.get('direction'),
+                strength_id=record.get('strength_id'),
+                indication_id=record.get('indication_id')
             )
             session.add(statement)
 
-            for biomarker_id in record['biomarkers']:
-                biomarker = session.query(models.Biomarker).filter_by(id=biomarker_id).first()
-                if biomarker:
-                    statement.biomarkers.append(biomarker)
-                else:
-                    print(f"biomarker {biomarker_id} not found for {record}")
+    @staticmethod
+    def add_strengths(records, session):
+        for record in records:
+            strength = models.Strengths(
+                id=record.get('id'),
+                concept_type=record.get('concept_type'),
+                name=record.get('name'),
+                primary_coding_id=record.get('primary_coding_id'),
+                mappings=record.get('mappings')
+            )
+            session.add(strength)
 
     @staticmethod
     def add_therapies(records, session):
         for record in records:
-            therapy = models.Therapy(
-                id=record['id'],
-                therapy_name=record.get('therapy_name'),
+            therapy = models.Therapies(
+                id=record.get('id'),
+                concept_type=record.get('concept_type'),
+                name=record.get('name'),
+                primary_coding_id=record.get('primary_coding_id'),
+                mappings=record.get('mappings'),
                 therapy_strategy=record.get('therapy_strategy'),
-                therapy_type=record.get('therapy_type')
+                therapy_strategy_description=record.get('therapy_strategy_description'),
+                therapy_type=record.get('therapy_type'),
+                therapy_type_description=record.get('therapy_type_description')
             )
             session.add(therapy)
+
+    @staticmethod
+    def add_therapy_groups(records, session):
+        for record in records:
+            therapy_group = models.TherapyGroups(
+                id=record.get('id'),
+                membership_operator=record.get('membership_operator'),
+                therapies=record.get('therapies')
+            )
+            session.add(therapy_group)
 
 
 def main(referenced_dictionary):
@@ -206,36 +286,64 @@ def main(referenced_dictionary):
         SQL.add_about(record=about, session=session)
         session.commit()
 
-        organizations = Process.load_json(f"{root}/organizations.json")
-        SQL.add_organizations(records=organizations, session=session)
+        agents = Process.load_json(f"{root}/agents.json")
+        SQL.add_about(record=agents, session=session)
         session.commit()
 
         biomarkers = Process.load_json(f"{root}/biomarkers.json")
-        SQL.add_biomarkers(records=biomarkers, session=session)
+        SQL.add_about(record=biomarkers, session=session)
         session.commit()
 
-        contexts = Process.load_json(f"{root}/context.json")
-        SQL.add_contexts(records=contexts, session=session)
+        codings = Process.load_json(f"{root}/codings.json")
+        SQL.add_about(record=codings, session=session)
+        session.commit()
+
+        contributions = Process.load_json(f"{root}/contributions.json")
+        SQL.add_about(record=contributions, session=session)
+        session.commit()
+
+        diseases = Process.load_json(f"{root}/diseases.json")
+        SQL.add_about(record=diseases, session=session)
         session.commit()
 
         documents = Process.load_json(f"{root}/documents.json")
-        SQL.add_documents(documents=documents, session=session)
+        SQL.add_about(record=documents, session=session)
+        session.commit()
+
+        genes = Process.load_json(f"{root}/genes.json")
+        SQL.add_about(record=genes, session=session)
         session.commit()
 
         indications = Process.load_json(f"{root}/indications.json")
-        SQL.add_indications(records=indications, session=session)
+        SQL.add_about(record=indications, session=session)
         session.commit()
 
-        therapies = Process.load_json(f"{root}/therapies.json")
-        SQL.add_therapies(records=therapies, session=session)
+        mappings = Process.load_json(f"{root}/mappings.json")
+        SQL.add_about(record=mappings, session=session)
         session.commit()
 
-        implications = Process.load_json(f"{root}/implications.json")
-        SQL.add_implications(records=implications, session=session)
+        organizations = Process.load_json(f"{root}/organizations.json")
+        SQL.add_about(record=organizations, session=session)
+        session.commit()
+
+        propositions = Process.load_json(f"{root}/propositions.json")
+        SQL.add_about(record=propositions, session=session)
         session.commit()
 
         statements = Process.load_json(f"{root}/statements.json")
-        SQL.add_statements(records=statements, session=session)
+        SQL.add_about(record=statements, session=session)
+        session.commit()
+
+        strength = Process.load_json(f"{root}/strength.json")
+        SQL.add_about(record=strength, session=session)
+        session.commit()
+
+        therapies = Process.load_json(f"{root}/therapies.json")
+        SQL.add_about(record=therapies, session=session)
+        session.commit()
+
+        therapy_groups = Process.load_json(f"{root}/therapy_groups.json")
+        SQL.add_about(record=therapy_groups, session=session)
         session.commit()
 
         session.close()
