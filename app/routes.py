@@ -6,35 +6,39 @@ from . import models
 
 
 TABLE_MAP = {
-        'biomarkers': models.Biomarker,
-        'contexts': models.Context,
-        'documents': models.Document,
-        'implications': models.Implication,
-        'indication': models.Indication,
-        'organization': models.Organization,
-        'organizations': models.Organization,
-        'therapy': models.Therapy,
-        'therapies': models.Therapy,
-        'statements': models.Statement
+    'about': models.About,
+    'agents': models.Agents,
+    'biomarkers': models.Biomarkers,
+    'codings': models.Codings,
+    'contributions': models.Contributions,
+    'diseases': models.Diseases,
+    'documents': models.Documents,
+    'genes': models.Genes,
+    'indication': models.Indications,
+    'mappings': models.Mappings,
+    'organization': models.Organizations,
+    'propositions': models.Propositions,
+    'statements': models.Statements,
+    'strengths': models.Strengths,
+    'therapies': models.Therapies,
+    'therapy_groups': models.TherapyGroups,
+    'therapy_strategies': models.TherapyStrategies
 }
+
 
 def apply_filters(filter_criteria, query):
     filter_map = {
-        'biomarker_type': lambda value: models.Biomarker.biomarker_type == value,
-        'biomarker': lambda value: models.Biomarker.display == value,
-        'gene': lambda value: sqlalchemy.or_ (
-            models.Biomarker.gene == value,
-            models.Biomarker.gene1 == value,
-            models.Biomarker.gene2 == value
-        ),
-        'cancer_type': lambda value: models.Context.display == value,
-        'oncotree_code': lambda value: models.Context.oncotree_code == value,
-        'oncotree_term': lambda value: models.Context.oncotree_term == value,
-        'organization': lambda value: models.Document.organization == value,
-        'drug_name_brand': lambda value: models.Document.drug_name_brand == value,
-        'drug_name_generic': lambda value: models.Document.drug_name_generic == value,
-        'therapy_name': lambda value: models.Therapy.therapy_name == value,
-        'therapy_type': lambda value: models.Therapy.therapy_type == value
+        'biomarker_type': lambda value: models.Biomarkers.biomarker_type == value,
+        'biomarker': lambda value: models.Biomarkers.name == value,
+        'gene': lambda value: models.Genes.name == value,
+        'cancer_type': lambda value: models.Diseases.name == value,
+        #'oncotree_code': lambda value: models.Context.oncotree_code == value,
+        #'oncotree_term': lambda value: models.Context.oncotree_term == value,
+        'organization': lambda value: models.Organizations.name == value,
+        'drug_name_brand': lambda value: models.Documents.drug_name_brand == value,
+        'drug_name_generic': lambda value: models.Documents.drug_name_generic == value,
+        'therapy_name': lambda value: models.Therapies.name == value,
+        'therapy_type': lambda value: models.Therapies.therapy_type == value
     }
 
     and_filters = []
@@ -169,38 +173,38 @@ def get_documents():
         indication_count_subquery = (
             session
             .query(
-                models.Indication.document_id,
-                sqlalchemy.func.count(models.Indication.id).label('indication_count')
+                models.Indications.document_id,
+                sqlalchemy.func.count(models.Indications.id).label('indication_count')
             )
-            .group_by(models.Indication.document_id)
+            .group_by(models.Indications.document_id)
             .subquery()
         )
 
-        statement_count_subquery = (
-            session
-            .query(
-                models.Statement.document_id,
-                sqlalchemy.func.count(models.Statement.id).label('statement_count')
-            )
-            .group_by(models.Statement.document_id)
-            .subquery()
-        )
+        #statement_count_subquery = (
+        #    session
+        #    .query(
+        #        models.Statements.document_id,
+        #        sqlalchemy.func.count(models.Statement.id).label('statement_count')
+        #    )
+        #    .group_by(models.Statement.document_id)
+        #    .subquery()
+        #)
 
         # Base query
         query = (
             session
             .query(
-                models.Document,
+                models.Documents,
                 indication_count_subquery.c.indication_count,
-                statement_count_subquery.c.statement_count
+                #statement_count_subquery.c.statement_count
             )
-            .outerjoin(
-                statement_count_subquery,
-                models.Document.id == statement_count_subquery.c.document_id
-            )
+            #.outerjoin(
+                #statement_count_subquery,
+            #    models.Documents.id == statement_count_subquery.c.document_id
+            #)
             .outerjoin(
                 indication_count_subquery,
-                models.Document.id == indication_count_subquery.c.document_id
+                models.Documents.id == indication_count_subquery.c.document_id
             )
          )
 
@@ -211,18 +215,19 @@ def get_documents():
             filter_criteria.append(filter_field)
 
         query = apply_filters(
-            filter_criteria = filter_criteria,
-            query = query
+            filter_criteria=filter_criteria,
+            query=query
         )
 
         # Execute query and return all results
         results = query.all()
         result = []
-        for document, indication_count, statement_count in results:
+        for document, indication_count in results:
+        #for document, indication_count, statement_count in results:
             data = serialize_instance(document)
             data.pop('_sa_instance_state', None)
             data['indication_count'] = indication_count or 0
-            data['statement_count'] = statement_count or 0
+            #data['statement_count'] = statement_count or 0
             result.append(data)
 
         return create_response(
@@ -247,8 +252,8 @@ def get_therapy(therapy_name=None):
     try:
         statements = (
             session
-            .query(models.Statement)
-            .join(models.Indication, models.Statement.indication == models.Indication.id)
+            .query(models.Statements)
+            .join(models.Indications, models.Statements.indication_id == models.Indications.id)
             #.join(models.Implication, models.Statement.implication == models.Implication.id)
             #.join(models.Therapy, models.Implication.therapies)
 
@@ -317,19 +322,27 @@ def get_statements():
         query = (
             session
             .query(
-                models.Statement
+                models.Statements
             )
-            .join(models.Statement.biomarkers)
-            .join(models.Statement.context)
-            .join(models.Statement.document)
-            .join(models.Statement.implication)
+            .join(models.Indications, models.Statements.indication_id == models.Indications.id)
+            .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
+            .join(models.Strengths, models.Statements.strength_id == models.Strengths.id)
+            #.join(models.Statements.biomarkers)
+            #.join(models.Statements.)
+            #.join(models.Statement.document)
+            #.join(models.Statement.implication)
             .options(
                 # Join tables that are referenced in Statements
-                sqlalchemy.orm.joinedload(models.Statement.biomarkers),
-                sqlalchemy.orm.joinedload(models.Statement.context),
-                sqlalchemy.orm.joinedload(models.Statement.document),
-                sqlalchemy.orm.joinedload(models.Statement.implication),
-                sqlalchemy.orm.joinedload(models.Statement.indication),
+                sqlalchemy.orm.joinedload(models.Statements.contributions),
+                sqlalchemy.orm.joinedload(models.Statements.documents),
+            #    sqlalchemy.orm.joinedload(models.Statements.indication_id),
+                sqlalchemy.orm.joinedload(models.Statements.proposition_id),
+            #    sqlalchemy.orm.joinedload(models.Statements.strength_id)
+            #    sqlalchemy.orm.joinedload(models.Statement.biomarkers),
+            #    sqlalchemy.orm.joinedload(models.Statement.context),
+            #    sqlalchemy.orm.joinedload(models.Statement.document),
+            #    sqlalchemy.orm.joinedload(models.Statement.implication),
+            #    sqlalchemy.orm.joinedload(models.Statement.indication),
             )
         )
 
@@ -340,8 +353,8 @@ def get_statements():
             'biomarker_type',
             'drug_name_brand', # This field is not present in the Statement table natively, and instead comes in a dictionary once joined
             'gene', # I need to split gene off to its own table
-            'oncotree_code',
-            'oncotree_term',
+            #'oncotree_code',
+            #'oncotree_term',
             'organization',
             'therapy_name',
             'therapy_type',
@@ -352,27 +365,34 @@ def get_statements():
             filter_criteria.append(filter_field)
 
         query = apply_filters(
-            filter_criteria = filter_criteria,
-            query = query
+            filter_criteria=filter_criteria,
+            query=query
         )
 
         # Execute query and return all results
         results = query.all()
+        #print(results[0])
+        #print(results[0].__tablename__.columns)
         result = []
         for statement in results:
             data = serialize_instance(statement)
-            data['biomarkers'] = [serialize_instance(b) for b in statement.biomarkers]
-            data['context'] = serialize_instance(statement.context)
-            data['document'] = serialize_instance(statement.document)
-            data['implication'] = serialize_instance(statement.implication)
-            data['implication']['therapy'] = [serialize_instance(t) for t in statement.implication.therapy]
-            data['indication'] = serialize_instance(statement.indication)
+            data['contributions'] = [serialize_instance(instance=c) for c in statement.contributions]
+            data['reportedIn'] = [serialize_instance(instance=d) for d in statement.documents]
+            #data['indication'] = serialize_instance(statement.indication_id)
+            #data['proposition'] = serialize_instance(statement.proposition_id)
+            #data['strength'] = serialize_instance(statement.strength_id)
+            #data['biomarkers'] = [serialize_instance(b) for b in statement.biomarkers]
+            #data['context'] = serialize_instance(statement.context)
+            #data['document'] = serialize_instance(statement.document)
+            #data['implication'] = serialize_instance(statement.implication)
+            #data['implication']['therapy'] = [serialize_instance(t) for t in statement.implication.therapy]
+            #data['indication'] = serialize_instance(statement.indication)
 
             # Remove referenced ids
-            data.pop('context_id', None)
-            data.pop('document_id', None)
-            data.pop('implication_id', None)
-            data.pop('indication_id', None)
+            #data.pop('context_id', None)
+            #data.pop('document_id', None)
+            #data.pop('implication_id', None)
+            #data.pop('indication_id', None)
             result.append(data)
 
         return create_response(

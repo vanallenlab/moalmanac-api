@@ -31,26 +31,31 @@ class About(Base):
 
 class Agents(Base):
     __tablename__ = "agents"
+
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     subtype = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
+    # Relationships
+    contributions = sqlalchemy.orm.Relationship(
+        "Contributions",
+        back_populates="agents"
+    )
+
 
 class Biomarkers(Base):
     __tablename__ = "biomarkers"
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     biomarker_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     present = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
 
-    genes = sqlalchemy.orm.Relationship(
-        "Genes",
-        secondary="association_biomarkers_and_genes",
-        back_populates="biomarkers"
-    )
+    # genes
 
     marker = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     unit = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -81,9 +86,15 @@ class Biomarkers(Base):
 
     status = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    # Relationships
+    genes = sqlalchemy.orm.Relationship(
+        "Genes",
+        secondary="_association_biomarkers_and_genes",
+        back_populates="biomarkers"
+    )
     propositions = sqlalchemy.orm.Relationship(
         "Propositions",
-        secondary="association_biomarkers_and_propositions",
+        secondary="_association_biomarkers_and_propositions",
         back_populates="biomarkers"
     )
 
@@ -91,6 +102,7 @@ class Biomarkers(Base):
 class Codings(Base):
     __tablename__ = "codings"
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
     code = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -98,19 +110,53 @@ class Codings(Base):
     systemVersion = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     iris = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    # Relationships
+    coding = sqlalchemy.orm.Relationship(
+        "Mappings",
+        foreign_keys=["Mappings.coding_id"],
+        back_populates="coding"
+    )
+    diseases = sqlalchemy.orm.Relationship(
+        "Diseases",
+        back_populates="primary_coding"
+    )
+    genes = sqlalchemy.orm.Relationship(
+        "Genes",
+        back_populates="primary_coding"
+    )
+    primary_mappings = sqlalchemy.orm.Relationship(
+        "Mappings",
+        foreign_keys=["Mappings'.primary_coding_id"],
+        back_populates="primary_coding"
+    )
+    strengths = sqlalchemy.orm.Relationship(
+        "Strengths",
+        back_populates="primary_coding"
+    )
+    therapies = sqlalchemy.orm.Relationship(
+        "Therapies",
+        back_populates="primary_coding"
+    )
+
 
 class Contributions(Base):
     __tablename__ = "contributions"
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     agent_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('agents.id'), nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     date = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
 
+    # Relationships
+    agents = sqlalchemy.orm.Relationship(
+        "Agents",
+        back_populates="contributions"
+    )
     statements = sqlalchemy.orm.Relationship(
         "Statements",
-        secondary="association_contributions_and_statements",
+        secondary="_association_contributions_and_statements",
         back_populates="contributions"
     )
 
@@ -118,16 +164,23 @@ class Contributions(Base):
 class Diseases(Base):
     __tablename__ = "diseases"
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     concept_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     primary_coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
+    solid_tumor = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
+
+    # Relationships
     mappings = sqlalchemy.orm.Relationship(
         "Mappings",
-        secondary="association_diseases_and_mappings",
+        secondary="_association_diseases_and_mappings",
         back_populates="diseases"
     )
-    solid_tumor = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
+    primary_coding = sqlalchemy.orm.Relationship(
+        "Codings",
+        back_populates="diseases"
+    )
 
 
 class Documents(Base):
@@ -137,7 +190,7 @@ class Documents(Base):
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     subtype = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    aliases = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    #aliases = sqlalchemy.Column(sqlalchemy.List, nullable=True)
     citation = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     company = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     drug_name_brand = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -145,14 +198,15 @@ class Documents(Base):
     first_published = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     access_date = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     organization_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('organizations.id'), nullable=False)
+    organization = sqlalchemy.orm.Relationship("Organizations", back_populates="documents")
     publication_date = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
     url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    url_epar = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    url_drug = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     application_number = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
 
     statements = sqlalchemy.orm.Relationship(
         "Statements",
-        secondary="association_documents_and_statements",
+        secondary="_association_documents_and_statements",
         back_populates="documents"
     )
 
@@ -160,49 +214,37 @@ class Documents(Base):
 class Genes(Base):
     __tablename__ = 'genes'
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     concept_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     primary_coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
-    mappings = sqlalchemy.orm.Relationship(
-        "Mappings",
-        secondary="association_genes_and_mappings",
-        back_populates="genes"
-    )
     location = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     location_sortable = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    # Relationships
     biomarkers = sqlalchemy.orm.Relationship(
         "Biomarkers",
-        secondary="association_biomarkers_and_genes",
+        secondary="_association_biomarkers_and_genes",
+        back_populates="genes"
+    )
+    mappings = sqlalchemy.orm.Relationship(
+        "Mappings",
+        secondary="_association_genes_and_mappings",
+        back_populates="genes"
+    )
+    primary_coding = sqlalchemy.orm.Relationship(
+        "Codings",
         back_populates="genes"
     )
 
-"""
-class Implication(Base):
-    __tablename__ = 'implications'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    implication_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    therapy = sqlalchemy.orm.Relationship(
-        "Therapy",
-        secondary="implication_therapy_association",
-        back_populates="implications"
-    )
-    _therapy = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-
-    statements = sqlalchemy.orm.Relationship(
-        "Statement",
-        back_populates="implication"
-    )
-"""
-
-
-class Indication(Base):
+class Indications(Base):
     __tablename__ = 'indications'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     document_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('documents.id'), nullable=False)
+    documents = sqlalchemy.orm.Relationship("Documents", back_populates="indications")
     indication = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     initial_approval_date = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     initial_approval_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -213,71 +255,88 @@ class Indication(Base):
     icd10 = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     regimen_code = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     reimbursement_category = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    reimbursement_date = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    reimbursement_date = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     reimbursement_details = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     date_regular_approval = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     date_accelerated_approval = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
-
-    """
-    document = sqlalchemy.orm.Relationship(
-        "Document",
-        back_populates="indication"
-    )
-    statements = sqlalchemy.orm.Relationship(
-        "Statement",
-        back_populates="indication"
-    )
-    """
 
 
 class Mappings(Base):
     __tablename__ = 'mappings'
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     primary_coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
     coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
     relation = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
+    # Relationships
+    coding = sqlalchemy.orm.Relationship(
+        "Codings",
+        foreign_keys=[coding_id],
+        back_populates="mappings"
+    )
     diseases = sqlalchemy.orm.Relationship(
         "Diseases",
-        secondary="association_diseases_and_mappings",
+        secondary="_association_diseases_and_mappings",
         back_populates="mappings"
     )
     genes = sqlalchemy.orm.Relationship(
         "Genes",
-        secondary="association_genes_and_mappings",
+        secondary="_association_genes_and_mappings",
         back_populates="mappings"
+    )
+    primary_coding = sqlalchemy.orm.Relationship(
+        "Codings",
+        foreign_keys=[primary_coding_id],
+        back_populates="primary_mappings"
     )
     therapies = sqlalchemy.orm.Relationship(
         "Therapies",
-        secondary="association_mappings_and_therapies",
+        secondary="_association_mappings_and_therapies",
         back_populates="mappings"
     )
 
 
-class Organization(Base):
+class Organizations(Base):
     __tablename__ = 'organizations'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    label = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     last_updated = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
 
 
 class Propositions(Base):
     __tablename__ = 'propositions'
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     predicate = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    biomarkers = sqlalchemy.orm.Relationship(
-        "Biomarkers",
-        secondary="association_biomarkers_and_propositions",
-        back_populates="propositions"
-    )
     condition_qualifier_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('diseases.id'), nullable=False)
     therapy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapies.id'), nullable=True)
     therapy_group_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapy_groups.id'), nullable=True)
+
+    # Relationships
+    biomarkers = sqlalchemy.orm.Relationship(
+        "Biomarkers",
+        secondary="_association_biomarkers_and_propositions",
+        back_populates="propositions"
+    )
+    condition_qualifier = sqlalchemy.orm.Relationship(
+        "Diseases",
+        back_populates="propositions"
+    )
+    therapy = sqlalchemy.orm.Relationship(
+        "Therapies",
+        back_populates="propositions"
+    )
+    therapy_group = sqlalchemy.orm.Relationship(
+        "TherapyGroups",
+        back_populates="propositions"
+    )
 
 
 class Statements(Base):
@@ -288,54 +347,70 @@ class Statements(Base):
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     contributions = sqlalchemy.orm.Relationship(
         "Contributions",
-        secondary="association_contributions_and_statements",
+        secondary="_association_contributions_and_statements",
         back_populates="statements"
     )
     documents = sqlalchemy.orm.Relationship(
         "Documents",
-        secondary="association_documents_and_statements",
+        secondary="_association_documents_and_statements",
         back_populates="statements"
     )
     proposition_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('propositions.id'), nullable=False)
+    proposition = sqlalchemy.orm.Relationship("Propositions", back_populates="statements")
     direction = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     strength_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('strengths.id'), nullable=False)
+    strength = sqlalchemy.orm.Relationship("Strengths", back_populates="statements")
     indication_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('indications.id'), nullable=True)
+    indication = sqlalchemy.orm.Relationship("Indications", back_populates="statements")
 
 
 class Strengths(Base):
     __tablename__ = 'strengths'
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     concept_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     primary_coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
     # mappings =
 
+    # Relationships
+    primary_coding = sqlalchemy.orm.Relationship(
+        "Codings",
+        back_populates="strengths"
+    )
+
 
 class Therapies(Base):
     __tablename__ = "therapies"
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     concept_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     primary_coding_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('codings.id'), nullable=False)
-    mappings = sqlalchemy.orm.Relationship(
-        "Mappings",
-        secondary="association_mappings_and_therapies",
-        back_populates="therapies"
-    )
-    therapy_strategy = sqlalchemy.orm.Relationship(
-        "TherapyStrategies",
-        secondary="association_therapies_and_therapy_strategies",
-        back_populates="therapies"
-    )
     therapy_strategy_description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     therapy_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     therapy_type_description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
+    # Relationships
+    mappings = sqlalchemy.orm.Relationship(
+        "Mappings",
+        secondary="_association_mappings_and_therapies",
+        back_populates="therapies"
+    )
+    primary_coding = sqlalchemy.orm.Relationship(
+        "Codings",
+        back_populates="therapies"
+    )
     therapy_groups = sqlalchemy.orm.Relationship(
         "TherapyGroups",
-        secondary="association_therapies_and_therapy_groups",
+        secondary="_association_therapies_and_therapy_groups",
+        back_populates="therapies"
+    )
+    therapy_strategy = sqlalchemy.orm.Relationship(
+        "TherapyStrategies",
+        secondary="_association_therapies_and_therapy_strategies",
         back_populates="therapies"
     )
 
@@ -343,11 +418,14 @@ class Therapies(Base):
 class TherapyGroups(Base):
     __tablename__ = "therapy_groups"
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     membership_operator = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+
+    # Relationships
     therapies = sqlalchemy.orm.Relationship(
         "Therapies",
-        secondary="association_therapies_and_therapy_groups",
+        secondary="_association_therapies_and_therapy_groups",
         back_populates="therapy_groups"
     )
 
@@ -355,18 +433,20 @@ class TherapyGroups(Base):
 class TherapyStrategies(Base):
     __tablename__ = "therapy_strategies"
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
+    # Relationships
     therapies = sqlalchemy.orm.Relationship(
         "Therapies",
-        secondary="association_therapies_and_therapy_strategies",
+        secondary="_association_therapies_and_therapy_strategies",
         back_populates="therapy_strategy"
     )
 
 
 class AssociationBiomarkersAndGenes(Base):
-    __tablename__ = "association_biomarkers_and_genes"
+    __tablename__ = "_association_biomarkers_and_genes"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     biomarker_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('biomarkers.id'), nullable=False)
@@ -374,7 +454,7 @@ class AssociationBiomarkersAndGenes(Base):
 
 
 class AssociationBiomarkersAndPropositions(Base):
-    __tablename__ = "association_biomarkers_and_propositions"
+    __tablename__ = "_association_biomarkers_and_propositions"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     biomarker_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('biomarkers.id'), nullable=False)
@@ -382,7 +462,7 @@ class AssociationBiomarkersAndPropositions(Base):
 
 
 class AssociationContributionsAndStatements(Base):
-    __tablename__ = "association_contributions_and_statements"
+    __tablename__ = "_association_contributions_and_statements"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     contribution_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('contributions.id'), nullable=False)
@@ -390,7 +470,7 @@ class AssociationContributionsAndStatements(Base):
 
 
 class AssociationDiseasesAndMappings(Base):
-    __tablename__ = "association_diseases_and_mappings"
+    __tablename__ = "_association_diseases_and_mappings"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     disease_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('diseases.id'), nullable=False)
@@ -398,14 +478,14 @@ class AssociationDiseasesAndMappings(Base):
 
 
 class AssociationDocumentsAndStatements(Base):
-    __tablename__ = "association_documents_and_statements"
+    __tablename__ = "_association_documents_and_statements"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     document_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('documents.id'), nullable=False)
     statement_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('statements.id'), nullable=False)
 
 
 class AssociationGenesAndMappings(Base):
-    __tablename__ = "association_genes_and_mappings"
+    __tablename__ = "_association_genes_and_mappings"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     gene_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('genes.id'), nullable=False)
@@ -413,7 +493,7 @@ class AssociationGenesAndMappings(Base):
 
 
 class AssociationMappingsAndTherapies(Base):
-    __tablename__ = "association_mappings_and_therapies"
+    __tablename__ = "_association_mappings_and_therapies"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     mapping_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('mappings.id'), nullable=False)
@@ -421,7 +501,7 @@ class AssociationMappingsAndTherapies(Base):
 
 
 class AssociationTherapyAndTherapyGroup(Base):
-    __tablename__ = "association_therapies_and_therapy_groups"
+    __tablename__ = "_association_therapies_and_therapy_groups"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     therapy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapies.id'), nullable=False)
@@ -429,7 +509,7 @@ class AssociationTherapyAndTherapyGroup(Base):
 
 
 class AssociationTherapiesAndTherapyStrategies(Base):
-    __tablename__ = "association_therapies_and_therapy_strategies"
+    __tablename__ = "_association_therapies_and_therapy_strategies"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     therapy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapies.id'), nullable=False)

@@ -1,8 +1,10 @@
 import argparse
 import datetime
 import json
+import sqlalchemy
+import typing
 
-import models
+from . import models
 
 
 class Process:
@@ -35,8 +37,8 @@ class SQL:
         )
         session.add(about)
 
-    @staticmethod
-    def add_agents(records, session):
+    @classmethod
+    def add_agents(cls, records, session):
         for record in records:
             agent = models.Agents(
                 id=record.get('id'),
@@ -47,18 +49,19 @@ class SQL:
             )
             session.add(agent)
 
-    @staticmethod
-    def add_biomarkers(records, session):
+    @classmethod
+    def add_biomarkers(cls, records, session):
         for record in records:
             moalmanac_representation = {}
             for item in record.get('extensions'):
                 moalmanac_representation[item.get('name')] = item.get('value')
 
-            gene_ids = record.get('genes', [])
-            if gene_ids:
-                gene_instances = session.query(models.Genes).filter(models.Genes.id.in_(gene_ids)).all()
-            else:
-                gene_instances = []
+            gene_instances = cls.get_list_instances(
+                record=record,
+                key='genes',
+                session=session,
+                model=models.Genes
+            )
 
             biomarker = models.Biomarkers(
                 id=record.get('id'),
@@ -93,8 +96,8 @@ class SQL:
             )
             session.add(biomarker)
 
-    @staticmethod
-    def add_codings(records, session):
+    @classmethod
+    def add_codings(cls, records, session):
         for record in records:
             coding = models.Codings(
                 id=record.get('id'),
@@ -106,26 +109,27 @@ class SQL:
             )
             session.add(coding)
 
-    @staticmethod
-    def add_contributions(records, session):
+    @classmethod
+    def add_contributions(cls, records, session):
         for record in records:
             contribution = models.Contributions(
                 id=record.get('id'),
                 type=record.get('type'),
                 agent_id=record.get('agent_id'),
                 description=record.get('description'),
-                date=Process.parse_date(record.get('last_updated'))
+                date=Process.parse_date(record.get('date'))
             )
             session.add(contribution)
 
-    @staticmethod
-    def add_diseases(records, session):
+    @classmethod
+    def add_diseases(cls, records, session):
         for record in records:
-            mapping_ids = record.get('mappings', [])
-            if mapping_ids:
-                mapping_instances = session.query(models.Mappings).filter(models.Mappings.id.in_(mapping_ids)).all()
-            else:
-                mapping_instances = []
+            mapping_instances = cls.get_list_instances(
+                record=record,
+                key='mappings',
+                session=session,
+                model=models.Mappings
+            )
             extensions = record.get('extensions', [])
 
             disease = models.Diseases(
@@ -138,16 +142,16 @@ class SQL:
             )
             session.add(disease)
 
-    @staticmethod
-    def add_documents(records, session):
+    @classmethod
+    def add_documents(cls, records, session):
         for record in records:
             document = models.Documents(
                 id=record.get('id'),
                 type=record.get('type'),
                 subtype=record.get('subtype'),
                 name=record.get('name'),
-                aliases=record.get('aliases', None),
-                citations=record.get('citation', None),
+                #aliases=record.get('aliases', None),
+                citation=record.get('citation', None),
                 company=record.get('company', None),
                 drug_name_brand=record.get('drug_name_brand', None),
                 drug_name_generic=record.get('drug_name_generic', None),
@@ -161,14 +165,15 @@ class SQL:
             )
             session.add(document)
 
-    @staticmethod
-    def add_genes(records, session):
+    @classmethod
+    def add_genes(cls, records, session):
         for record in records:
-            mapping_ids = record.get('mappings', [])
-            if mapping_ids:
-                mapping_instances = session.query(models.Mappings).filter(models.Mappings.id.in_(mapping_ids)).all()
-            else:
-                mapping_instances = []
+            mapping_instances = cls.get_list_instances(
+                record=record,
+                key='mappings',
+                session=session,
+                model=models.Mappings
+            )
             extensions = record.get('extensions', [])
 
             gene = models.Genes(
@@ -182,31 +187,47 @@ class SQL:
             )
             session.add(gene)
 
-    @staticmethod
-    def add_indications(records, session):
+    @classmethod
+    def add_indications(cls, records, session):
         for record in records:
-            indication = models.Indication(
+            reimbursement_date = record.get('reimbursement_date', None)
+            if reimbursement_date:
+                reimbursement_date = Process.parse_date(reimbursement_date)
+
+            initial_approval_date = record.get('initial_approval_date', None)
+            if initial_approval_date:
+                initial_approval_date = Process.parse_date(initial_approval_date)
+
+            date_regular_approval = record.get('date_regular_approval', None)
+            if date_regular_approval:
+                date_regular_approval = Process.parse_date(date_regular_approval)
+
+            date_accelerated_approval = record.get('date_accelerated_approval', None)
+            if date_accelerated_approval:
+                date_accelerated_approval = Process.parse_date(date_accelerated_approval)
+
+            indication = models.Indications(
                 id=record.get('id'),
                 document_id=record.get('document_id'),
                 indication=record.get('indication'),
                 icd10=record.get('icd10'),
                 regimen_code=record.get('regimen_code'),
                 reimbursement_category=record.get('reimbursement_category'),
-                reimbursement_date=Process.parse_date(record.get('reimbursement_date', None)),
+                reimbursement_date=reimbursement_date,
                 reimbursement_details=record.get('reimbursement_details'),
                 description=record.get('description', None),
-                initial_approval_date=Process.parse_date(record.get('initial_approval_date', None)),
+                initial_approval_date=initial_approval_date,
                 initial_approval_url=record.get('initial_approval_url', None),
                 raw_biomarkers=record.get('raw_biomarkers', None),
                 raw_therapeutics=record.get('raw_therapeutics', None),
                 raw_cancer_type=record.get('raw_cancer_type', None),
-                date_regular_approval=Process.parse_date(record.get('date_regular_approval', None)),
-                date_accelerated_approval=Process.parse_date(record.get('date_accelerated_approval', None))
+                date_regular_approval=date_regular_approval,
+                date_accelerated_approval=date_accelerated_approval
             )
             session.add(indication)
 
-    @staticmethod
-    def add_mappings(records, session):
+    @classmethod
+    def add_mappings(cls, records, session):
         for record in records:
             mapping = models.Mappings(
                 id=record.get('id'),
@@ -216,10 +237,10 @@ class SQL:
             )
             session.add(mapping)
 
-    @staticmethod
-    def add_organizations(records, session):
+    @classmethod
+    def add_organizations(cls, records, session):
         for record in records:
-            organization = models.Organization(
+            organization = models.Organizations(
                 id=record['id'],
                 name=record.get('name'),
                 description=record.get('description'),
@@ -228,29 +249,49 @@ class SQL:
             )
             session.add(organization)
 
-    @staticmethod
-    def add_propositions(records, session):
+    @classmethod
+    def add_propositions(cls, records, session):
         for record in records:
+            biomarker_instances = cls.get_list_instances(
+                record=record,
+                key='biomarkers',
+                session=session,
+                model=models.Biomarkers
+            )
+
             proposition = models.Propositions(
                 id=record.get('id'),
                 type=record.get('type'),
                 predicate=record.get('predicate'),
-                biomarkers=record.get('biomarkers'),
-                condition_qualifier_id=record.get('condition_qualifier_id'),
+                biomarkers=biomarker_instances,
+                condition_qualifier_id=record.get('conditionQualifier_id'),
                 therapy_id=record.get('therapy_id'),
                 therapy_group_id=record.get('therapy_group_id')
             )
             session.add(proposition)
 
-    @staticmethod
-    def add_statements(records, session):
+    @classmethod
+    def add_statements(cls, records, session):
         for record in records:
+            contribution_instances = cls.get_list_instances(
+                record=record,
+                key='contributions',
+                session=session,
+                model=models.Contributions
+            )
+            document_instances = cls.get_list_instances(
+                record=record,
+                key='reportedIn',
+                session=session,
+                model=models.Documents
+            )
+
             statement = models.Statements(
                 id=record['id'],
                 type=record.get('type'),
                 description=record.get('description'),
-                contributions=record.get('contributions'),
-                documents=record.get('documents'),
+                contributions=contribution_instances,
+                documents=document_instances,
                 proposition_id=record.get('proposition_id'),
                 direction=record.get('direction'),
                 strength_id=record.get('strength_id'),
@@ -258,30 +299,33 @@ class SQL:
             )
             session.add(statement)
 
-    @staticmethod
-    def add_strengths(records, session):
+    @classmethod
+    def add_strengths(cls, records, session):
         for record in records:
+            #mapping_ids = record.get('mappings', [])
+            #if mapping_ids:
+            #    mapping_instances = models.Mappings.query.filter(models.Mappings.id.in_(mapping_ids)).all()
+            #else:
+            #    mapping_instances = []
+
             strength = models.Strengths(
                 id=record.get('id'),
                 concept_type=record.get('conceptType'),
                 name=record.get('name'),
-                primary_coding_id=record.get('primary_coding_id'),
-                mappings=record.get('mappings')
+                primary_coding_id=record.get('primary_coding_id')
+            #    mappings=mapping_instances
             )
             session.add(strength)
 
-    @staticmethod
-    def add_therapies(records, session):
+    @classmethod
+    def add_therapies(cls, records, session):
         for record in records:
-            mapping_ids = record.get('mappings', [])
-            mapping_instances = []
-            if mapping_ids:
-                mapping_instances = (
-                    session
-                    .query(models.Mappings)
-                    .filter(models.Mappings.id.in_(mapping_ids))
-                    .all()
-                )
+            mapping_instances = cls.get_list_instances(
+                record=record,
+                key='mappings',
+                session=session,
+                model=models.Mappings
+            )
             extensions = record.get('extensions', [])
             if extensions:
                 strategy_ids = extensions[0].get('value')
@@ -310,26 +354,36 @@ class SQL:
             )
             session.add(therapy)
 
-    @staticmethod
-    def add_therapy_groups(records, session):
+    @classmethod
+    def add_therapy_groups(cls, records, session):
         for record in records:
-            therapy_ids = record.get('therapies', [])
-            therapy_instances = []
-            if therapy_ids:
-                therapy_instances = (
-                    session
-                    .query(models.Mappings)
-                    .filter(models.Mappings.id.in_(therapy_ids))
-                    .all()
-                )
+            therapy_instances = cls.get_list_instances(
+                record=record,
+                key='therapies',
+                session=session,
+                model=models.Therapies
+            )
 
-            print(record.get('id'), therapy_instances)
             therapy_group = models.TherapyGroups(
                 id=record.get('id'),
-                membership_operator=record.get('membership_operator'),
+                membership_operator=record.get('membershipOperator'),
                 therapies=therapy_instances
             )
             session.add(therapy_group)
+
+    @staticmethod
+    def get_list_instances(record: dict, key: str, session: sqlalchemy.orm.Session, model: typing.Type[models.Base]):
+        id_values = record.get(key, [])
+        if id_values:
+            instances = (
+                session
+                .query(model)
+                .filter(model.id.in_(id_values))
+                .all()
+            )
+        else:
+            instances = []
+        return instances
 
 
 def main(referenced_dictionary):
@@ -413,7 +467,7 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         '--input',
         '-i',
-        default='data/referenced',
+        default='moalmanac-db/referenced',
         help='Directory for referenced moalmanac db json files'
     )
     args = arg_parser.parse_args()
