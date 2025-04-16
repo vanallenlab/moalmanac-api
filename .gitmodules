@@ -1,0 +1,3 @@
+[submodule "moalmanac-db"]
+	path = moalmanac-db
+	url = https://github.com/vanallenlab/moalmanac-db
