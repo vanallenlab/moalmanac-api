@@ -22,7 +22,7 @@ class About(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     github = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    label = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     license = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     release = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
@@ -37,11 +37,6 @@ class Agents(Base):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
-    contributions = sqlalchemy.orm.Relationship(
-        "Contributions",
-        back_populates="agent"
-    )
-
 
 class Biomarkers(Base):
     __tablename__ = "biomarkers"
@@ -53,7 +48,7 @@ class Biomarkers(Base):
 
     genes = sqlalchemy.orm.Relationship(
         "Genes",
-        secondary="association_genes_and_biomarkers",
+        secondary="association_biomarkers_and_genes",
         back_populates="biomarkers"
     )
 
@@ -121,7 +116,7 @@ class Contributions(Base):
 
 
 class Diseases(Base):
-    __tablename__ = "contexts"
+    __tablename__ = "diseases"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     concept_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
@@ -129,7 +124,7 @@ class Diseases(Base):
     primary_coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
     mappings = sqlalchemy.orm.Relationship(
         "Mappings",
-        secondary="association_mappings_and_genes",
+        secondary="association_diseases_and_mappings",
         back_populates="diseases"
     )
     solid_tumor = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
@@ -156,7 +151,8 @@ class Documents(Base):
     application_number = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
 
     statements = sqlalchemy.orm.Relationship(
-        "Statement",
+        "Statements",
+        secondary="association_documents_and_statements",
         back_populates="documents"
     )
 
@@ -170,7 +166,7 @@ class Genes(Base):
     primary_coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
     mappings = sqlalchemy.orm.Relationship(
         "Mappings",
-        secondary="association_mappings_and_genes",
+        secondary="association_genes_and_mappings",
         back_populates="genes"
     )
     location = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -178,7 +174,7 @@ class Genes(Base):
 
     biomarkers = sqlalchemy.orm.Relationship(
         "Biomarkers",
-        secondary="association_genes_and_biomarkers",
+        secondary="association_biomarkers_and_genes",
         back_populates="genes"
     )
 
@@ -276,12 +272,12 @@ class Propositions(Base):
     predicate = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     biomarkers = sqlalchemy.orm.Relationship(
         "Biomarkers",
-        secondary = "association_biomarkers_and_propositions",
-        back_populates = "propositions"
+        secondary="association_biomarkers_and_propositions",
+        back_populates="propositions"
     )
     condition_qualifier_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('diseases.id'), nullable=False)
     therapy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapies.id'), nullable=True)
-    therapy_group_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapy_group.id'), nullable=True)
+    therapy_group_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapy_groups.id'), nullable=True)
 
 
 class Statements(Base):
@@ -326,7 +322,7 @@ class Therapies(Base):
     mappings = sqlalchemy.orm.Relationship(
         "Mappings",
         secondary="association_mappings_and_therapies",
-        back_populates="mappings"
+        back_populates="therapies"
     )
     therapy_strategy = sqlalchemy.orm.Relationship(
         "TherapyStrategies",
@@ -356,7 +352,7 @@ class TherapyGroups(Base):
     )
 
 
-class TherapyStrategy(Base):
+class TherapyStrategies(Base):
     __tablename__ = "therapy_strategies"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -369,12 +365,20 @@ class TherapyStrategy(Base):
     )
 
 
+class AssociationBiomarkersAndGenes(Base):
+    __tablename__ = "association_biomarkers_and_genes"
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    biomarker_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('biomarkers.id'), nullable=False)
+    gene_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('genes.id'), nullable=False)
+
+
 class AssociationBiomarkersAndPropositions(Base):
     __tablename__ = "association_biomarkers_and_propositions"
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     biomarker_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('biomarkers.id'), nullable=False)
-    proposition_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('mappings.id'), nullable=False)
+    proposition_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('propositions.id'), nullable=False)
 
 
 class AssociationContributionsAndStatements(Base):
@@ -391,6 +395,13 @@ class AssociationDiseasesAndMappings(Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     disease_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('diseases.id'), nullable=False)
     mapping_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('mappings.id'), nullable=False)
+
+
+class AssociationDocumentsAndStatements(Base):
+    __tablename__ = "association_documents_and_statements"
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    document_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('documents.id'), nullable=False)
+    statement_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('statements.id'), nullable=False)
 
 
 class AssociationGenesAndMappings(Base):

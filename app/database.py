@@ -1,9 +1,8 @@
 import argparse
 import datetime
 import json
-from curses.ascii import controlnames
 
-from . import models
+import models
 
 
 class Process:
@@ -25,11 +24,10 @@ class Process:
 class SQL:
     @staticmethod
     def add_about(record, session):
-        record = record[0]
         about = models.About(
             id=0,
             github=record.get('github'),
-            label=record.get('label'),
+            name=record.get('name'),
             license=record.get('license'),
             release=record.get('release'),
             url=record.get('url'),
@@ -55,10 +53,17 @@ class SQL:
             moalmanac_representation = {}
             for item in record.get('extensions'):
                 moalmanac_representation[item.get('name')] = item.get('value')
+
+            gene_ids = record.get('genes', [])
+            if gene_ids:
+                gene_instances = session.query(models.Genes).filter(models.Genes.id.in_(gene_ids)).all()
+            else:
+                gene_instances = []
+
             biomarker = models.Biomarkers(
                 id=record.get('id'),
                 name=record.get('name'),
-                genes= record.get('genes', None),
+                genes=gene_instances,
                 biomarker_type=moalmanac_representation.get('biomarker_type', None),
                 present=moalmanac_representation.get('_present', None),
                 marker=moalmanac_representation.get('marker', None),
@@ -69,7 +74,7 @@ class SQL:
                 start_position=moalmanac_representation.get('start_position', None),
                 end_position=moalmanac_representation.get('end_position', None),
                 reference_allele=moalmanac_representation.get('reference_allele', None),
-                alternate_allele=moalmanac_representation.get('alterante_allele', None),
+                alternate_allele=moalmanac_representation.get('alternate_allele', None),
                 cdna_change=moalmanac_representation.get('cdna_change', None),
                 protein_change=moalmanac_representation.get('protein_change', None),
                 variant_annotation=moalmanac_representation.get('variant_annotation', None),
@@ -116,13 +121,20 @@ class SQL:
     @staticmethod
     def add_diseases(records, session):
         for record in records:
+            mapping_ids = record.get('mappings', [])
+            if mapping_ids:
+                mapping_instances = session.query(models.Mappings).filter(models.Mappings.id.in_(mapping_ids)).all()
+            else:
+                mapping_instances = []
+            extensions = record.get('extensions', [])
+
             disease = models.Diseases(
                 id=record.get('id'),
-                concept_type=record.get('concept_type'),
+                concept_type=record.get('conceptType'),
                 name=record.get('name'),
                 primary_coding_id=record.get('primary_coding_id'),
-                mappings=record.get('mappings', None),
-                solid_tumor=record.get('extensions')[0].get('value')
+                mappings=mapping_instances,
+                solid_tumor=extensions[0].get('value') if extensions else None
             )
             session.add(disease)
 
@@ -152,14 +164,21 @@ class SQL:
     @staticmethod
     def add_genes(records, session):
         for record in records:
+            mapping_ids = record.get('mappings', [])
+            if mapping_ids:
+                mapping_instances = session.query(models.Mappings).filter(models.Mappings.id.in_(mapping_ids)).all()
+            else:
+                mapping_instances = []
+            extensions = record.get('extensions', [])
+
             gene = models.Genes(
                 id=record.get('id'),
-                concept_type=record.get('concept_type'),
+                concept_type=record.get('conceptType'),
                 name=record.get('name'),
                 primary_coding_id=record.get('primary_coding_id'),
-                mappings=record.get('mappings', None),
-                location=record.get('extensions')[0].get('value'),
-                location_id=record.get('extensions')[1].get('value')
+                mappings=mapping_instances,
+                location=extensions[0].get('value') if extensions else None,
+                location_sortable=extensions[1].get('value') if extensions else None
             )
             session.add(gene)
 
@@ -244,7 +263,7 @@ class SQL:
         for record in records:
             strength = models.Strengths(
                 id=record.get('id'),
-                concept_type=record.get('concept_type'),
+                concept_type=record.get('conceptType'),
                 name=record.get('name'),
                 primary_coding_id=record.get('primary_coding_id'),
                 mappings=record.get('mappings')
@@ -254,15 +273,39 @@ class SQL:
     @staticmethod
     def add_therapies(records, session):
         for record in records:
+            mapping_ids = record.get('mappings', [])
+            mapping_instances = []
+            if mapping_ids:
+                mapping_instances = (
+                    session
+                    .query(models.Mappings)
+                    .filter(models.Mappings.id.in_(mapping_ids))
+                    .all()
+                )
+            extensions = record.get('extensions', [])
+            if extensions:
+                strategy_ids = extensions[0].get('value')
+                strategy_instances = []
+                #strategy_instances = (
+                #    session
+                #    .query(models.TherapyStrategies)
+                #    .filter(models.TherapyStrategies.id.in_(strategy_ids))
+                #    .all()
+                #)
+                therapy_type = extensions[1].get('value', None)
+            else:
+                strategy_instances = []
+                therapy_type = None
+
             therapy = models.Therapies(
                 id=record.get('id'),
-                concept_type=record.get('concept_type'),
+                concept_type=record.get('conceptType'),
                 name=record.get('name'),
                 primary_coding_id=record.get('primary_coding_id'),
-                mappings=record.get('mappings'),
-                therapy_strategy=record.get('therapy_strategy'),
+                mappings=mapping_instances,
+                therapy_strategy=[],
                 therapy_strategy_description=record.get('therapy_strategy_description'),
-                therapy_type=record.get('therapy_type'),
+                therapy_type=therapy_type,
                 therapy_type_description=record.get('therapy_type_description')
             )
             session.add(therapy)
@@ -270,10 +313,21 @@ class SQL:
     @staticmethod
     def add_therapy_groups(records, session):
         for record in records:
+            therapy_ids = record.get('therapies', [])
+            therapy_instances = []
+            if therapy_ids:
+                therapy_instances = (
+                    session
+                    .query(models.Mappings)
+                    .filter(models.Mappings.id.in_(therapy_ids))
+                    .all()
+                )
+
+            print(record.get('id'), therapy_instances)
             therapy_group = models.TherapyGroups(
                 id=record.get('id'),
                 membership_operator=record.get('membership_operator'),
-                therapies=record.get('therapies')
+                therapies=therapy_instances
             )
             session.add(therapy_group)
 
@@ -286,64 +340,64 @@ def main(referenced_dictionary):
         SQL.add_about(record=about, session=session)
         session.commit()
 
-        agents = Process.load_json(f"{root}/agents.json")
-        SQL.add_about(record=agents, session=session)
-        session.commit()
-
-        biomarkers = Process.load_json(f"{root}/biomarkers.json")
-        SQL.add_about(record=biomarkers, session=session)
-        session.commit()
-
         codings = Process.load_json(f"{root}/codings.json")
-        SQL.add_about(record=codings, session=session)
-        session.commit()
-
-        contributions = Process.load_json(f"{root}/contributions.json")
-        SQL.add_about(record=contributions, session=session)
-        session.commit()
-
-        diseases = Process.load_json(f"{root}/diseases.json")
-        SQL.add_about(record=diseases, session=session)
-        session.commit()
-
-        documents = Process.load_json(f"{root}/documents.json")
-        SQL.add_about(record=documents, session=session)
-        session.commit()
-
-        genes = Process.load_json(f"{root}/genes.json")
-        SQL.add_about(record=genes, session=session)
-        session.commit()
-
-        indications = Process.load_json(f"{root}/indications.json")
-        SQL.add_about(record=indications, session=session)
+        SQL.add_codings(records=codings, session=session)
         session.commit()
 
         mappings = Process.load_json(f"{root}/mappings.json")
-        SQL.add_about(record=mappings, session=session)
+        SQL.add_mappings(records=mappings, session=session)
         session.commit()
 
-        organizations = Process.load_json(f"{root}/organizations.json")
-        SQL.add_about(record=organizations, session=session)
+        agents = Process.load_json(f"{root}/agents.json")
+        SQL.add_agents(records=agents, session=session)
         session.commit()
 
-        propositions = Process.load_json(f"{root}/propositions.json")
-        SQL.add_about(record=propositions, session=session)
+        genes = Process.load_json(f"{root}/genes.json")
+        SQL.add_genes(records=genes, session=session)
         session.commit()
 
-        statements = Process.load_json(f"{root}/statements.json")
-        SQL.add_about(record=statements, session=session)
+        biomarkers = Process.load_json(f"{root}/biomarkers.json")
+        SQL.add_biomarkers(records=biomarkers, session=session)
         session.commit()
 
-        strength = Process.load_json(f"{root}/strength.json")
-        SQL.add_about(record=strength, session=session)
+        diseases = Process.load_json(f"{root}/diseases.json")
+        SQL.add_diseases(records=diseases, session=session)
         session.commit()
 
         therapies = Process.load_json(f"{root}/therapies.json")
-        SQL.add_about(record=therapies, session=session)
+        SQL.add_therapies(records=therapies, session=session)
         session.commit()
 
         therapy_groups = Process.load_json(f"{root}/therapy_groups.json")
-        SQL.add_about(record=therapy_groups, session=session)
+        SQL.add_therapy_groups(records=therapy_groups, session=session)
+        session.commit()
+
+        contributions = Process.load_json(f"{root}/contributions.json")
+        SQL.add_contributions(records=contributions, session=session)
+        session.commit()
+
+        documents = Process.load_json(f"{root}/documents.json")
+        SQL.add_documents(records=documents, session=session)
+        session.commit()
+
+        indications = Process.load_json(f"{root}/indications.json")
+        SQL.add_indications(records=indications, session=session)
+        session.commit()
+
+        organizations = Process.load_json(f"{root}/organizations.json")
+        SQL.add_organizations(records=organizations, session=session)
+        session.commit()
+
+        propositions = Process.load_json(f"{root}/propositions.json")
+        SQL.add_propositions(records=propositions, session=session)
+        session.commit()
+
+        strengths = Process.load_json(f"{root}/strengths.json")
+        SQL.add_strengths(records=strengths, session=session)
+        session.commit()
+
+        statements = Process.load_json(f"{root}/statements.json")
+        SQL.add_statements(records=statements, session=session)
         session.commit()
 
         session.close()
