@@ -314,8 +314,9 @@ def get_unique_values():
         session.close()
 
 
-@flask.current_app.route('/statements', methods=['GET'])
-def get_statements():
+@flask.current_app.route('/statements', defaults={'statement_id': None}, methods=['GET'])
+@flask.current_app.route('/statements/<statement_id>', methods=['GET'])
+def get_statements(statement_id=None):
     session = models.Session()
     try:
         # Base query
@@ -327,24 +328,20 @@ def get_statements():
             .join(models.Indications, models.Statements.indication_id == models.Indications.id)
             .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
             .join(models.Strengths, models.Statements.strength_id == models.Strengths.id)
-            #.join(models.Statements.biomarkers)
-            #.join(models.Statements.)
-            #.join(models.Statement.document)
-            #.join(models.Statement.implication)
             .options(
                 # Join tables that are referenced in Statements
                 sqlalchemy.orm.joinedload(models.Statements.contributions),
                 sqlalchemy.orm.joinedload(models.Statements.documents),
-            #    sqlalchemy.orm.joinedload(models.Statements.indication_id),
-                sqlalchemy.orm.joinedload(models.Statements.proposition_id),
-            #    sqlalchemy.orm.joinedload(models.Statements.strength_id)
-            #    sqlalchemy.orm.joinedload(models.Statement.biomarkers),
-            #    sqlalchemy.orm.joinedload(models.Statement.context),
-            #    sqlalchemy.orm.joinedload(models.Statement.document),
-            #    sqlalchemy.orm.joinedload(models.Statement.implication),
-            #    sqlalchemy.orm.joinedload(models.Statement.indication),
+                sqlalchemy.orm.joinedload(models.Statements.indication),
+                sqlalchemy.orm.joinedload(models.Statements.proposition).joinedload(models.Propositions.condition_qualifier),
+                sqlalchemy.orm.joinedload(models.Statements.proposition).joinedload(models.Propositions.therapy),
+                sqlalchemy.orm.joinedload(models.Statements.proposition).joinedload(models.Propositions.therapy_group).joinedload(models.TherapyGroups.therapies),
+                sqlalchemy.orm.joinedload(models.Statements.strength)
             )
         )
+
+        if statement_id:
+            query = query.filter(models.Statements.id == statement_id)
 
         # Get and apply filters
         fields = [
@@ -371,16 +368,22 @@ def get_statements():
 
         # Execute query and return all results
         results = query.all()
-        #print(results[0])
-        #print(results[0].__tablename__.columns)
         result = []
         for statement in results:
             data = serialize_instance(statement)
             data['contributions'] = [serialize_instance(instance=c) for c in statement.contributions]
             data['reportedIn'] = [serialize_instance(instance=d) for d in statement.documents]
-            #data['indication'] = serialize_instance(statement.indication_id)
-            #data['proposition'] = serialize_instance(statement.proposition_id)
-            #data['strength'] = serialize_instance(statement.strength_id)
+            data['indication'] = serialize_instance(instance=statement.indication)
+            data['proposition'] = serialize_instance(instance=statement.proposition)
+            data['proposition']['conditionQualifier'] = serialize_instance(instance=statement.proposition.condition_qualifier)
+
+            if statement.proposition.therapy:
+                therapy_instance = serialize_instance(statement.proposition.therapy)
+            else:
+                therapy_instance = serialize_instance(statement.proposition.therapy_group)
+                therapy_instance['therapies'] = [serialize_instance(instance=t) for t in statement.proposition.therapy_group.therapies]
+            data['proposition']['targetTherapeutic'] = therapy_instance
+            data['strength'] = serialize_instance(statement.strength)
             #data['biomarkers'] = [serialize_instance(b) for b in statement.biomarkers]
             #data['context'] = serialize_instance(statement.context)
             #data['document'] = serialize_instance(statement.document)
@@ -391,8 +394,9 @@ def get_statements():
             # Remove referenced ids
             #data.pop('context_id', None)
             #data.pop('document_id', None)
-            #data.pop('implication_id', None)
-            #data.pop('indication_id', None)
+            data.pop('indication_id', None)
+            data.pop('proposition_id', None)
+            data.pop('strength_id', None)
             result.append(data)
 
         return create_response(

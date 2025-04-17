@@ -99,6 +99,43 @@ class Biomarkers(Base):
     )
 
 
+class Mappings(Base):
+    __tablename__ = 'mappings'
+
+    # Fields
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    primary_coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
+    coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
+    relation = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+
+    # Relationships
+    primary_coding = sqlalchemy.orm.Relationship(
+        "Codings",
+        foreign_keys=[primary_coding_id],
+        back_populates="primary_mappings"
+    )
+    coding = sqlalchemy.orm.Relationship(
+        "Codings",
+        foreign_keys=[coding_id],
+        back_populates="mappings"
+    )
+    diseases = sqlalchemy.orm.Relationship(
+        "Diseases",
+        secondary="_association_diseases_and_mappings",
+        back_populates="mappings"
+    )
+    genes = sqlalchemy.orm.Relationship(
+        "Genes",
+        secondary="_association_genes_and_mappings",
+        back_populates="mappings"
+    )
+    therapies = sqlalchemy.orm.Relationship(
+        "Therapies",
+        secondary="_association_mappings_and_therapies",
+        back_populates="mappings"
+    )
+
+
 class Codings(Base):
     __tablename__ = "codings"
 
@@ -111,9 +148,14 @@ class Codings(Base):
     iris = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     # Relationships
-    coding = sqlalchemy.orm.Relationship(
+    primary_mappings = sqlalchemy.orm.Relationship(
         "Mappings",
-        foreign_keys=["Mappings.coding_id"],
+        foreign_keys=[Mappings.primary_coding_id],
+        back_populates="primary_coding"
+    )
+    mappings = sqlalchemy.orm.Relationship(
+        "Mappings",
+        foreign_keys=[Mappings.coding_id],
         back_populates="coding"
     )
     diseases = sqlalchemy.orm.Relationship(
@@ -122,11 +164,6 @@ class Codings(Base):
     )
     genes = sqlalchemy.orm.Relationship(
         "Genes",
-        back_populates="primary_coding"
-    )
-    primary_mappings = sqlalchemy.orm.Relationship(
-        "Mappings",
-        foreign_keys=["Mappings'.primary_coding_id"],
         back_populates="primary_coding"
     )
     strengths = sqlalchemy.orm.Relationship(
@@ -181,11 +218,16 @@ class Diseases(Base):
         "Codings",
         back_populates="diseases"
     )
+    propositions = sqlalchemy.orm.Relationship(
+        "Propositions",
+        back_populates="condition_qualifier"
+    )
 
 
 class Documents(Base):
     __tablename__ = 'documents'
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     subtype = sqlalchemy.Column(sqlalchemy.String, nullable=False)
@@ -198,12 +240,20 @@ class Documents(Base):
     first_published = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     access_date = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     organization_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('organizations.id'), nullable=False)
-    organization = sqlalchemy.orm.Relationship("Organizations", back_populates="documents")
     publication_date = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
     url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     url_drug = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     application_number = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
 
+    # Relationships
+    indications = sqlalchemy.orm.Relationship(
+        "Indications",
+        back_populates="documents"
+    )
+    organization = sqlalchemy.orm.Relationship(
+        "Organizations",
+        back_populates="documents"
+    )
     statements = sqlalchemy.orm.Relationship(
         "Statements",
         secondary="_association_documents_and_statements",
@@ -242,9 +292,9 @@ class Genes(Base):
 class Indications(Base):
     __tablename__ = 'indications'
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     document_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('documents.id'), nullable=False)
-    documents = sqlalchemy.orm.Relationship("Documents", back_populates="indications")
     indication = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     initial_approval_date = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     initial_approval_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -260,52 +310,32 @@ class Indications(Base):
     date_regular_approval = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     date_accelerated_approval = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
 
-
-class Mappings(Base):
-    __tablename__ = 'mappings'
-
-    # Fields
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    primary_coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
-    coding_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('codings.id'), nullable=False)
-    relation = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-
     # Relationships
-    coding = sqlalchemy.orm.Relationship(
-        "Codings",
-        foreign_keys=[coding_id],
-        back_populates="mappings"
+    documents = sqlalchemy.orm.Relationship(
+        "Documents",
+        back_populates="indications"
     )
-    diseases = sqlalchemy.orm.Relationship(
-        "Diseases",
-        secondary="_association_diseases_and_mappings",
-        back_populates="mappings"
-    )
-    genes = sqlalchemy.orm.Relationship(
-        "Genes",
-        secondary="_association_genes_and_mappings",
-        back_populates="mappings"
-    )
-    primary_coding = sqlalchemy.orm.Relationship(
-        "Codings",
-        foreign_keys=[primary_coding_id],
-        back_populates="primary_mappings"
-    )
-    therapies = sqlalchemy.orm.Relationship(
-        "Therapies",
-        secondary="_association_mappings_and_therapies",
-        back_populates="mappings"
+    statements = sqlalchemy.orm.Relationship(
+        "Statements",
+        back_populates="indication"
     )
 
 
 class Organizations(Base):
     __tablename__ = 'organizations'
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     last_updated = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
+
+    # Relationships
+    documents = sqlalchemy.orm.Relationship(
+        "Documents",
+        back_populates="organization"
+    )
 
 
 class Propositions(Base):
@@ -329,6 +359,10 @@ class Propositions(Base):
         "Diseases",
         back_populates="propositions"
     )
+    statements = sqlalchemy.orm.Relationship(
+        "Statements",
+        back_populates="proposition"
+    )
     therapy = sqlalchemy.orm.Relationship(
         "Therapies",
         back_populates="propositions"
@@ -342,9 +376,16 @@ class Propositions(Base):
 class Statements(Base):
     __tablename__ = 'statements'
 
+    # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    proposition_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('propositions.id'), nullable=False)
+    direction = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    strength_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('strengths.id'), nullable=False)
+    indication_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('indications.id'), nullable=True)
+
+    # Relationships
     contributions = sqlalchemy.orm.Relationship(
         "Contributions",
         secondary="_association_contributions_and_statements",
@@ -355,13 +396,18 @@ class Statements(Base):
         secondary="_association_documents_and_statements",
         back_populates="statements"
     )
-    proposition_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('propositions.id'), nullable=False)
-    proposition = sqlalchemy.orm.Relationship("Propositions", back_populates="statements")
-    direction = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    strength_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('strengths.id'), nullable=False)
-    strength = sqlalchemy.orm.Relationship("Strengths", back_populates="statements")
-    indication_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('indications.id'), nullable=True)
-    indication = sqlalchemy.orm.Relationship("Indications", back_populates="statements")
+    indication = sqlalchemy.orm.Relationship(
+        "Indications",
+        back_populates="statements"
+    )
+    proposition = sqlalchemy.orm.Relationship(
+        "Propositions",
+        back_populates="statements"
+    )
+    strength = sqlalchemy.orm.Relationship(
+        "Strengths",
+        back_populates="statements"
+    )
 
 
 class Strengths(Base):
@@ -378,6 +424,10 @@ class Strengths(Base):
     primary_coding = sqlalchemy.orm.Relationship(
         "Codings",
         back_populates="strengths"
+    )
+    statements = sqlalchemy.orm.Relationship(
+        "Statements",
+        back_populates="strength"
     )
 
 
@@ -403,6 +453,10 @@ class Therapies(Base):
         "Codings",
         back_populates="therapies"
     )
+    propositions = sqlalchemy.orm.Relationship(
+        "Propositions",
+        back_populates="therapy"
+    )
     therapy_groups = sqlalchemy.orm.Relationship(
         "TherapyGroups",
         secondary="_association_therapies_and_therapy_groups",
@@ -423,6 +477,10 @@ class TherapyGroups(Base):
     membership_operator = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
     # Relationships
+    propositions = sqlalchemy.orm.Relationship(
+        "Propositions",
+        back_populates="therapy_group"
+    )
     therapies = sqlalchemy.orm.Relationship(
         "Therapies",
         secondary="_association_therapies_and_therapy_groups",
