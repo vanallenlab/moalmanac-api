@@ -12,6 +12,9 @@ COMMIT_HASH=$2
 # Navigate to the submodule directory
 cd "$SUBMODULE_PATH" || { echo "Submodule path not found"; exit 1; }
 
+# Update to the latest version
+git pull
+
 # Checkout the specific commit
 git checkout "$COMMIT_HASH" || { echo "Failed to checkout commit"; exit 1; }
 
