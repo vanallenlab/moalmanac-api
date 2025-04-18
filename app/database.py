@@ -16,10 +16,13 @@ class Process:
 
     @staticmethod
     def parse_date(date_string, date_string_format='%Y-%m-%d'):
-        try:
-           date_object = datetime.datetime.strptime(date_string, date_string_format)
-           return date_object.date()
-        except ValueError:
+        if isinstance(date_string, str):
+            try:
+                date_object = datetime.datetime.strptime(date_string, date_string_format)
+                return date_object.date()
+            except ValueError:
+                return None
+        else:
             return None
 
 
@@ -386,6 +389,275 @@ class SQL:
         return instances
 
 
+class Summary:
+    @classmethod
+    def count_rows(cls, session: sqlalchemy.orm.Session) -> dict:
+        # Total and associated counts for each table
+        results = {
+            'biomarkers': cls.count_biomarkers(session=session),
+            'diseases': cls.count_diseases(session=session),
+            'documents': cls.count_documents(session=session),
+            'genes': cls.count_genes(session=session),
+            'indications': cls.count_indications(session=session),
+            'organizations': cls.count_organizations(session=session),
+            'propositions': cls.count_propositions(session=session),
+            'statements': cls.count_statements(session=session),
+            'strengths': cls.count_strengths(session=session),
+            'therapies': cls.count_therapies(session=session)
+        }
+        return results
+
+    @staticmethod
+    def count_biomarkers(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Biomarkers.id)))
+            .join(
+                models.AssociationBiomarkersAndPropositions,
+                models.Biomarkers.id == models.AssociationBiomarkersAndPropositions.biomarker_id
+            )
+            .join(
+                models.Propositions,
+                models.Propositions.id == models.AssociationBiomarkersAndPropositions.proposition_id
+            )
+            .join(
+                models.Statements,
+                models.Statements.proposition_id == models.Propositions.id
+            )
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Biomarkers.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_diseases(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Diseases.id)))
+            .join(
+                models.Propositions,
+                models.Diseases.id == models.Propositions.condition_qualifier_id
+            )
+            .join(
+                models.Statements,
+                models.Statements.proposition_id == models.Propositions.id
+            )
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Diseases.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_documents(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Documents.id)))
+            .join(
+                models.AssociationDocumentsAndStatements,
+                models.Documents.id == models.AssociationDocumentsAndStatements.document_id
+            )
+            .join(
+                models.Statements,
+                models.Statements.id == models.AssociationDocumentsAndStatements.statement_id
+            )
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Documents.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_genes(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Genes.id)))
+            .join(
+                models.AssociationBiomarkersAndGenes,
+                models.AssociationBiomarkersAndGenes.gene_id == models.Genes.id
+            )
+            .join(
+                models.Biomarkers,
+                models.Biomarkers.id == models.AssociationBiomarkersAndGenes.biomarker_id
+            )
+            .join(
+                models.AssociationBiomarkersAndPropositions,
+                models.AssociationBiomarkersAndPropositions.biomarker_id == models.Biomarkers.id
+            )
+            .join(
+                models.Propositions,
+                models.Propositions.id == models.AssociationBiomarkersAndPropositions.proposition_id,
+            )
+            .join(
+                models.Statements,
+                models.Statements.proposition_id == models.Propositions.id
+            )
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Genes.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_indications(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Indications.id)))
+            .join(
+                models.Statements,
+                models.Statements.indication_id == models.Indications.id
+            )
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Indications.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_organizations(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Organizations.id)))
+            .join(
+                models.Documents,
+                models.Documents.organization_id == models.Organizations.id
+            )
+            .join(
+                models.AssociationDocumentsAndStatements,
+                models.AssociationDocumentsAndStatements.document_id == models.Documents.id
+            )
+            .join(
+                models.Statements,
+                models.Statements.id == models.AssociationDocumentsAndStatements.statement_id
+            )
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Organizations.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_propositions(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Propositions.id)))
+            .join(
+                models.Statements,
+                models.Statements.proposition_id == models.Propositions.id
+            )
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Propositions.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_statements(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Statements.id)))
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Statements.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_strengths(session: sqlalchemy.orm.Session) -> tuple:
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(models.Strengths.id)))
+            .join(
+                models.Statements,
+                models.Statements.strength_id == models.Strengths.id
+            )
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Strengths.id))
+            .scalar()
+        )
+        return associated, total
+
+    @staticmethod
+    def count_therapies(session: sqlalchemy.orm.Session) -> tuple:
+        therapies_via_propositions = (
+            session
+            .query(models.Therapies.id.label('therapy_id'))
+            .join(
+                models.Propositions,
+                models.Propositions.therapy_id == models.Therapies.id
+            )
+            .join(
+                models.Statements,
+                models.Statements.proposition_id == models.Propositions.id
+            )
+        )
+        therapies_via_therapy_groups = (
+            session
+            .query(models.Therapies.id.label('therapy_id'))
+            .join(
+                models.AssociationTherapyAndTherapyGroup,
+                models.AssociationTherapyAndTherapyGroup.therapy_id == models.Therapies.id
+            )
+            .join(
+                models.TherapyGroups,
+                models.TherapyGroups.id == models.AssociationTherapyAndTherapyGroup.therapy_group_id
+            )
+            .join(
+                models.Propositions,
+                models.Propositions.therapy_group_id == models.TherapyGroups.id
+            )
+            .join(
+                models.Statements,
+                models.Statements.proposition_id == models.Propositions.id
+            )
+        )
+
+        union = (
+            sqlalchemy
+            .union_all(therapies_via_propositions, therapies_via_therapy_groups)
+            .alias('union')
+        )
+        associated = (
+            session
+            .query(sqlalchemy.func.count(sqlalchemy.func.distinct(union.c.therapy_id)))
+            .scalar()
+        )
+        total = (
+            session
+            .query(sqlalchemy.func.count(models.Therapies.id))
+            .scalar()
+        )
+        return associated, total
+
+
 def main(referenced_dictionary):
     with models.Session() as session:
         root = f"{referenced_dictionary}"
@@ -453,6 +725,9 @@ def main(referenced_dictionary):
         statements = Process.load_json(f"{root}/statements.json")
         SQL.add_statements(records=statements, session=session)
         session.commit()
+
+        summary = Summary.count_rows(session=session)
+        print(summary)
 
         session.close()
 

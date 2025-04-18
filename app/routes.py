@@ -250,7 +250,7 @@ def get_therapy(therapy_name=None):
     """
     session = models.Session()
     try:
-        statements = (
+        query = (
             session
             .query(models.Statements)
             .join(models.Indications, models.Statements.indication_id == models.Indications.id)
@@ -259,6 +259,9 @@ def get_therapy(therapy_name=None):
 
             .all()
         )
+
+        if therapy_name:
+            query = query.filter(models.Statements.id == statement_id)
 
         result = []
         for statement in statements:
@@ -322,9 +325,7 @@ def get_statements(statement_id=None):
         # Base query
         query = (
             session
-            .query(
-                models.Statements
-            )
+            .query(models.Statements)
             .join(models.Indications, models.Statements.indication_id == models.Indications.id)
             .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
             .join(models.Strengths, models.Statements.strength_id == models.Strengths.id)
