@@ -431,6 +431,25 @@ class Strengths(Base):
     )
 
 
+class Terms(Base):
+    __tablename__ = "terms"
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    table = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    record_id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    record_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    associated = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
+
+
+class TermCounts(Base):
+    __tablename__ = "term_counts"
+
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    table = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    count_associated = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+    count_total = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
+
+
 class Therapies(Base):
     __tablename__ = "therapies"
 
