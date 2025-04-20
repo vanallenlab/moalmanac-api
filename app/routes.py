@@ -239,6 +239,54 @@ def get_documents():
         session.close()
 
 
+@flask.current_app.route('/terms', defaults={'table': None}, methods=['GET'])
+@flask.current_app.route('/terms/<table>', methods=['GET'])
+def get_terms(table=None):
+    session = models.Session()
+    try:
+        query = (
+            session
+            .query(models.Terms)
+        )
+        if table:
+            query = query.filter(models.Terms.table == table)
+
+        results = query.all()
+        result = []
+        for term in results:
+            data = serialize_instance(term)
+            result.append(data)
+        return create_response(
+            data=result,
+            message="Terms retrieved successfully",
+            status=200
+        )
+    finally:
+        session.close()
+
+
+@flask.current_app.route('/termcounts', methods=['GET'])
+def get_term_counts():
+    session = models.Session()
+    try:
+        query = (
+            session
+            .query(models.TermCounts)
+        )
+        results = query.all()
+        result = []
+        for table in results:
+            data = serialize_instance(table)
+            result.append(data)
+        return create_response(
+            data=result,
+            message="Term counts retrieved successfully",
+            status=200
+        )
+    finally:
+        session.close()
+
+
 @flask.current_app.route('/therapy', defaults={'therapy_name': None}, methods=['GET'])
 @flask.current_app.route('/therapy/<therapy_name>', methods=['GET'])
 def get_therapy(therapy_name=None):

@@ -780,8 +780,11 @@ def main(referenced_dictionary):
 
         terms = Summary.list_terms(session=session)
         SQL.add_terms(records=terms, session=session)
+        session.commit()
+
         terms_count = Summary.count_terms(records=terms)
         SQL.add_term_counts(records=terms_count, session=session)
+        session.commit()
         print(terms_count)
 
         session.close()
