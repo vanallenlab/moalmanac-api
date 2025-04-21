@@ -5,10 +5,11 @@ import json
 import pandas
 import sqlalchemy
 import typing
-from . import create_app
-from . import models
 
 from sqlalchemy.orm import sessionmaker
+
+from . import create_app
+from . import models
 
 
 class Process:
