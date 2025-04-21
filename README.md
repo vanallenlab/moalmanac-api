@@ -41,6 +41,22 @@ pip install jupyter
 ipython kernel install --user --name=moalmanac-api
 ```
 
+# Usage
+To update the database content from [moalmanac-db](https://github.com/vanallenlab/moalmanac-db):
+```bash
+rm data/moalmanac.sqlite3; python -m ap..populate_database -i moalmanac-db/referenced/ -c config.ini
+```
+
+To launch the application for development:
+```bash
+python dev_run.py
+```
+
+To launch the application for production:
+```bash
+python run.py
+```
+
 ## Citation
 If you find this tool or any code herein useful, please cite:  
 > [Reardon, B., Moore, N.D., Moore, N.S., *et al*. Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology. *Nat Cancer* (2021). https://doi.org/10.1038/s43018-021-00243-3](https://www.nature.com/articles/s43018-021-00243-3)
