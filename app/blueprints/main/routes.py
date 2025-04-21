@@ -1,9 +1,9 @@
+import datetime
 import flask
 import sqlalchemy
-from sqlalchemy import inspect
 
-from . import models
-
+from app import models
+from . import main_bp
 
 TABLE_MAP = {
     'about': models.About,
@@ -28,6 +28,7 @@ TABLE_MAP = {
 
 def apply_filters(filter_criteria, query):
     filter_map = {
+        'agent': lambda value: models.Agents.name == value,
         'biomarker_type': lambda value: models.Biomarkers.biomarker_type == value,
         'biomarker': lambda value: models.Biomarkers.name == value,
         'gene': lambda value: models.Genes.name == value,
@@ -76,6 +77,22 @@ def apply_filters(filter_criteria, query):
     return query
 
 
+def convert_date_to_iso(value: datetime.date) -> str:
+    """
+    Converts a datetime.date value to an ISO 8601 format string.
+    
+    Args:
+        value: The datetime.date value to convert.
+    
+    Returns:
+        str: The ISO 8601 format string if the value is a date, otherwise the original value.
+    """
+    if isinstance(value, datetime.date):
+        return value.isoformat()
+    else:
+        raise ValueError(f"Input value not of type datetime.date: {value}")
+
+
 def create_response(data, message="", status=200):
     """Wrapper function to create a response with metadata."""
     response = {
@@ -87,6 +104,31 @@ def create_response(data, message="", status=200):
     return flask.jsonify(response), status
 
 
+def move_keys_to_extensions(dictionary: dict, keys: list[str]) -> dict:
+    if 'extensions' not in dictionary:
+        dictionary['extensions'] = []
+    for key in keys:
+        extension = [{'name': key, 'value': dictionary[key]}]
+        dictionary['extensions'].append(extension)
+        dictionary.pop(key, None)
+    return dictionary
+
+
+def reorder_dictionary(dictionary: dict, key_order: list[str]) -> dict:
+    """
+    Reorders the keys in a dictionary based on a given list of keys.
+
+    Args:
+        dictionary (dict): The original dictionary to reorder.
+        key_order (list[str]): A list of keys specifying the desired order.
+
+    Returns:
+        reoredered (dict): A new dictionary with keys reordered.
+    """
+    reordered = {key: dictionary[key] for key in key_order if key in dictionary}
+    return reordered
+
+
 def serialize_instance(instance):
     """Convert SQLAlchemy instance to a dictionary."""
     return {
@@ -94,14 +136,18 @@ def serialize_instance(instance):
     }
 
 
-@flask.current_app.route('/about', methods=['GET'])
+@main_bp.route('/about', methods=['GET'])
 def get_about():
-    session = models.Session()
+    session = flask.current_app.config['SESSION']()
     try:
         about = session.query(models.About).filter_by(id=0).first()
         if about:
             data = about.__dict__
             data.pop('_sa_instance_state', None)
+            data.pop('id', None)
+
+            data['last_updated'] = convert_date_to_iso(data['last_updated'])
+
             return create_response(
                 data=[data],
                 message="About metadata retrieved successfully",
@@ -124,14 +170,70 @@ def get_about():
         session.close()
 
 
-@flask.current_app.route('/tables', methods=['GET'])
+@main_bp.route('/contributions', defaults={'agent': None}, methods=['GET'])
+@main_bp.route('/contributions/<agent>', methods=['GET'])
+def get_contributions(agent=None):
+    """
+    Should have the option to dereference the agents table
+    And filter by date and agent name
+    :param agent:
+    :param dereferenced:
+    :return:
+    """
+    session = flask.current_app.config['SESSION']()
+    try:
+        query = (
+            session
+            .query(models.Contributions)
+        )
+
+        query_parameters = flask.request.args.to_dict()
+        if 'dereferenced' in query_parameters:
+            dereference = False if query_parameters['dereferenced'].lower() == 'false' else True
+        else:
+            dereference = True
+
+        if dereference:
+            query = (
+                query
+                .join(models.Agents, models.Agents.id == models.Contributions.agent_id)
+                .options(
+                    sqlalchemy.orm.joinedload(models.Contributions.agents)
+                )
+            )
+        if agent:
+            filter_criteria = [{'filter': 'agent', 'values': agent}]
+            query = apply_filters(
+                filter_criteria=filter_criteria,
+                query=query
+            )
+
+        results = query.all()
+        result = []
+        for contribution in results:
+            data = serialize_instance(instance=contribution)
+            if dereference:
+                data['agent'] = serialize_instance(instance=contribution.agents)
+                data.pop('agent_id', None)
+            data['date'] = convert_date_to_iso(data['date'])
+            result.append(data)
+        return create_response(
+            data=result,
+            message="Contributions retrieved successfully",
+            status=200
+        )
+    finally:
+        session.close()
+
+
+@main_bp.route('/tables', methods=['GET'])
 def list_tables():
-    inspector = inspect(models.engine)
+    inspector = sqlalchemy.inspect(models.engine)
     tables = inspector.get_table_names()
     return create_response(tables, "Tables retrieved successfully")
 
 
-@flask.current_app.route('/rows', methods=['GET'])
+@main_bp.route('/rows', methods=['GET'])
 def get_row_count():
     """
     This is in progress
@@ -145,7 +247,7 @@ def get_row_count():
             status=404
         )
 
-    session = models.Session()
+    session = flask.current_app.config['SESSION']()
     try:
         table_class = TABLE_MAP.get(table_name)
         if not table_class:
@@ -165,9 +267,9 @@ def get_row_count():
         session.close()
 
 
-@flask.current_app.route('/documents', methods=['GET'])
+@main_bp.route('/documents', methods=['GET'])
 def get_documents():
-    session = models.Session()
+    session = flask.current_app.config['SESSION']()
     try:
         # Subqueries to join other tables
         indication_count_subquery = (
@@ -199,14 +301,14 @@ def get_documents():
                 #statement_count_subquery.c.statement_count
             )
             #.outerjoin(
-                #statement_count_subquery,
+            #statement_count_subquery,
             #    models.Documents.id == statement_count_subquery.c.document_id
             #)
             .outerjoin(
                 indication_count_subquery,
                 models.Documents.id == indication_count_subquery.c.document_id
             )
-         )
+        )
 
         # Get and apply filters
         filter_criteria = []
@@ -223,7 +325,7 @@ def get_documents():
         results = query.all()
         result = []
         for document, indication_count in results:
-        #for document, indication_count, statement_count in results:
+            #for document, indication_count, statement_count in results:
             data = serialize_instance(document)
             data.pop('_sa_instance_state', None)
             data['indication_count'] = indication_count or 0
@@ -231,18 +333,58 @@ def get_documents():
             result.append(data)
 
         return create_response(
-             data=result,
-             message=f"Documents successfully retrieved",
-             status=200
+            data=result,
+            message=f"Documents successfully retrieved",
+            status=200
         )
     finally:
         session.close()
 
 
-@flask.current_app.route('/terms', defaults={'table': None}, methods=['GET'])
-@flask.current_app.route('/terms/<table>', methods=['GET'])
+@main_bp.route('/genes', defaults={'gene': None}, methods=['GET'])
+@main_bp.route('/genes/<gene>', methods=['GET'])
+def get_genes(gene=None):
+    session = flask.current_app.config['SESSION']()
+    try:
+        query = (
+            session
+            .query(models.Genes)
+        )
+        if gene:
+            query = query.filter(models.Genes.gene == gene)
+
+        results = query.all()
+        result = []
+        for gene in results:
+            data = serialize_instance(gene)
+            data['primaryCoding'] = serialize_instance(instance=gene.primary_coding)
+            mappings = []
+            for mapping in gene.mappings:
+                mappings.append(serialize_instance(instance=mapping))
+            data['mappings'] = mappings
+            data = move_keys_to_extensions(
+                dictionary=data,
+                keys=['location', 'location_sortable']
+            )
+            print(data)
+            data['conceptType'] = data['concept_type']
+            data = reorder_dictionary(dictionary=data, key_order=models.Genes.field_order)
+            print(data)
+            result.append(data)
+
+        return create_response(
+            data=result,
+            message="Genes retrieved successfully",
+            status=200
+        )
+    finally:
+        session.close()
+
+
+@main_bp.route('/terms', defaults={'table': None}, methods=['GET'])
+@main_bp.route('/terms/<table>', methods=['GET'])
 def get_terms(table=None):
-    session = models.Session()
+    session = flask.current_app.config['SESSION']()
     try:
         query = (
             session
@@ -265,9 +407,9 @@ def get_terms(table=None):
         session.close()
 
 
-@flask.current_app.route('/termcounts', methods=['GET'])
+@main_bp.route('/termcounts', methods=['GET'])
 def get_term_counts():
-    session = models.Session()
+    session = flask.current_app.config['SESSION']()
     try:
         query = (
             session
@@ -287,8 +429,8 @@ def get_term_counts():
         session.close()
 
 
-@flask.current_app.route('/therapy', defaults={'therapy_name': None}, methods=['GET'])
-@flask.current_app.route('/therapy/<therapy_name>', methods=['GET'])
+@main_bp.route('/therapy', defaults={'therapy_name': None}, methods=['GET'])
+@main_bp.route('/therapy/<therapy_name>', methods=['GET'])
 def get_therapy(therapy_name=None):
     """
     This should list all therapies with the statement count associated with each
@@ -296,7 +438,7 @@ def get_therapy(therapy_name=None):
     :param therapy_name:
     :return:
     """
-    session = models.Session()
+    session = flask.current_app.config['SESSION']()
     try:
         query = (
             session
@@ -325,7 +467,7 @@ def get_therapy(therapy_name=None):
         session.close()
 
 
-@flask.current_app.route('/unique', methods=['GET'])
+@main_bp.route('/unique', methods=['GET'])
 def get_unique_values():
     table_name = flask.request.args.get('table')
     column_name = flask.request.args.get('column')
@@ -337,7 +479,7 @@ def get_unique_values():
             status=400
         )
 
-    session = models.Session()
+    session = flask.current_app.config['SESSION']()
     try:
         table_class = TABLE_MAP.get(table_name)
         if not table_class:
@@ -365,10 +507,10 @@ def get_unique_values():
         session.close()
 
 
-@flask.current_app.route('/statements', defaults={'statement_id': None}, methods=['GET'])
-@flask.current_app.route('/statements/<statement_id>', methods=['GET'])
+@main_bp.route('/statements', defaults={'statement_id': None}, methods=['GET'])
+@main_bp.route('/statements/<statement_id>', methods=['GET'])
 def get_statements(statement_id=None):
-    session = models.Session()
+    session = flask.current_app.config['SESSION']()
     try:
         # Base query
         query = (
@@ -382,9 +524,11 @@ def get_statements(statement_id=None):
                 sqlalchemy.orm.joinedload(models.Statements.contributions),
                 sqlalchemy.orm.joinedload(models.Statements.documents),
                 sqlalchemy.orm.joinedload(models.Statements.indication),
-                sqlalchemy.orm.joinedload(models.Statements.proposition).joinedload(models.Propositions.condition_qualifier),
+                sqlalchemy.orm.joinedload(models.Statements.proposition).joinedload(
+                    models.Propositions.condition_qualifier),
                 sqlalchemy.orm.joinedload(models.Statements.proposition).joinedload(models.Propositions.therapy),
-                sqlalchemy.orm.joinedload(models.Statements.proposition).joinedload(models.Propositions.therapy_group).joinedload(models.TherapyGroups.therapies),
+                sqlalchemy.orm.joinedload(models.Statements.proposition).joinedload(
+                    models.Propositions.therapy_group).joinedload(models.TherapyGroups.therapies),
                 sqlalchemy.orm.joinedload(models.Statements.strength)
             )
         )
@@ -397,8 +541,9 @@ def get_statements(statement_id=None):
             'cancer_type',
             'biomarker',
             'biomarker_type',
-            'drug_name_brand', # This field is not present in the Statement table natively, and instead comes in a dictionary once joined
-            'gene', # I need to split gene off to its own table
+            'drug_name_brand',
+            # This field is not present in the Statement table natively, and instead comes in a dictionary once joined
+            'gene',  # I need to split gene off to its own table
             #'oncotree_code',
             #'oncotree_term',
             'organization',
@@ -430,7 +575,8 @@ def get_statements(statement_id=None):
                 therapy_instance = serialize_instance(statement.proposition.therapy)
             else:
                 therapy_instance = serialize_instance(statement.proposition.therapy_group)
-                therapy_instance['therapies'] = [serialize_instance(instance=t) for t in statement.proposition.therapy_group.therapies]
+                therapy_instance['therapies'] = [serialize_instance(instance=t) for t in
+                                                 statement.proposition.therapy_group.therapies]
             data['proposition']['targetTherapeutic'] = therapy_instance
             data['strength'] = serialize_instance(statement.strength)
             #data['biomarkers'] = [serialize_instance(b) for b in statement.biomarkers]

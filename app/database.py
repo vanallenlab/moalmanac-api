@@ -1,11 +1,26 @@
 import argparse
+import configparser
 import datetime
 import json
+import os
 import pandas
 import sqlalchemy
 import typing
+from sqlalchemy.orm import sessionmaker
 
 from . import models
+
+
+def init_db(config_path):
+    config = configparser.ConfigParser()
+    config.read(config_path)
+
+    path = config['database']['path']
+    path = os.path.abspath(path)
+
+    engine = sqlalchemy.create_engine(f"sqlite:///{path}")
+    session = sessionmaker(bind=engine)
+    return engine, session
 
 
 class Process:

@@ -1,16 +1,4 @@
-import configparser
-import os
 import sqlalchemy
-from sqlalchemy.orm import sessionmaker
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-path = config['database']['path']
-path = os.path.abspath(path)
-engine = sqlalchemy.create_engine(f"sqlite:///{path}")
-#Session = sqlalchemy.orm.sessionmaker(bind=engine)
-Session = sessionmaker(bind=engine)
 
 
 class Base(sqlalchemy.orm.DeclarativeBase):
@@ -178,6 +166,7 @@ class Codings(Base):
 
 class Contributions(Base):
     __tablename__ = "contributions"
+    field_order = ['id', 'type', 'agent', 'agent_id', 'description', 'date']
 
     # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -263,6 +252,15 @@ class Documents(Base):
 
 class Genes(Base):
     __tablename__ = 'genes'
+    field_order = [
+        'id',
+        'conceptType',
+        'name',
+        'primaryCoding',
+        'primary_coding_id',
+        'mappings',
+        'extensions'
+    ]
 
     # Fields
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -591,6 +589,3 @@ class AssociationTherapiesAndTherapyStrategies(Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     therapy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapies.id'), nullable=False)
     therapy_strategy_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('therapy_strategies.id'), nullable=False)
-
-
-Base.metadata.create_all(bind=engine)
