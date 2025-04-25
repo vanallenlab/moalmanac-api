@@ -512,7 +512,7 @@ class Documents(BaseHandler):
         serialized_record = cls.serialize_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['first_published'] = cls.convert_date_to_iso(value=instance.first_published) if instance.first_published else None
-        serialized_record['access_date'] = cls.convert_date_to_iso(value=instance.access_date)# if instance.access_date else None
+        serialized_record['access_date'] = cls.convert_date_to_iso(value=instance.access_date) if instance.access_date else None
         serialized_record['publication_date'] = cls.convert_date_to_iso(value=instance.publication_date)
         return serialized_record
 
