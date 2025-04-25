@@ -1,11 +1,11 @@
 import datetime
 import flask
 import sqlalchemy
-from sqlalchemy.orm import joinedload
+#from sqlalchemy.orm import joinedload
 
 from app import models
 from . import main_bp
-from ...models import Organizations
+from . import handlers
 
 TABLE_MAP = {
     'about': models.About,
@@ -129,14 +129,6 @@ def reorder_dictionary(dictionary: dict, key_order: list[str]) -> dict:
     """
     reordered = {key: dictionary[key] for key in key_order if key in dictionary}
     return reordered
-
-
-def serialize_instance(instance):
-    """Convert SQLAlchemy instance to a dictionary."""
-    return {
-        column.name: getattr(instance, column.name) for column in instance.__table__.columns
-    }
-
 
 
 @main_bp.route('/about', methods=['GET'])
@@ -510,89 +502,138 @@ def get_unique_values():
         session.close()
 
 
-def get_statement_query(session, dereference=True):
+"""
+def get_statement_query(session, parameters=None):
     query = (
         session
         .query(models.Statements)
     )
+
+    if parameters is None:
+        parameters = {}
+    else:
+        # the .join statements are needed to filter the data on any other of these fields
+        CodingFromGene = sqlalchemy.orm.aliased(models.Codings)
+        CodingFromDisease = sqlalchemy.orm.aliased(models.Codings)
+        CodingFromTherapy = sqlalchemy.orm.aliased(models.Codings)
+
+        MappingFromGene = sqlalchemy.orm.aliased(models.Mappings)
+        MappingFromDisease = sqlalchemy.orm.aliased(models.Mappings)
+        MappingFromTherapy = sqlalchemy.orm.aliased(models.Mappings)
+
+        OrganizationFromDocument = sqlalchemy.orm.aliased(models.Organizations)
+
+        DocumentFromStatement = sqlalchemy.orm.aliased(models.Documents)
+        DocumentFromIndication = sqlalchemy.orm.aliased(models.Documents)
+
+        query = (
+            query
+            .join(models.Indications, models.Statements.indication_id == models.Indications.id)
+            .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
+            # Need to join all of the tables...
+            .join(models.Codings, models.Mappings.primary_coding)
+            # Biomarkers
+            .join(models.Biomarkers, models.Propositions.biomarkers)
+            .join(models.Genes, models.Biomarkers.genes)
+            .join(MappingFromGene, models.Genes.mappings)
+            .join(CodingFromGene, models.Genes.primary_coding)
+            # Cancer type
+            .join(models.Diseases, models.Propositions.condition_qualifier)
+            .join(MappingFromDisease, models.Diseases.mappings)
+            .join(CodingFromDisease, models.Diseases.primary_coding)
+            # Therapy group
+            .join(models.TherapyGroups, models.Propositions.therapy_group)
+            .join(models.Therapies, models.TherapyGroups.therapies)
+            # Therapy
+            .join(models.Therapies, models.Propositions.therapy)
+            .join(MappingFromTherapy, models.Therapies.mappings)
+            .join(CodingFromTherapy, models.Therapies.primary_coding)
+            # Documents
+            .join(models.Documents, models.Statements.documents)
+            .join(models.Organizations, models.Documents.organization)
+            # Indication
+            .join(models.Indications, models.Statements.indication)
+            .join(models.Documents, models.Indications.documents)
+            # Strength
+            .join(models.Strengths, models.Statements.strength_id == models.Strengths.id)
+        )
+
+    dereference = should_dereference(parameters=parameters)
     if not dereference:
         return query
+    else:
+        # Eager load .joinedload options are needed to serialize the related data,
+        # and this reduces the overall number of queries
+        eager_load_options = [
+            (
+                sqlalchemy.orm.joinedload(models.Statements.contributions)
+                .joinedload(models.Contributions.agents)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.documents)
+                .joinedload(models.Documents.organization)
+             ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.indication)
+                .joinedload(models.Indications.documents)
+                .joinedload(models.Documents.organization)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.biomarkers)
+                .joinedload(models.Biomarkers.genes)
+                .joinedload(models.Genes.primary_coding)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.biomarkers)
+                .joinedload(models.Biomarkers.genes)
+                .joinedload(models.Genes.mappings)
+                .joinedload(models.Mappings.primary_coding)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.condition_qualifier)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.condition_qualifier)
+                .joinedload(models.Diseases.mappings)
+                .joinedload(models.Mappings.primary_coding)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.therapy)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.therapy)
+                .joinedload(models.Therapies.mappings)
+                .joinedload(models.Mappings.primary_coding)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.therapy_group)
+                .joinedload(models.TherapyGroups.therapies)
+                .joinedload(models.Therapies.primary_coding)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.therapy_group)
+                .joinedload(models.TherapyGroups.therapies)
+                .joinedload(models.Therapies.mappings)
+                .joinedload(models.Mappings.primary_coding)
+            ),
+            (
+                sqlalchemy.orm.joinedload(models.Statements.proposition)
+                .joinedload(models.Propositions.therapy_group)
+                .joinedload(models.TherapyGroups.therapies)
+                .joinedload(models.Therapies.primary_coding)
+            )
+        ]
 
-    query = (
-        query
-        .join(models.Indications, models.Statements.indication_id == models.Indications.id)
-        .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
-        .join(models.Strengths, models.Statements.strength_id == models.Strengths.id)
-    )
-    eager_load_options = [
-        (
-            sqlalchemy.orm.joinedload(models.Statements.contributions)
-            .joinedload(models.Contributions.agents)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.documents)
-            .joinedload(models.Documents.organization)
-         ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.indication)
-            .joinedload(models.Indications.documents)
-            .joinedload(models.Documents.organization)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.biomarkers)
-            .joinedload(models.Biomarkers.genes)
-            .joinedload(models.Genes.primary_coding)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.biomarkers)
-            .joinedload(models.Biomarkers.genes)
-            .joinedload(models.Genes.mappings)
-            .joinedload(models.Mappings.primary_coding)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.condition_qualifier)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.condition_qualifier)
-            .joinedload(models.Diseases.mappings)
-            .joinedload(models.Mappings.primary_coding)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.therapy)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.therapy)
-            .joinedload(models.Therapies.mappings)
-            .joinedload(models.Mappings.primary_coding)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.therapy_group)
-            .joinedload(models.TherapyGroups.therapies)
-            .joinedload(models.Therapies.primary_coding)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.therapy_group)
-            .joinedload(models.TherapyGroups.therapies)
-            .joinedload(models.Therapies.mappings)
-            .joinedload(models.Mappings.primary_coding)
-        ),
-        (
-            sqlalchemy.orm.joinedload(models.Statements.proposition)
-            .joinedload(models.Propositions.therapy_group)
-            .joinedload(models.TherapyGroups.therapies)
-            .joinedload(models.Therapies.primary_coding)
-        )
-    ]
-
-    return query.options(*eager_load_options)
+        return query.options(*eager_load_options)
+"""
 
 
 def serialize_statement_instance(query_results, dereference=True) -> dict:
@@ -711,18 +752,72 @@ def serialize_statement_instance(query_results, dereference=True) -> dict:
     return result
 
 
+
+@main_bp.route('/statements', defaults={'statement_id': None}, methods=['GET'])
+@main_bp.route('/statements/<statement_id>', methods=['GET'])
+def get_statements(statement_id=None):
+    """
+
+    """
+    session = flask.current_app.config['SESSION']()
+    handler = handlers.Statements(session=session)
+    try:
+        query_parameters = flask.request.args.to_dict()
+        query = handler.construct_base_query(model=models.Statements)
+        if statement_id:
+            query = query.filter(models.Statements.id == statement_id)
+        query = handler.perform_joins(query=query, parameters=query_parameters)
+        query = handler.apply_joinedload(query=query)
+        query = handler.apply_filters(query=query, parameters=query_parameters)
+        result = handler.execute_query(query=query)
+        serialized = handler.serialize_instances(instances=result)
+
+        return create_response(
+            data=serialized,
+            message=f"Statements retrieved successfully",
+            status=200
+        )
+    finally:
+        session.close()
+
+    """
+        query_parameters = flask.request.args.to_dict()
+        query = handlers.Statements.construct_base_query(session=session, model=models.Statements)
+        if statement_id:
+            query = query.filter(models.Statements.id == statement_id)
+
+        query = get_statement_query(session=session, parameters=query_parameters)
+        if statement_id:
+            query = query.filter(models.Statements.id == statement_id)
+
+        results = query.all()
+        results_serialized = serialize_statement_instance(query_results=results, dereference=False)
+
+        return create_response(
+            data=results,
+            message="Statements successfully retrieved",
+            status=200
+        )
+    finally:
+        session.close()
+    """
+"""
 @main_bp.route('/statements', defaults={'statement_id': None}, methods=['GET'])
 @main_bp.route('/statements/<statement_id>', methods=['GET'])
 def get_statements(statement_id=None):
     session = flask.current_app.config['SESSION']()
     try:
         query_parameters = flask.request.args.to_dict()
-        if 'dereference' in query_parameters:
-            dereference = False if query_parameters['dereference'].lower() == 'false' else True
-        else:
-            dereference = True
 
-        query = get_statement_query(session=session, dereference=dereference)
+
+        #filter_criteria = []
+        #for field in ['organization', 'drug_name_brand', 'drug_name_generic']:
+        #    filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
+        #    filter_criteria.append(filter_field)
+        #print(filter_criteria)
+
+        query_parameters = flask.request.args.to_dict()
+        query = get_statement_query(session=session, parameters=query_parameters)
         if statement_id:
             query = query.filter(models.Statements.id == statement_id)
 
@@ -745,12 +840,14 @@ def get_statements(statement_id=None):
             filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
             filter_criteria.append(filter_field)
 
-        query = apply_filters(
-            filter_criteria=filter_criteria,
-            query=query
-        )
+        #query = apply_filters(
+        #    filter_criteria=filter_criteria,
+        #    query=query
+        #)
+        print(query)
 
         # Execute query and return all results
+        #dereference=False
         results = query.all()
         results_serialized = serialize_statement_instance(query_results=results, dereference=dereference)
 
@@ -761,3 +858,4 @@ def get_statements(statement_id=None):
         )
     finally:
         session.close()
+"""

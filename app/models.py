@@ -31,7 +31,7 @@ class Agents(Base):
     # Relationships
     contributions = sqlalchemy.orm.Relationship(
         "Contributions",
-        back_populates="agents"
+        back_populates="agent"
     )
 
 
@@ -177,7 +177,7 @@ class Contributions(Base):
     date = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
 
     # Relationships
-    agents = sqlalchemy.orm.Relationship(
+    agent = sqlalchemy.orm.Relationship(
         "Agents",
         back_populates="contributions"
     )
@@ -238,7 +238,7 @@ class Documents(Base):
     # Relationships
     indications = sqlalchemy.orm.Relationship(
         "Indications",
-        back_populates="documents"
+        back_populates="document"
     )
     organization = sqlalchemy.orm.Relationship(
         "Organizations",
@@ -310,7 +310,7 @@ class Indications(Base):
     date_accelerated_approval = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
 
     # Relationships
-    documents = sqlalchemy.orm.Relationship(
+    document = sqlalchemy.orm.Relationship(
         "Documents",
         back_populates="indications"
     )
