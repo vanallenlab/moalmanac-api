@@ -636,123 +636,6 @@ def get_statement_query(session, parameters=None):
 """
 
 
-def serialize_statement_instance(query_results, dereference=True) -> dict:
-    result = []
-    for statement in query_results:
-        data = serialize_instance(statement)
-        if not dereference:
-            result.append(data)
-            continue
-
-        contributions = []
-        for contribution in statement.contributions:
-            contribution_serialized = serialize_instance(instance=contribution)
-            contribution_serialized['agent'] = serialize_instance(instance=contribution.agents)
-            contribution_serialized.pop('agent_id', None)
-            contributions.append(contribution_serialized)
-        data['contributions'] = contributions
-
-        documents = []
-        for document in statement.documents:
-            document_serialized = serialize_instance(instance=document)
-            document_serialized['organization'] = serialize_instance(instance=document.organization)
-            document_serialized.pop('organization_id', None)
-            documents.append(document_serialized)
-        data['reportedIn'] = documents
-
-        indication = serialize_instance(instance=statement.indication)
-        indication['document'] = serialize_instance(instance=statement.indication.documents)
-        indication['document']['organization'] = serialize_instance(
-            instance=statement.indication.documents.organization
-        )
-        indication.pop('document_id', None)
-        indication['document'].pop('organization_id', None)
-        data['indication'] = indication
-        data.pop('indication_id', None)
-
-        # Proposition
-        proposition = serialize_instance(instance=statement.proposition)
-
-        # Biomarkers
-        biomarkers = []
-        for biomarker in statement.proposition.biomarkers:
-            b = serialize_instance(instance=biomarker)
-            if biomarker.genes:
-                genes = []
-                for gene in biomarker.genes:
-                    g = serialize_instance(instance=gene)
-                    g['primaryCoding'] = serialize_instance(instance=gene.primary_coding)
-                    g.pop('primary_coding_id', None)
-                    mappings = []
-                    for mapping in gene.mappings:
-                        m = serialize_instance(instance=mapping)
-                        m['coding'] = serialize_instance(instance=mapping.coding)
-                        m.pop('coding_id', None)
-                        m.pop('primary_coding_id', None)
-                        mappings.append(m)
-                    g['mappings'] = mappings
-                    genes.append(g)
-                b['genes'] = genes
-            biomarkers.append(b)
-        proposition['biomarkers'] = biomarkers
-
-        # Disease
-        disease = serialize_instance(instance=statement.proposition.condition_qualifier)
-        primary_coding = serialize_instance(instance=statement.proposition.condition_qualifier.primary_coding)
-        disease['primaryCoding'] = primary_coding
-        disease.pop('primary_coding_id', None)
-        proposition['disease'] = disease
-        proposition.pop('condition_qualifier_id', None)
-
-        # data['proposition'] = serialize_instance(instance=statement.proposition)
-        # data['proposition']['conditionQualifier'] = serialize_instance(instance=statement.proposition.condition_qualifier)
-        data['proposition'] = proposition
-        data.pop('proposition_id', None)
-
-        if statement.proposition.therapy:
-            therapy_instance = serialize_instance(statement.proposition.therapy)
-            therapy_instance['primaryCoding'] = serialize_instance(statement.proposition.therapy.primary_coding)
-            therapy_instance.pop('primary_coding_id', None)
-            # therapy_instance['therapy_strategy'] = serialize_instance(statement.proposition.therapy.therapy_strategy)
-            mappings = []
-            for mapping in statement.proposition.therapy.mappings:
-                m = serialize_instance(instance=mapping)
-                m['coding'] = serialize_instance(instance=mapping.coding)
-                m.pop('coding_id', None)
-                m.pop('primary_coding_id', None)
-                mappings.append(m)
-            therapy_instance['mappings'] = mappings
-        else:
-            therapy_instance = serialize_instance(statement.proposition.therapy_group)
-            therapies = []
-            for therapy in statement.proposition.therapy_group.therapies:
-                member_therapy_instance = serialize_instance(therapy)
-                member_therapy_instance['primaryCoding'] = serialize_instance(therapy.primary_coding)
-                member_therapy_instance.pop('primary_coding_id', None)
-                # therapy_instance['therapy_strategy'] = serialize_instance(statement.proposition.therapy.therapy_strategy)
-                mappings = []
-                for mapping in therapy.mappings:
-                    m = serialize_instance(instance=mapping)
-                    m['coding'] = serialize_instance(instance=mapping.coding)
-                    m.pop('coding_id', None)
-                    m.pop('primary_coding_id', None)
-                    mappings.append(m)
-                member_therapy_instance['mappings'] = mappings
-                therapies.append(member_therapy_instance)
-            therapy_instance['therapies'] = therapies
-        data['proposition']['targetTherapeutic'] = therapy_instance
-
-        strength = serialize_instance(instance=statement.strength)
-        strength['primaryCoding'] = serialize_instance(instance=statement.strength.primary_coding)
-        strength.pop('primary_coding_id', None)
-        data['strength'] = strength
-        data.pop('strength_id', None)
-
-        result.append(data)
-    return result
-
-
-
 @main_bp.route('/statements', defaults={'statement_id': None}, methods=['GET'])
 @main_bp.route('/statements/<statement_id>', methods=['GET'])
 def get_statements(statement_id=None):
@@ -762,16 +645,14 @@ def get_statements(statement_id=None):
     session = flask.current_app.config['SESSION']()
     handler = handlers.Statements(session=session)
     try:
-        query_parameters = flask.request.args.to_dict()
         query = handler.construct_base_query(model=models.Statements)
         if statement_id:
             query = query.filter(models.Statements.id == statement_id)
-        query = handler.perform_joins(query=query, parameters=query_parameters)
+        query = handler.perform_joins(query=query, parameters=flask.request.args)
         query = handler.apply_joinedload(query=query)
-        query = handler.apply_filters(query=query, parameters=query_parameters)
+        query = handler.apply_filters(query=query, parameters=flask.request.args)
         result = handler.execute_query(query=query)
         serialized = handler.serialize_instances(instances=result)
-
         return create_response(
             data=serialized,
             message=f"Statements retrieved successfully",

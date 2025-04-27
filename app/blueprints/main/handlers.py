@@ -1,4 +1,5 @@
 import datetime
+import logging
 import sqlalchemy
 import typing
 
@@ -6,6 +7,9 @@ from sqlalchemy.orm import DeclarativeBase, Query
 from werkzeug.datastructures import ImmutableMultiDict
 
 from app import models
+
+#logging.basicConfig()
+#logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
 class BaseHandler:
@@ -74,7 +78,8 @@ class BaseHandler:
         """
         raise NotImplementedError("Subclasses should implement this method.")
 
-    def apply_filters(self, query: Query, **filters: dict[str, typing.Any]) -> Query:
+    @classmethod
+    def apply_filters_(cls, query: Query, parameters: ImmutableMultiDict) -> Query:
         """
         Applies filters to the query, based on the parameters provided to the route. This function should be implemented
         by each route's Handler class, and it may reference apply_filter functions from other Handler classes.
@@ -85,15 +90,88 @@ class BaseHandler:
 
         Args:
             query (Query): The SQLAlchemy query to apply filter operations to.
-            filters (dict[str, typing.Any): A dictionary of filters to apply to the query.
+            parameters (ImmutableMultiDict): Parameters provided to the route as a flask.request.args.
 
         Returns:
             Query: The SQLAlchemy query after filter operations are applied.
-
-        Raises:
-            NotImplementedError: If the route's Handler class does not implement this method.
         """
-        raise NotImplementedError("Subclasses should implement this method.")
+        filter_map = {
+            'biomarker_type': [models.Biomarkers.biomarker_type],
+            'biomarker': [models.Biomarkers.name],
+            'gene': [models.Genes.name, models.Codings.id],
+            'disease': [models.Diseases.name, models.Codings.id],
+            'therapy': [models.Therapies.name, models.Codings.id]
+        }
+
+        parameter_filters = []
+        filter_criteria = parameters.to_dict(flat=False)
+        for filter_name, filter_values in filter_criteria.items():
+            filter_name = filter_name.lower()
+            if filter_name in filter_map:
+                # Queries across different categories will be combined with an AND operator
+                # Queries across the same category will be combined with an OR operator
+                fields = filter_map[filter_name]
+                # Gets [models.Diseases.name and models.Codings.id for `disease`
+                #processed_values = [value.replace('%20', ' ') for value in filter_values]
+                #processed_values = filter_values
+
+                # create one query statement for each filter parameter; e.g., disease
+                # if there are multiple parameter values passed, create an OR statement
+                filter_conditions = []
+                for value in filter_values:
+                    # Loop through the values provided for the given filter parameter
+                    # e.g., disease=Endometrial%20Carcinoma&disease=Colorectal&20Adenocarcinoma
+
+                    value_conditions = []
+                    # For each value, I want to perform an OR query across the possible matching fields
+                    if len(fields) > 1:
+                        for field in fields:
+                            value_conditions.append(sqlalchemy.or_(field == value))
+                    else:
+                        value_conditions.append(fields[0] == value)
+
+                    # If multiple values are passed for that filter, add the value conditions as an OR statement
+                    # else, just append it
+                    if len(filter_values) > 1:
+                        filter_conditions.append(sqlalchemy.or_(*value_conditions))
+                    else:
+                        filter_conditions.append(value_conditions)
+
+                parameter_filters.append(filter_conditions)
+
+        if parameter_filters:
+            # Multiple parameters (e.g., disease=.. and therapy=..) are combined with AND logic
+            query = query.filter(sqlalchemy.and_(*parameter_filters))
+        return query
+
+    @classmethod
+    def apply_filters(cls, query: Query, parameters: ImmutableMultiDict) -> Query:
+        filter_map = {
+            'biomarker_type': models.Biomarkers.biomarker_type,
+            'biomarker': models.Biomarkers.name,
+            'gene': models.Genes.name,
+            'disease': models.Diseases.name,
+            'therapy': models.Therapies.name
+        }
+
+        and_filters = []
+        or_filters = []
+        filter_criteria = parameters.to_dict(flat=False)
+        for filter_name, filter_values in filter_criteria.items():
+            filter_name = filter_name.lower()
+            if filter_name in filter_map:
+                filter_conditions = [filter_map[filter_name] == value for value in filter_values]
+                print(len(filter_conditions))
+                if len(filter_conditions) > 1:
+                    or_filters.append(sqlalchemy.or_(*filter_conditions))
+                else:
+                    and_filters.append(filter_conditions[0])
+
+        if and_filters:
+            query = query.filter(sqlalchemy.and_(*and_filters))
+        if or_filters:
+            query = query.filter(sqlalchemy.or_(*or_filters))
+        return query
 
     @staticmethod
     def execute_query(query: Query) -> list[DeclarativeBase]:
@@ -196,6 +274,13 @@ class BaseHandler:
         """
         return {key.lower(): cls.convert_parameter_value(value) for key, value in arguments.to_dict().items()}
 
+    #@staticmethod
+    #def get_filter_criteria():
+    #    filter_criteria = []
+    #    for field in ['organization', 'drug_name_brand', 'drug_name_generic']:
+    #        filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
+    #        filter_criteria.append(filter_field)
+
     @staticmethod
     def serialize_instance(instance: DeclarativeBase):
         """Convert an SQLAlchemy instance to a dictionary."""
@@ -235,6 +320,7 @@ class Biomarkers(BaseHandler):
     def convert_fields_to_extensions(record: dict[str, typing.Any]) -> list[dict[str, typing.Any]]:
         extensions = []
         fields = [
+            'biomarker_type',
             'present',
             'marker',
             'unit',
@@ -254,6 +340,7 @@ class Biomarkers(BaseHandler):
             'hgsvc',
             'requires_oncogenic',
             'requires_pathogenic',
+            'rearrangement_type',
             'locus',
             'direction',
             'cytoband',
@@ -276,7 +363,8 @@ class Biomarkers(BaseHandler):
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['type'] = 'CategoricalVariant'
         serialized_record['extensions'] = cls.convert_fields_to_extensions(record=serialized_record)
-        keys_to_remove=[
+        keys_to_remove = [
+            'biomarker_type',
             'present',
             'marker',
             'unit',
@@ -296,6 +384,7 @@ class Biomarkers(BaseHandler):
             'hgvsc',
             'requires_oncogenic',
             'requires_pathogenic',
+            'rearrangement_type',
             'locus',
             'direction',
             'cytoband',
@@ -455,9 +544,11 @@ class Diseases(BaseHandler):
     def serialize_single_instance(cls, instance: models.Diseases) -> dict[str, typing.Any]:
         serialized_record = cls.serialize_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        serialized_record['conceptType'] = serialized_record['concept_type']
         serialized_record['extensions'] = cls.convert_fields_to_extensions(instance=instance)
 
         keys_to_remove = [
+            'concept_type',
             'primary_coding_id',
             'solid_tumor',
             'therapy_strategy_description',
@@ -810,9 +901,11 @@ class Statements(BaseHandler):
     Handler class to manage queries against the Statements table.
     """
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
+    def perform_joins(self, query: Query, parameters: ImmutableMultiDict) -> Query:
         """
             Allow filtering based on:
+            - Biomarker name
+            - Biomarker type
             - Biomarker coding (name for now, probably?) -- first pass
             - Gene name
             - Gene coding -- first pass
@@ -830,9 +923,187 @@ class Statements(BaseHandler):
             - Proposition id -- first pass
             - Statement id -- don't need a join
         """
-        #if 'gene' in parameters:
+        if parameters is {} or None:
+            return query
 
+        CodingFromGene = sqlalchemy.orm.aliased(models.Codings)
+        CodingFromDisease = sqlalchemy.orm.aliased(models.Codings)
+        CodingFromTherapy = sqlalchemy.orm.aliased(models.Codings)
 
+        MappingFromGene = sqlalchemy.orm.aliased(models.Mappings)
+        MappingFromDisease = sqlalchemy.orm.aliased(models.Mappings)
+        MappingFromTherapy = sqlalchemy.orm.aliased(models.Mappings)
+
+        OrganizationFromDocument = sqlalchemy.orm.aliased(models.Organizations)
+
+        DocumentFromStatement = sqlalchemy.orm.aliased(models.Documents)
+        DocumentFromIndication = sqlalchemy.orm.aliased(models.Documents)
+
+        parameter_fields = set(parameters.to_dict(flat=False).keys())
+
+        # Join for Propositions
+        query = (
+            query
+            .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
+        )
+        # Propositions - join for biomarkers and genes
+        biomarkers_propositions = models.AssociationBiomarkersAndPropositions
+        biomarkers_genes = models.AssociationBiomarkersAndGenes
+        genes_mappings = models.AssociationGenesAndMappings
+        alias_genes = sqlalchemy.orm.aliased(models.Genes)
+        alias_codings_p_genes = sqlalchemy.orm.aliased(models.Codings)
+        alias_codings_genes = sqlalchemy.orm.aliased(models.Codings)
+        alias_mappings_genes = sqlalchemy.orm.aliased(models.Mappings)
+        query = (
+            query
+            .join(biomarkers_propositions, models.Propositions.id == biomarkers_propositions.proposition_id)
+            .join(models.Biomarkers, biomarkers_propositions.biomarker_id == models.Biomarkers.id)
+            .join(biomarkers_genes, models.Biomarkers.id == biomarkers_genes.biomarker_id)
+            .join(models.Genes, biomarkers_genes.gene_id == models.Genes.id)
+            .join(alias_codings_p_genes, models.Genes.primary_coding_id == alias_codings_p_genes.id)
+
+            .join(genes_mappings, models.Genes.id == genes_mappings.gene_id)
+            .join(alias_mappings_genes, genes_mappings.mapping_id == alias_mappings_genes.id)
+            .join(alias_codings_genes, alias_mappings_genes.coding_id == alias_codings_genes.id)
+        )
+        # Propositions - join for diseases
+        diseases_mappings = models.AssociationDiseasesAndMappings
+        alias_codings_p_diseases = sqlalchemy.orm.aliased(models.Codings)
+        alias_codings_diseases = sqlalchemy.orm.aliased(models.Codings)
+        alias_mappings_diseases = sqlalchemy.orm.aliased(models.Mappings)
+        query = (
+            query
+            .join(models.Diseases, models.Propositions.condition_qualifier_id == models.Diseases.id)
+            .join(alias_codings_p_diseases, models.Diseases.primary_coding_id == alias_codings_p_diseases.id)
+
+            .join(diseases_mappings, models.Diseases.id == diseases_mappings.disease_id)
+            .join(alias_mappings_diseases, diseases_mappings.mapping_id == alias_mappings_diseases.id)
+            .join(alias_codings_diseases, alias_mappings_diseases.coding_id == alias_codings_diseases.id)
+        )
+        # Propositions - join for therapies
+        therapies_therapy_groups = models.AssociationTherapyAndTherapyGroup
+        alias_codings_p_therapies = sqlalchemy.orm.aliased(models.Codings)
+        alias_codings_p_therapies_tg = sqlalchemy.orm.aliased(models.Codings)
+        alias_mappings_therapies = sqlalchemy.orm.aliased(models.Mappings)
+        alias_mappings_therapy_groups = sqlalchemy.orm.aliased(models.Mappings)
+        alias_therapies = sqlalchemy.orm.aliased(models.Therapies)
+        query = (
+            query
+            .join(models.Therapies, models.Propositions.therapy_id == models.Therapies.id)
+            .join(alias_codings_p_therapies, models.Therapies.primary_coding_id == alias_codings_p_therapies.id)
+
+            # .join(models.TherapyGroups, models.Propositions.therapy_group_id == models.TherapyGroups.id)
+            # .join(therapies_therapy_groups, models.TherapyGroups.id == therapies_therapy_groups.therapy_group_id)
+            # .join(alias_therapies, therapies_therapy_groups.therapy_id == alias_therapies.id)
+            # .join(alias_codings_p_therapies_tg, models.Therapies.primary_coding_id == alias_codings_p_therapies_tg.id)
+        )
+
+        # Strengths
+        alias_codings_strengths = sqlalchemy.orm.aliased(models.Codings)
+        query = (
+            query
+            .join(models.Strengths, models.Statements.strength_id == models.Strengths.id)
+            .join(alias_codings_strengths, models.Strengths.primary_coding_id == alias_codings_strengths.id)
+        )
+
+        # Documents
+        documents_statements = models.AssociationDocumentsAndStatements
+        alias_documents_statements = sqlalchemy.orm.aliased(models.Documents)
+        alias_organizations_statements = sqlalchemy.orm.aliased(models.Organizations)
+        query = (
+            query
+            .join(documents_statements, models.Statements.id == documents_statements.statement_id)
+            .join(alias_documents_statements, documents_statements.document_id == alias_documents_statements.id)
+            .join(alias_organizations_statements, alias_documents_statements.organization_id == alias_organizations_statements.id)
+        )
+
+        # Indications
+        alias_documents_indications = sqlalchemy.orm.aliased(models.Documents)
+        alias_organizations_indications = sqlalchemy.orm.aliased(models.Organizations)
+        query = (
+            query
+            .join(models.Indications, models.Statements.indication_id == models.Indications.id)
+            .join(alias_documents_indications, models.Indications.document_id == alias_documents_indications.id)
+            .join(alias_organizations_indications, alias_documents_indications.organization_id == alias_organizations_indications.id)
+        )
+
+        # Contributions
+        contributions_statements = models.AssociationContributionsAndStatements
+        query = (
+            query
+            .join(contributions_statements, models.Statements.id == contributions_statements.statements_id)
+            .join(models.Contributions, contributions_statements.contribution_id == models.Contributions.id)
+            .join(models.Agents, models.Contributions.agent_id == models.Agents.id)
+        )
+
+        """
+        proposition_fields = {
+            'biomarker',
+            'biomarker_type',
+            'disease',
+            'gene',
+            'therapy',
+            'therapy_strategy',
+            'therapy_type'
+        }
+        if proposition_fields.intersection(parameter_fields):
+            query = (
+                query
+                .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
+            )
+            if {'biomarker', 'biomarker_type', 'gene'}.intersection(parameter_fields):
+                biomarkers_propositions = models.AssociationBiomarkersAndPropositions
+                biomarkers_genes = models.AssociationBiomarkersAndGenes
+                genes_mappings = models.AssociationGenesAndMappings
+
+                alias_genes = sqlalchemy.orm.aliased(models.Genes)
+                alias_codings_p_genes = sqlalchemy.orm.aliased(models.Codings)
+                alias_codings_genes = sqlalchemy.orm.aliased(models.Codings)
+                alias_mappings_genes = sqlalchemy.orm.aliased(models.Mappings)
+                query = (
+                    query
+                    .join(biomarkers_propositions, models.Propositions.id == biomarkers_propositions.proposition_id)
+                    .join(models.Biomarkers, biomarkers_propositions.biomarker_id == models.Biomarkers.id)
+                    .join(biomarkers_genes, models.Biomarkers.id == biomarkers_genes.biomarker_id)
+                    .join(models.Genes, biomarkers_genes.gene_id == models.Genes.id)
+                    .join(alias_codings_p_genes, models.Genes.primary_coding_id == alias_codings_p_genes.id)
+
+                    .join(genes_mappings, models.Genes.id == genes_mappings.gene_id)
+                    .join(alias_mappings_genes, genes_mappings.mapping_id == alias_mappings_genes.id)
+                    .join(alias_codings_genes, alias_mappings_genes.coding_id == alias_codings_genes.id)
+                )
+            if {'disease'}.intersection(parameter_fields):
+                diseases_mappings = models.AssociationDiseasesAndMappings
+                alias_codings_p_diseases = sqlalchemy.orm.aliased(models.Codings)
+                alias_codings_diseases = sqlalchemy.orm.aliased(models.Codings)
+                alias_mappings_diseases = sqlalchemy.orm.aliased(models.Mappings)
+                query = (
+                    query
+                    .join(models.Diseases, models.Propositions.condition_qualifier_id == models.Diseases.id)
+                    .join(alias_codings_p_diseases, models.Diseases.primary_coding_id == alias_codings_p_diseases.id)
+
+                    .join(diseases_mappings, models.Diseases.id == diseases_mappings.disease_id)
+                    .join(alias_mappings_diseases, diseases_mappings.mapping_id == alias_mappings_diseases.id)
+                    .join(alias_codings_diseases, alias_mappings_diseases.coding_id == alias_codings_diseases.id)
+                )
+            if {'therapy', 'therapy_strategy', 'therapy_type'}.intersection(parameter_fields):
+                therapies_therapy_groups = models.AssociationTherapyAndTherapyGroup
+                alias_codings_p_therapies = sqlalchemy.orm.aliased(models.Codings)
+                alias_codings_p_therapies_tg = sqlalchemy.orm.aliased(models.Codings)
+                alias_mappings_therapies = sqlalchemy.orm.aliased(models.Mappings)
+                alias_mappings_therapy_groups = sqlalchemy.orm.aliased(models.Mappings)
+                alias_therapies = sqlalchemy.orm.aliased(models.Therapies)
+                query = (
+                    query
+                    .join(models.Therapies, models.Propositions.therapy_id == models.Therapies.id)
+                    .join(alias_codings_p_therapies, models.Therapies.primary_coding_id == alias_codings_p_therapies.id)
+
+                    #.join(models.TherapyGroups, models.Propositions.therapy_group_id == models.TherapyGroups.id)
+                    #.join(therapies_therapy_groups, models.TherapyGroups.id == therapies_therapy_groups.therapy_group_id)
+                    #.join(alias_therapies, therapies_therapy_groups.therapy_id == alias_therapies.id)
+                    #.join(alias_codings_p_therapies_tg, models.Therapies.primary_coding_id == alias_codings_p_therapies_tg.id)
+                )
+        """
         return query
 
     def apply_joinedload(self, query: Query) -> Query:
@@ -917,8 +1188,9 @@ class Statements(BaseHandler):
 
         return query.options(*eager_load_options)
 
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
+    #def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
+#
+#        return query
 
     @classmethod
     def serialize_primary_records(cls, records: list[DeclarativeBase]) -> list[dict[str, typing.Any]]:
@@ -1012,9 +1284,11 @@ class Therapies(BaseHandler):
     def serialize_single_instance(cls, instance: models.Therapies) -> dict[str, typing.Any]:
         serialized_record = cls.serialize_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        serialized_record['conceptType'] = serialized_record['concept_type']
         serialized_record['extensions'] = cls.convert_fields_to_extensions(instance=instance)
 
         keys_to_remove = [
+            'concept_type',
             'primary_coding_id',
             'therapy_strategy_description',
             'therapy_type',
