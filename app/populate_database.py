@@ -717,7 +717,7 @@ class Summary:
 def main(referenced_dictionary, config_path='config.ini'):
     app = create_app(config_path=config_path)
     with app.app_context():
-        session = flask.current_app.config['SESSION']()
+        session = flask.current_app.config['SESSION_FACTORY']()
         try:
             root = f"{referenced_dictionary}"
 
