@@ -1235,6 +1235,8 @@ class Therapies(BaseHandler):
                     therapies_indirect,
                     therapies_indirect.id == models.AssociationTherapyAndTherapyGroup.therapy_id
                 )
+                # This was already added and is added to a set, so it won't change the value of joined_tables
+                # Adding it just for consistency
                 joined_tables.add(models.Therapies)
             elif base_table != models.Therapies:
                 raise ValueError(f'Unsupported base table for Biomarkers.perform_joins: {base_table}.')
