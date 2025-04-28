@@ -44,7 +44,7 @@ ipython kernel install --user --name=moalmanac-api
 # Usage
 To update the database content from [moalmanac-db](https://github.com/vanallenlab/moalmanac-db):
 ```bash
-rm data/moalmanac.sqlite3; python -m api.populate_database -i moalmanac-db/referenced/ -c config.ini
+rm data/moalmanac.sqlite3; python -m app.populate_database -i moalmanac-db/referenced/ -c config.ini
 ```
 
 To launch the application for development:

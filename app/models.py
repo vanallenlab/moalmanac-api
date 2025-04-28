@@ -44,8 +44,6 @@ class Biomarkers(Base):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     present = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
 
-    # genes
-
     marker = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     unit = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     equality = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -542,7 +540,7 @@ class AssociationContributionsAndStatements(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     contribution_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('contributions.id'), nullable=False)
-    statements_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('statements.id'), nullable=False)
+    statement_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('statements.id'), nullable=False)
 
 
 class AssociationDiseasesAndMappings(Base):

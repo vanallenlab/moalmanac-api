@@ -52,5 +52,5 @@ def init_db(config_path: str) -> tuple[Engine, sessionmaker]:
         raise KeyError("Database path not found within configuration file.")
     path = os.path.abspath(path)
     engine = sqlalchemy.create_engine(f"sqlite:///{path}")
-    session = sessionmaker(bind=engine)
-    return engine, session
+    session_factory = sessionmaker(bind=engine)
+    return engine, session_factory

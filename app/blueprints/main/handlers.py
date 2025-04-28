@@ -8,6 +8,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from app import models
 
+
 #logging.basicConfig()
 #logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
@@ -17,30 +18,29 @@ class BaseHandler:
     A base class for handling SQL queries. This class provides common functionality for managing SQL queries and serves
     as a template for specific Handler classes, which inherit from BaseHandler and implement route-specific logic.
     """
-    def __init__(self, session):
+    def __init__(self):
         """
-        Initializes the BaseHandler class with a Flask Session.
+        Initializes the BaseHandler class.
+        """
+        pass
 
-        Args:
-            session (Session): The Flask Session object.
+    @staticmethod
+    def construct_base_query(model: typing.Type[sqlalchemy.orm.DeclarativeBase]) -> sqlalchemy.Select:
         """
-        self.session = session
-
-    def construct_base_query(self, model: typing.Type[DeclarativeBase]) -> Query:
-        """
-        Constructs a base query from the primary table model.
+        Constructs a base SQLAlchemy select statement from the primary table model.
 
         This is Step 1 in managing the query.
 
         Args:
-            model (typing.Type[DeclarativeBase]): The SQLAlchemy model class representing the table.
+            model (typing.Type[sqlalchemy.orm.DeclarativeBase]): The SQLAlchemy model class representing the table.
 
         Returns:
-            Query: A SQLAlchemy query object for the provided `model`.
+            Select: A SQLAlchemy select statement for the provided `model`.
         """
-        return self.session.query(model)
+        return sqlalchemy.select(model)
 
-    def perform_joins(self, query: Query, parameters: dict[str, typing.Any] = None) -> Query:
+    @staticmethod
+    def perform_joins(statement: sqlalchemy.Select, parameters: ImmutableMultiDict) -> sqlalchemy.Select:
         """
         Performs join operations on the query to include related tables. This is needed to perform filtering against
         any field from a related table. Joins are _not_ required for any tables not being filtered against. This
@@ -49,11 +49,11 @@ class BaseHandler:
         This is Step 2 of managing the query.
 
         Args:
-            query (Query): The SQLAlchemy query to apply join operations to.
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
             parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
 
         Returns:
-            Query: The SQLAlchemy query after join operations are applied.
+            sqlalchemy.Select: The SQLAlchemy query after join operations are applied.
 
         Raises:
             NotImplementedError: If the route's Handler class does not implement this method.
@@ -79,7 +79,7 @@ class BaseHandler:
         raise NotImplementedError("Subclasses should implement this method.")
 
     @classmethod
-    def apply_filters_(cls, query: Query, parameters: ImmutableMultiDict) -> Query:
+    def apply_filters(cls, statement: sqlalchemy.Select, parameters: ImmutableMultiDict) -> sqlalchemy.Select:
         """
         Applies filters to the query, based on the parameters provided to the route. This function should be implemented
         by each route's Handler class, and it may reference apply_filter functions from other Handler classes.
@@ -89,63 +89,12 @@ class BaseHandler:
         This is Step 4 of managing the query.
 
         Args:
-            query (Query): The SQLAlchemy query to apply filter operations to.
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply filter operations to.
             parameters (ImmutableMultiDict): Parameters provided to the route as a flask.request.args.
 
         Returns:
             Query: The SQLAlchemy query after filter operations are applied.
         """
-        filter_map = {
-            'biomarker_type': [models.Biomarkers.biomarker_type],
-            'biomarker': [models.Biomarkers.name],
-            'gene': [models.Genes.name, models.Codings.id],
-            'disease': [models.Diseases.name, models.Codings.id],
-            'therapy': [models.Therapies.name, models.Codings.id]
-        }
-
-        parameter_filters = []
-        filter_criteria = parameters.to_dict(flat=False)
-        for filter_name, filter_values in filter_criteria.items():
-            filter_name = filter_name.lower()
-            if filter_name in filter_map:
-                # Queries across different categories will be combined with an AND operator
-                # Queries across the same category will be combined with an OR operator
-                fields = filter_map[filter_name]
-                # Gets [models.Diseases.name and models.Codings.id for `disease`
-                #processed_values = [value.replace('%20', ' ') for value in filter_values]
-                #processed_values = filter_values
-
-                # create one query statement for each filter parameter; e.g., disease
-                # if there are multiple parameter values passed, create an OR statement
-                filter_conditions = []
-                for value in filter_values:
-                    # Loop through the values provided for the given filter parameter
-                    # e.g., disease=Endometrial%20Carcinoma&disease=Colorectal&20Adenocarcinoma
-
-                    value_conditions = []
-                    # For each value, I want to perform an OR query across the possible matching fields
-                    if len(fields) > 1:
-                        for field in fields:
-                            value_conditions.append(sqlalchemy.or_(field == value))
-                    else:
-                        value_conditions.append(fields[0] == value)
-
-                    # If multiple values are passed for that filter, add the value conditions as an OR statement
-                    # else, just append it
-                    if len(filter_values) > 1:
-                        filter_conditions.append(sqlalchemy.or_(*value_conditions))
-                    else:
-                        filter_conditions.append(value_conditions)
-
-                parameter_filters.append(filter_conditions)
-
-        if parameter_filters:
-            # Multiple parameters (e.g., disease=.. and therapy=..) are combined with AND logic
-            query = query.filter(sqlalchemy.and_(*parameter_filters))
-        return query
-
-    @classmethod
-    def apply_filters(cls, query: Query, parameters: ImmutableMultiDict) -> Query:
         filter_map = {
             'biomarker_type': models.Biomarkers.biomarker_type,
             'biomarker': models.Biomarkers.name,
@@ -154,63 +103,46 @@ class BaseHandler:
             'therapy': models.Therapies.name
         }
 
-        and_filters = []
-        or_filters = []
-        filter_criteria = parameters.to_dict(flat=False)
-        for filter_name, filter_values in filter_criteria.items():
-            filter_name = filter_name.lower()
-            if filter_name in filter_map:
-                filter_conditions = [filter_map[filter_name] == value for value in filter_values]
-                print(len(filter_conditions))
-                if len(filter_conditions) > 1:
-                    or_filters.append(sqlalchemy.or_(*filter_conditions))
-                else:
-                    and_filters.append(filter_conditions[0])
+        and_conditions = []
+        or_conditions = []
 
-        if and_filters:
-            query = query.filter(sqlalchemy.and_(*and_filters))
-        if or_filters:
-            query = query.filter(sqlalchemy.or_(*or_filters))
-        return query
+        filter_criteria = parameters
+        for filter_key, filter_values in filter_criteria.items():
+            column = filter_map.get(filter_key.lower(), None)
+            if not column:
+                continue
+
+            filter_conditions = [column == value for value in filter_values]
+            if len(filter_conditions) > 1:
+                or_conditions.append(sqlalchemy.or_(*filter_conditions))
+            else:
+                and_conditions.append(filter_conditions[0])
+
+        if and_conditions:
+            statement = statement.where(sqlalchemy.and_(*and_conditions))
+        if or_conditions:
+            statement = statement.where(sqlalchemy.or_(*or_conditions))
+        return statement
 
     @staticmethod
-    def execute_query(query: Query) -> list[DeclarativeBase]:
+    def execute_query(session: sqlalchemy.orm.Session, statement: sqlalchemy.sql.Executable) -> list[DeclarativeBase]:
         """
-        Executes the SQL query and retrieves the results.
+        Executes the given SQLAlchemy statement and returns the results as a list of SQLAlchemy model instances.
 
         This is Step 5 of managing the query.
 
         Args:
-            query (Query): The SQLAlchemy query to execute.
+            session (sqlalchemy.orm.Session): A session instance.
+            statement (sqlalchemy.sql.Executable): The SQLAlchemy statement to execute.
 
         Returns:
             list[DeclarativeBase]: A list of SQLAlchemy model instances returned by the query.
         """
-        return query.all()
+        result = session.execute(statement).unique()
+        return result.scalars().all()
 
     @classmethod
-    def serialize_primary_records(cls, records: list[DeclarativeBase]) -> list[dict[str, typing.Any]]:
-        """
-        Serializes the fields of the primary table's records.
-
-        This is Step 6 of managing the query.
-
-        Args:
-            records (list[DeclarativeBase]): A list of SQLAlchemy model instances to serialize.
-
-        Returns:
-            list[dict[str, typing.Any]]: A list of dictionaries containing the serialized records from the primary table.
-
-        Raises:
-            NotImplementedError: If the route's Handler class does not implement this method.
-        """
-        result = []
-        for record in records:
-            serialized_record = cls.serialize_instance(instance=record)
-            result.append(serialized_record)
-        return result
-
-    def serialize_instances(self, instances: list[DeclarativeBase]) -> list[dict[str, typing.Any]]:
+    def serialize_instances(cls, instances: list[DeclarativeBase]) -> list[dict[str, typing.Any]]:
         """
         Serializes the fields populated by relationships with other tables, defined by this table's model
         and the applied joinedload operation.
@@ -226,7 +158,26 @@ class BaseHandler:
         Raises:
             NotImplementedError: If the route's Handler class does not implement this method.
         """
-        raise NotImplementedError("Subclasses should implement this method.")
+        result = []
+        for instance in instances:
+            serialized_instance = cls.serialize_single_instance(instance=instance)
+            result.append(serialized_instance)
+        return result
+
+    @staticmethod
+    def serialize_primary_instance(instance: sqlalchemy.orm.DeclarativeBase) -> dict[str, typing.Any]:
+        """
+        Serializes the fields of the primary table's records.
+
+        This is Step 6.2 of managing the query.
+
+        Args:
+            instance (sqlalchemy.engine.row.Row): The SQLAlchemy Row object to convert.
+
+        Returns:
+            dict[str, typing.Any]: A dictionary representation of the Row object.
+        """
+        return {column.name: getattr(instance, column.name) for column in instance.__table__.columns}
 
     @staticmethod
     def convert_date_to_iso(value: datetime.date) -> str:
@@ -282,17 +233,30 @@ class BaseHandler:
     #        filter_criteria.append(filter_field)
 
     @staticmethod
-    def serialize_instance(instance: DeclarativeBase):
-        """Convert an SQLAlchemy instance to a dictionary."""
-        result= {
-            column.name: getattr(instance, column.name) for column in instance.__table__.columns
-        }
-        return result
-
-    @staticmethod
     def pop_keys(keys: list[str], record: dict[str, typing.Any]) -> None:
         for key in keys:
             record.pop(key, None)
+
+#    @classmethod
+#    def serialize_instances(cls, rows: list[sqlalchemy.engine.row.Row]) -> list[dict[str, typing.Any]]:
+#        """
+#        7. Serialize Related Records: A function to serialize related table records.
+#        Go through and create a function within each table to serialize their fields
+#        """
+#        result = []
+#        for row in rows:
+#            instance = list(row._mapping.values())[0]
+#            serialized_instance = cls.serialize_single_instance(instance=instance)
+#            result.append(serialized_instance)
+#        return result
+
+    @classmethod
+    def serialize_single_instance(cls, instance: sqlalchemy.orm.DeclarativeBase) -> dict[str, typing.Any]:
+        raise NotImplementedError("Subclasses should implement this method.")
+
+    @staticmethod
+    def get_parameters(arguments):
+        return arguments.to_dict(flat=False)
 
 
 class Biomarkers(BaseHandler):
@@ -300,11 +264,53 @@ class Biomarkers(BaseHandler):
     Handler class to manage queries against the Biomarkers table.
     """
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table=models.Biomarkers,
+            joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-        return query
+        if joined_tables is None:
+            joined_tables = set()
+
+        biomarker_values = parameters.get('biomarker', None)
+        biomarker_type_values = parameters.get('biomarker_type', None)
+        gene_values = parameters.get('gene', None)
+        if biomarker_values or biomarker_type_values or gene_values:
+            b_p = models.AssociationBiomarkersAndPropositions
+            if base_table in [models.Propositions, models.Statements] and b_p not in joined_tables:
+                statement = statement.join(
+                    b_p,
+                    b_p.proposition_id == models.Propositions.id
+                )
+                joined_tables.add(b_p)
+
+                statement = statement.join(
+                    models.Biomarkers,
+                    models.Biomarkers.id == b_p.biomarker_id
+                )
+                joined_tables.add(models.Biomarkers)
+            elif base_table != models.Biomarkers:
+                raise ValueError(f'Unsupported base table for Biomarkers.perform_joins: {base_table}.')
+
+            conditions = []
+            if biomarker_values:
+                conditions.append(models.Biomarkers.name.in_(biomarker_values))
+            if biomarker_type_values:
+                conditions.append(models.Biomarkers.biomarker_type.in_(biomarker_type_values))
+            statement = statement.where(sqlalchemy.and_(*conditions))
+
+            statement, joined_tables = Genes.perform_joins(
+                statement=statement,
+                parameters=parameters,
+                base_table=base_table,
+                joined_tables=joined_tables
+            )
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -353,13 +359,8 @@ class Biomarkers(BaseHandler):
         return extensions
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Biomarkers, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['genes'] = Genes.serialize_instances(instances=instance.genes)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Biomarkers) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['type'] = 'CategoricalVariant'
         serialized_record['extensions'] = cls.convert_fields_to_extensions(record=serialized_record)
@@ -395,16 +396,9 @@ class Biomarkers(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Biomarkers]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Biomarkers, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['genes'] = Genes.serialize_instances(instances=instance.genes)
+        return record
 
 
 class Codings(BaseHandler):
@@ -429,27 +423,15 @@ class Codings(BaseHandler):
         return query
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Codings, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Codings) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         #serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['iris'] = [serialized_record['iris']]
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Codings]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Codings, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        return record
 
 
 class Contributions(BaseHandler):
@@ -474,13 +456,8 @@ class Contributions(BaseHandler):
         return query
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Contributions, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['agent'] = cls.serialize_instance(instance=instance.agent)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Contributions) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['date'] = cls.convert_date_to_iso(value=instance.date)
 
@@ -491,28 +468,41 @@ class Contributions(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Contributions]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Contributions, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['agent'] = cls.serialize_primary_instance(instance=instance.agent)
+        return record
 
 
 class Diseases(BaseHandler):
     """
     Handler class to manage queries against the Diseases table.
     """
+    @staticmethod
+    def perform_joins(statement: sqlalchemy.Select,
+                      parameters: ImmutableMultiDict,
+                      base_table=models.Diseases,
+                      joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+        if joined_tables is None:
+            joined_tables = set()
 
-        return query
+        disease_values = parameters.get('disease', None)
+        if disease_values:
+            if base_table in [models.Propositions, models.Statements] and models.Diseases not in joined_tables:
+                statement = statement.join(
+                    models.Diseases,
+                    models.Diseases.id == models.Propositions.condition_qualifier_id
+                )
+                joined_tables.add(models.Diseases)
+            elif base_table != models.Diseases:
+                raise ValueError(f'Unsupported base table for Diseases.perform_joins: {base_table}.')
+
+            conditions = [models.Diseases.name.in_(disease_values)]
+            statement = statement.where(sqlalchemy.and_(*conditions))
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -535,14 +525,8 @@ class Diseases(BaseHandler):
         ]
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Diseases, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
-        record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Diseases) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['conceptType'] = serialized_record['concept_type']
         serialized_record['extensions'] = cls.convert_fields_to_extensions(instance=instance)
@@ -559,16 +543,10 @@ class Diseases(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Diseases]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Diseases, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
+        record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
+        return record
 
 
 class Documents(BaseHandler):
@@ -593,14 +571,8 @@ class Documents(BaseHandler):
         return query
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Documents, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['organization'] = Organizations.serialize_single_instance(instance=instance.organization)
-        record.pop('organization_id', None)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Documents) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['first_published'] = cls.convert_date_to_iso(value=instance.first_published) if instance.first_published else None
         serialized_record['access_date'] = cls.convert_date_to_iso(value=instance.access_date) if instance.access_date else None
@@ -608,28 +580,44 @@ class Documents(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Documents]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Documents, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['organization'] = Organizations.serialize_single_instance(instance=instance.organization)
+        record.pop('organization_id', None)
+        return record
 
 
 class Genes(BaseHandler):
     """
     Handler class to manage queries against the Genes table.
     """
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table=models.Genes,
+            joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+        if joined_tables is None:
+            joined_tables = set()
 
-        return query
+        gene_values = parameters.get('gene', None)
+        if gene_values:
+            b_g = models.AssociationBiomarkersAndGenes
+            if base_table in [models.Biomarkers, models.Propositions, models.Statements] and b_g not in joined_tables:
+                statement = statement.join(b_g, b_g.biomarker_id == models.Biomarkers.id)
+                joined_tables.add(b_g)
+
+                statement = statement.join(models.Genes, models.Genes.id == b_g.gene_id)
+                joined_tables.add(models.Genes)
+            elif base_table != models.Genes:
+                raise ValueError(f'Unsupported base table for Genes.perform_joins: {base_table}.')
+
+            conditions = [models.Genes.name.in_(gene_values)]
+            statement = statement.where(sqlalchemy.and_(*conditions))
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -655,14 +643,8 @@ class Genes(BaseHandler):
         ]
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Genes, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
-        record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Genes) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['extensions'] = cls.convert_fields_to_extensions(instance=instance)
 
@@ -675,16 +657,10 @@ class Genes(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Genes]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Genes, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
+        record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
+        return record
 
 
 class Indications(BaseHandler):
@@ -709,14 +685,8 @@ class Indications(BaseHandler):
         return query
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Indications, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['document'] = Documents.serialize_single_instance(instance=instance.document)
-        record.pop('document_id', None)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Indications) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['initial_approval_date'] = cls.convert_date_to_iso(value=instance.initial_approval_date) if instance.initial_approval_date else None
         serialized_record['reimbursement_date'] = cls.convert_date_to_iso(value=instance.reimbursement_date) if instance.reimbursement_date else None
@@ -725,16 +695,10 @@ class Indications(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Indications]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Indications, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['document'] = Documents.serialize_single_instance(instance=instance.document)
+        record.pop('document_id', None)
+        return record
 
 
 class Mappings(BaseHandler):
@@ -759,13 +723,8 @@ class Mappings(BaseHandler):
         return query
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Mappings, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['coding'] = Codings.serialize_single_instance(instance=instance.coding)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Mappings) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
 
         keys_to_remove = [
@@ -776,17 +735,9 @@ class Mappings(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Mappings]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        if instances:
-            for instance in instances:
-                serialized_record = cls.serialize_single_instance(instance=instance)
-                result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Mappings, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['coding'] = Codings.serialize_single_instance(instance=instance.coding)
+        return record
 
 
 class Organizations(BaseHandler):
@@ -811,39 +762,58 @@ class Organizations(BaseHandler):
         return query
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Organizations, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Organizations) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         #serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['last_updated'] = cls.convert_date_to_iso(value=instance.last_updated)
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Organizations]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Organizations, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        return record
 
 
 class Propositions(BaseHandler):
     """
     Handler class to manage queries against the Propositions table.
     """
+    @staticmethod
+    def perform_joins(statement: sqlalchemy.Select,
+                      parameters: ImmutableMultiDict,
+                      base_table=models.Propositions,
+                      joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+        if joined_tables is None:
+            joined_tables = set()
 
-        return query
+        if base_table == models.Statements and models.Propositions not in joined_tables:
+            statement = statement.join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
+            joined_tables.add(models.Propositions)
+        elif base_table != models.Propositions:
+            raise ValueError(f'Unsupported base table for Propositions.perform_joins: {base_table}.')
+
+        statement, joined_tables = Biomarkers.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
+        statement, joined_tables = Diseases.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
+        statement, joined_tables = Therapies.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -863,15 +833,8 @@ class Propositions(BaseHandler):
             return TherapyGroups.serialize_single_instance(instance=therapy_group)
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Propositions, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['biomarkers'] = Biomarkers.serialize_instances(instances=instance.biomarkers)
-        record['conditionQualifier'] = Diseases.serialize_single_instance(instance=instance.condition_qualifier)
-        record['targetTherapeutic'] = cls.serialize_target_therapeutic(therapy=instance.therapy, therapy_group=instance.therapy_group)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Propositions) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
 
         keys_to_remove = [
@@ -884,24 +847,39 @@ class Propositions(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Propositions]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Propositions, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['biomarkers'] = Biomarkers.serialize_instances(instances=instance.biomarkers)
+        record['conditionQualifier'] = Diseases.serialize_single_instance(instance=instance.condition_qualifier)
+        record['targetTherapeutic'] = cls.serialize_target_therapeutic(therapy=instance.therapy, therapy_group=instance.therapy_group)
+        return record
 
 
 class Statements(BaseHandler):
     """
     Handler class to manage queries against the Statements table.
     """
+    @staticmethod
+    def perform_joins(statement: sqlalchemy.Select,
+                      parameters: ImmutableMultiDict,
+                      base_table=models.Statements,
+                      joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-    def perform_joins(self, query: Query, parameters: ImmutableMultiDict) -> Query:
+        if joined_tables is None:
+            joined_tables = set()
+
+        statement, joined_tables = Propositions.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
+
+        return statement, joined_tables
+
+
+    def perform_joins_(self, query: Query, parameters: ImmutableMultiDict) -> Query:
         """
             Allow filtering based on:
             - Biomarker name
@@ -1106,7 +1084,7 @@ class Statements(BaseHandler):
         """
         return query
 
-    def apply_joinedload(self, query: Query) -> Query:
+    def apply_joinedload(self, statement: sqlalchemy.Select) -> sqlalchemy.Select:
         """
         Applies joinedload operations for eager loading of related records from other tables. This is needed to
         serialize fields from other tables. This function should be implemented by each route's Handler class.
@@ -1114,13 +1092,10 @@ class Statements(BaseHandler):
         This is Step 3 of managing the query.
 
         Args:
-            query (Query): The SQLAlchemy query to apply joinedload operations to.
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply joinedload operations to.
 
         Returns:
-            Query: The SQLAlchemy query after joinedload operations are applied.
-
-        Raises:
-            NotImplementedError: If the route's Handler class does not implement this method.
+            sqlalchemy.Select: The SQLAlchemy select statement after joinedload operations are applied.
         """
         eager_load_options = [
             (
@@ -1185,36 +1160,14 @@ class Statements(BaseHandler):
                 .joinedload(models.Therapies.primary_coding)
             )
         ]
-
-        return query.options(*eager_load_options)
-
-    #def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-#
-#        return query
-
-    @classmethod
-    def serialize_primary_records(cls, records: list[DeclarativeBase]) -> list[dict[str, typing.Any]]:
-        """
-        6. Serialize Primary Records: A function to serialize the primary table records.
-
-        """
-        result = []
-        for record in records:
-            serialized_record = cls.serialize_instance(instance=record)
-            result.append(serialized_record)
-        return result
-
-    @classmethod
-    def serialize_secondary_instances(cls, instance: models.Statements, record: dict[str, typing.Any]):
-        record['contributions'] = Contributions.serialize_instances(instances=instance.contributions)
-        record['indication'] = Indications.serialize_single_instance(instance=instance.indication)
-        record['reportedIn'] = Documents.serialize_instances(instances=instance.documents)
-        record['proposition'] = Propositions.serialize_single_instance(instance=instance.proposition)
-        return record
+        return statement.options(*eager_load_options)
 
     @classmethod
     def serialize_single_instance(cls, instance: models.Statements) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        """
+        This is Step 6.1 of managing the query.
+        """
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
 
         keys_to_remove = [
@@ -1226,28 +1179,78 @@ class Statements(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Statements]) -> list[dict[str, typing.Any]]:
+    def serialize_secondary_instances(cls, instance: models.Statements, record: dict[str, typing.Any]):
         """
-        7. Serialize Related Records: A function to serialize related table records.
-        Go through and create a function within each table to serialize their fields
+        This is step 6.3
         """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+        record['contributions'] = Contributions.serialize_instances(instances=instance.contributions)
+        record['indication'] = Indications.serialize_single_instance(instance=instance.indication)
+        record['reportedIn'] = Documents.serialize_instances(instances=instance.documents)
+        record['proposition'] = Propositions.serialize_single_instance(instance=instance.proposition)
+        return record
 
 
 class Therapies(BaseHandler):
     """
     Handler class to manage queries against the Therapies table.
     """
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table=models.Therapies,
+            joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+        if joined_tables is None:
+            joined_tables = set()
 
-        return query
+        therapy_values = parameters.get('therapy', None)
+        therapy_type_values = parameters.get('therapy_type', None)
+        if therapy_values or therapy_type_values:
+            therapies_direct = sqlalchemy.orm.aliased(models.Therapies)
+            therapies_indirect = sqlalchemy.orm.aliased(models.Therapies)
+            if base_table in [models.Propositions, models.Statements] and models.Therapies not in joined_tables:
+                # Outerjoin because sometimes therapy_id is null
+                statement = statement.outerjoin(
+                    therapies_direct,
+                    therapies_direct.id == models.Propositions.therapy_id
+                )
+                joined_tables.add(models.Therapies)
+
+                statement = statement.outerjoin(
+                    models.TherapyGroups,
+                    models.TherapyGroups.id == models.Propositions.therapy_group_id
+                )
+                joined_tables.add(models.TherapyGroups)
+
+                statement = statement.outerjoin(
+                    models.AssociationTherapyAndTherapyGroup,
+                    models.AssociationTherapyAndTherapyGroup.therapy_group_id == models.TherapyGroups.id
+                )
+                joined_tables.add(models.AssociationTherapyAndTherapyGroup)
+
+                statement = statement.outerjoin(
+                    therapies_indirect,
+                    therapies_indirect.id == models.AssociationTherapyAndTherapyGroup.therapy_id
+                )
+                joined_tables.add(models.Therapies)
+            elif base_table != models.Therapies:
+                raise ValueError(f'Unsupported base table for Biomarkers.perform_joins: {base_table}.')
+
+            conditions = []
+            if therapy_values:
+                condition_direct = therapies_direct.name.in_(therapy_values)
+                condition_indirect = therapies_indirect.name.in_(therapy_values)
+                conditions.append((condition_direct | condition_indirect))
+            if therapy_type_values:
+                condition_direct = therapies_direct.therapy_type.in_(therapy_values)
+                condition_indirect = therapies_indirect.therapy_type.in_(therapy_values)
+                conditions.append((condition_direct | condition_indirect))
+            statement = statement.where(sqlalchemy.and_(*conditions))
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -1275,14 +1278,8 @@ class Therapies(BaseHandler):
         ]
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Therapies, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
-        record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
-        return record
-
-    @classmethod
     def serialize_single_instance(cls, instance: models.Therapies) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
+        serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['conceptType'] = serialized_record['concept_type']
         serialized_record['extensions'] = cls.convert_fields_to_extensions(instance=instance)
@@ -1298,16 +1295,10 @@ class Therapies(BaseHandler):
         return serialized_record
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Therapies]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result
+    def serialize_secondary_instances(cls, instance: models.Therapies, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
+        record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
+        return record
 
 
 class TherapyGroups(BaseHandler):
@@ -1332,6 +1323,12 @@ class TherapyGroups(BaseHandler):
         return query
 
     @classmethod
+    def serialize_single_instance(cls, instance: models.TherapyGroups) -> dict[str, typing.Any]:
+        serialized_record = cls.serialize_primary_instance(instance=instance)
+        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        return serialized_record
+
+    @classmethod
     def serialize_secondary_instances(cls, instance: models.TherapyGroups, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
         therapies = []
         for therapy in instance.therapies:
@@ -1339,21 +1336,3 @@ class TherapyGroups(BaseHandler):
             therapies.append(therapy_instance)
         record['therapies'] = therapies
         return record
-
-    @classmethod
-    def serialize_single_instance(cls, instance: models.TherapyGroups) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_instance(instance=instance)
-        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
-        return serialized_record
-
-    @classmethod
-    def serialize_instances(cls, instances: list[models.TherapyGroups]) -> list[dict[str, typing.Any]]:
-        """
-        7. Serialize Related Records: A function to serialize related table records.
-
-        """
-        result = []
-        for instance in instances:
-            serialized_record = cls.serialize_single_instance(instance=instance)
-            result.append(serialized_record)
-        return result

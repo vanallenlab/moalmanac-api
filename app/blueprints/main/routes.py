@@ -501,7 +501,6 @@ def get_unique_values():
     finally:
         session.close()
 
-
 """
 def get_statement_query(session, parameters=None):
     query = (
@@ -634,6 +633,33 @@ def get_statement_query(session, parameters=None):
 
         return query.options(*eager_load_options)
 """
+@main_bp.route('/propositions', defaults={'proposition_id': None}, methods=['GET'])
+@main_bp.route('/propositions/<proposition_id>', methods=['GET'])
+def get_propositions(propositions_id=None):
+    """
+
+    """
+    # Step 1: Instnatiate the handler for the table
+    handler = handlers.Statements()
+    statement = handler.construct_base_query(model=models.Propositions)
+    if propositions_id:
+        statement = statement.where(models.Propositions.id == propositions_id)
+
+    parameters = handler.get_parameters(arguments=flask.request.args)
+    statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
+    statement = handler.apply_joinedload(statement=statement)
+    statement = handler.apply_filters(statement=statement, parameters=parameters)
+    print(joined_tables)
+
+    session_factory = flask.current_app.config['SESSION_FACTORY']
+    with session_factory() as session:
+        result = handler.execute_query(session=session, statement=statement)
+        serialized = handler.serialize_instances(instances=result)
+    return create_response(
+        data=serialized,
+        message=f"Statements retrieved successfully",
+        status=200
+    )
 
 
 @main_bp.route('/statements', defaults={'statement_id': None}, methods=['GET'])
@@ -642,7 +668,30 @@ def get_statements(statement_id=None):
     """
 
     """
-    session = flask.current_app.config['SESSION']()
+    # Step 1: Instnatiate the handler for the table
+    handler = handlers.Statements()
+    statement = handler.construct_base_query(model=models.Statements)
+    if statement_id:
+        statement = statement.where(models.Statements.id == statement_id)
+
+    parameters = handler.get_parameters(arguments=flask.request.args)
+    statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
+    statement = handler.apply_joinedload(statement=statement)
+    statement = handler.apply_filters(statement=statement, parameters=parameters)
+    print(joined_tables)
+
+    session_factory = flask.current_app.config['SESSION_FACTORY']
+    with session_factory() as session:
+        result = handler.execute_query(session=session, statement=statement)
+        serialized = handler.serialize_instances(instances=result)
+    return create_response(
+        data=serialized,
+        message=f"Statements retrieved successfully",
+        status=200
+    )
+
+    """
+    session = flask.current_app.config['SESSION']
     handler = handlers.Statements(session=session)
     try:
         query = handler.construct_base_query(model=models.Statements)
@@ -661,7 +710,7 @@ def get_statements(statement_id=None):
     finally:
         session.close()
 
-    """
+
         query_parameters = flask.request.args.to_dict()
         query = handlers.Statements.construct_base_query(session=session, model=models.Statements)
         if statement_id:
