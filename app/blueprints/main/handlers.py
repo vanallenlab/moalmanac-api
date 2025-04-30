@@ -1,5 +1,4 @@
 import datetime
-import logging
 import sqlalchemy
 import typing
 
@@ -7,10 +6,6 @@ from sqlalchemy.orm import DeclarativeBase, Query
 from werkzeug.datastructures import ImmutableMultiDict
 
 from app import models
-
-
-#logging.basicConfig()
-#logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 
 class BaseHandler:
@@ -25,14 +20,14 @@ class BaseHandler:
         pass
 
     @staticmethod
-    def construct_base_query(model: typing.Type[sqlalchemy.orm.DeclarativeBase]) -> sqlalchemy.Select:
+    def construct_base_query(model: models.Base) -> sqlalchemy.Select:
         """
         Constructs a base SQLAlchemy select statement from the primary table model.
 
         This is Step 1 in managing the query.
 
         Args:
-            model (typing.Type[sqlalchemy.orm.DeclarativeBase]): The SQLAlchemy model class representing the table.
+            model (models.Base): The SQLAlchemy model class representing the table.
 
         Returns:
             Select: A SQLAlchemy select statement for the provided `model`.
@@ -40,7 +35,12 @@ class BaseHandler:
         return sqlalchemy.select(model)
 
     @staticmethod
-    def perform_joins(statement: sqlalchemy.Select, parameters: ImmutableMultiDict) -> sqlalchemy.Select:
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Base,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
         Performs join operations on the query to include related tables. This is needed to perform filtering against
         any field from a related table. Joins are _not_ required for any tables not being filtered against. This
@@ -51,40 +51,46 @@ class BaseHandler:
         Args:
             statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
             parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Base): The SQLAlchemy model class representing the base table of the query.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
 
         Returns:
-            sqlalchemy.Select: The SQLAlchemy query after join operations are applied.
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
 
         Raises:
             NotImplementedError: If the route's Handler class does not implement this method.
         """
         raise NotImplementedError("Subclasses should implement this method.")
 
-    def apply_joinedload(self, query: Query) -> Query:
+    @staticmethod
+    def apply_joinedload(statement: sqlalchemy.Select) -> sqlalchemy.Select:
         """
-        Applies joinedload operations for eager loading of related records from other tables. This is needed to
-        serialize fields from other tables. This function should be implemented by each route's Handler class.
+        Applies joinedload operations for eager loading of related records from other tables. This is optional to speed
+        up serializing fields from other tables. Otherwise, a separate query is made for each time a specific instance
+        is serialized. If used, this function should be implemented by each route's Handler class.
+
+        I decided to remove this function from each Handler after some tests when accessing the /statements route. When
+        applying joinedloads, it took 1.0762, 1.0843, and 1.0488 seconds to return and serialize all statements in the
+        database (~1400). Without applying joinedloads, it took 0.9771, 0.9389, and 0.9704 seconds. This was removed for
+        the time being because it was causing warnings when trying to selectively join and filter statements. Plus, not
+        inlcuding it only seems to add a tenth of a second with the current database size.
 
         This is Step 3 of managing the query.
 
         Args:
-            query (Query): The SQLAlchemy query to apply joinedload operations to.
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply joinedload operations to.
 
         Returns:
-            Query: The SQLAlchemy query after joinedload operations are applied.
-
-        Raises:
-            NotImplementedError: If the route's Handler class does not implement this method.
+            statement (sqlalchemy.Select): The SQLAlchemy select statement after joinedload operations are applied.
         """
-        raise NotImplementedError("Subclasses should implement this method.")
+        return statement
 
     @classmethod
     def apply_filters(cls, statement: sqlalchemy.Select, parameters: ImmutableMultiDict) -> sqlalchemy.Select:
         """
-        Applies filters to the query, based on the parameters provided to the route. This function should be implemented
-        by each route's Handler class, and it may reference apply_filter functions from other Handler classes.
-        For example, when filtering propositions by biomarker name, the Propositions' Handler class may reference the
-        Biomarker Handler class' apply_filters function.
+        Applies filters to the query, based on the parameters provided to the route.
 
         This is Step 4 of managing the query.
 
@@ -93,7 +99,7 @@ class BaseHandler:
             parameters (ImmutableMultiDict): Parameters provided to the route as a flask.request.args.
 
         Returns:
-            Query: The SQLAlchemy query after filter operations are applied.
+            statement (sqlalchemy.Select): The SQLAlchemy select statement after filter operations are applied.
         """
         filter_map = {
             'agent': models.Agents.name,
@@ -105,7 +111,7 @@ class BaseHandler:
             'gene': models.Genes.name,
             'indication': models.Indications.id,
             'organization': models.Organizations.name,
-            #'strength': models.Strengths.id,
+            # 'strength': models.Strengths.id,
             'therapy': models.Therapies.name,
             'therapy_type': models.Therapies.therapy_type
         }
@@ -132,7 +138,7 @@ class BaseHandler:
         return statement
 
     @staticmethod
-    def execute_query(session: sqlalchemy.orm.Session, statement: sqlalchemy.sql.Executable) -> list[DeclarativeBase]:
+    def execute_query(session: sqlalchemy.orm.Session, statement: sqlalchemy.sql.Executable) -> list[models.Base]:
         """
         Executes the given SQLAlchemy statement and returns the results as a list of SQLAlchemy model instances.
 
@@ -143,13 +149,18 @@ class BaseHandler:
             statement (sqlalchemy.sql.Executable): The SQLAlchemy statement to execute.
 
         Returns:
-            list[DeclarativeBase]: A list of SQLAlchemy model instances returned by the query.
+            list[model.Base]: A list of SQLAlchemy model instances returned by the query.
         """
-        result = session.execute(statement).unique()
-        return result.scalars().all()
+        return (
+            session
+            .execute(statement=statement)
+            .unique()
+            .scalars()
+            .all()
+        )
 
     @classmethod
-    def serialize_instances(cls, instances: list[DeclarativeBase]) -> list[dict[str, typing.Any]]:
+    def serialize_instances(cls, instances: list[models.Base]) -> list[dict[str, typing.Any]]:
         """
         Serializes the fields populated by relationships with other tables, defined by this table's model
         and the applied joinedload operation.
@@ -157,13 +168,10 @@ class BaseHandler:
         This is Step 6 of managing the query.
 
         Args:
-            instances (list[DeclarativeBase]): A list of SQLAlchemy model instances to serialize.
+            instances (list[models.Base]): A list of SQLAlchemy model instances to serialize.
 
         Returns:
             list[dict[str, typing.Any]]: A list of dictionaries with all keys serialized.
-
-        Raises:
-            NotImplementedError: If the route's Handler class does not implement this method.
         """
         result = []
         for instance in instances:
@@ -171,20 +179,60 @@ class BaseHandler:
             result.append(serialized_instance)
         return result
 
-    @staticmethod
-    def serialize_primary_instance(instance: sqlalchemy.orm.DeclarativeBase) -> dict[str, typing.Any]:
+    @classmethod
+    def serialize_single_instance(cls, instance: models.Base) -> dict[str, typing.Any]:
+        """
+        Performs operations needed to serialize a single instance of the SQLAlchemy model. At minimum, it will serialize
+        the primary instance and then any secondary instances that are populated by relationships with other tables. It
+        will also remove any keys that are not needed after serialization.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Base): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+
+        Raises:
+            NotImplementedError: If the route's Handler class does not implement this method.
+        """
+        raise NotImplementedError("Subclasses should implement this method.")
+
+    @classmethod
+    def serialize_primary_instance(cls, instance: models.Base) -> dict[str, typing.Any]:
         """
         Serializes the fields of the primary table's records.
 
         This is Step 6.2 of managing the query.
 
         Args:
-            instance (sqlalchemy.engine.row.Row): The SQLAlchemy Row object to convert.
+            instance (models.Base): A SQLAlchemy model instance to serialize.
 
         Returns:
             dict[str, typing.Any]: A dictionary representation of the Row object.
         """
         return {column.name: getattr(instance, column.name) for column in instance.__table__.columns}
+
+    @classmethod
+    def serialize_secondary_instances(cls, instance: models.Base, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table that is referenced
+        within the instance. This function should be implemented by each route's Handler class.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Base): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            dict[str, typing.Any]: A dictionary representation of the primary instance object.
+
+        Raises:
+            NotImplementedError: If the route's Handler class does not implement this method.
+        """
+        raise NotImplementedError("Subclasses should implement this method.")
 
     @staticmethod
     def convert_date_to_iso(value: datetime.date) -> str:
@@ -192,7 +240,7 @@ class BaseHandler:
         Converts a datetime.date value to an ISO 8601 format string.
 
         Args:
-            value: The datetime.date value to convert.
+            value (datetime.date): The datetime.date value to convert.
 
         Returns:
             str: The ISO 8601 format string if the value is a date, otherwise the original value.
@@ -205,9 +253,9 @@ class BaseHandler:
     @staticmethod
     def convert_parameter_value(value: str) -> int | str:
         """
-        Attempts to return the value as an integer, if possible. If not, returns the value as a lowercase string.
+        Attempts to return the value as an integer, if possible. If not, returns the value as a string.
 
-        Arg:
+        Args:
             value (str): The value to convert.
 
         Returns:
@@ -218,32 +266,30 @@ class BaseHandler:
         except ValueError:
             return value
 
-    @classmethod
-    def get_query_parameters(cls, arguments: ImmutableMultiDict) -> dict[str, int | str]:
-        """
-        Converts the request arguments to a dictionary, converting all keys and values to lowercase. If a provided value
-        and attempts to convert values to integers, if applicable.
-
-        Args:
-            arguments (ImmutableMultiDict): The request arguments to convert.
-
-        Returns:
-            dict[str, int | str]: A dictionary containing the arguments passed to the route.
-        """
-        return {key.lower(): cls.convert_parameter_value(value) for key, value in arguments.to_dict().items()}
-
     @staticmethod
     def pop_keys(keys: list[str], record: dict[str, typing.Any]) -> None:
+        """
+        Removes keys from the provided dictionary.
+
+        Args:
+            keys (list[str]): A list of keys to remove from the dictionary.
+            record (dict[str, typing.Any]): The dictionary from which to remove the keys.
+        """
         for key in keys:
             record.pop(key, None)
 
     @classmethod
-    def serialize_single_instance(cls, instance: sqlalchemy.orm.DeclarativeBase) -> dict[str, typing.Any]:
-        raise NotImplementedError("Subclasses should implement this method.")
+    def get_parameters(cls, arguments) -> dict[str, list[str | int]]:
+        """
+        Converts flask route arguments to a dictionary with keys as parameter names and values as lists of parameter
+        values. Values will be converted from strings to integers, if possible.
 
-    @classmethod
-    def get_parameters(cls, arguments):
-        #return arguments.to_dict(flat=False)
+        Args:
+            arguments (ImmutableMultiDict): The arguments from the flask route.
+
+        Returns:
+            dictionary (dict[str, list[str | int]]): A dictionary with parameter names as keys and values as lists.
+        """
         dictionary = arguments.to_dict(flat=False)
         for key, values in dictionary.items():
             new_values = []
@@ -259,10 +305,34 @@ class Agents(BaseHandler):
     Handler class to manage queries against the Agents table.
     """
     @staticmethod
-    def perform_joins(statement: sqlalchemy.Select,
-                      parameters: ImmutableMultiDict,
-                      base_table=models.Agents,
-                      joined_tables=None) -> sqlalchemy.Select:
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Base = models.Agents,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Agents table.
+
+        This method extends the base class implementation by performing a join with the Contributions table and joining
+        on the Agents table using the `id` field of Agents.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Base, models.Agents): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -285,20 +355,24 @@ class Agents(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Agents) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Agents table.
+
+        This method extends the base class implementation by serializing the instance and any related tables. No keys
+        are removed after serialization.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Agents): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
-#        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
 
         #keys_to_remove = [
         #]
@@ -307,6 +381,20 @@ class Agents(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Agents, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table.
+
+        The Agents class does not currently reference other tables.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Base): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            dict[str, typing.Any]: A dictionary representation of the primary instance object.
+        """
         return record
 
 
@@ -314,13 +402,38 @@ class Biomarkers(BaseHandler):
     """
     Handler class to manage queries against the Biomarkers table.
     """
-
     @staticmethod
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table=models.Biomarkers,
-            joined_tables=None) -> sqlalchemy.Select:
+            base_table: models.Base = models.Biomarkers,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Biomarkers table.
+
+        This method extends the base class implementation. Specifically, it performs a join with the Propositions
+        table, joins the Biomarkers table if either `biomarker` or `biomarker_type` are provided as a parameter, and
+        references the Genes perform_joins function if `gene` is provided as a parameter.
+
+        If either `biomarker` or `biomarker_type` are provided as a parameter, a join condition
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Base, models.Biomarkers): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -363,18 +476,81 @@ class Biomarkers(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
+    @classmethod
+    def serialize_single_instance(cls, instance: models.Biomarkers) -> dict[str, typing.Any]:
         """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
+        Performs operations needed to serialize a single instance of the SQLAlchemy model. At minimum, it will serialize
+        the primary instance and then any secondary instances that are populated by relationships with other tables. It
+        will also remove any keys that are not needed after serialization.
 
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Agents): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
         """
-        return query
+        serialized_record = cls.serialize_primary_instance(instance=instance)
+        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        serialized_record['type'] = 'CategoricalVariant'
+        serialized_record['extensions'] = cls.convert_fields_to_extensions(record=serialized_record)
 
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
+        keys_to_remove = [
+            'biomarker_type',
+            'present',
+            'marker',
+            'unit',
+            'equality',
+            'value',
+            'chromosome',
+            'start_position',
+            'end_position',
+            'reference_allele',
+            'alternate_allele',
+            'cdna_change',
+            'protein_change',
+            'variant_annotation',
+            'exon',
+            'rsid',
+            'hgvsg',
+            'hgvsc',
+            'requires_oncogenic',
+            'requires_pathogenic',
+            'rearrangement_type',
+            'locus',
+            'direction',
+            'cytoband',
+            'arm',
+            'status'
+        ]
+        cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+        return serialized_record
+
+    @classmethod
+    def serialize_secondary_instances(cls, instance: models.Biomarkers, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table that is referenced
+        within the instance. This function should be implemented by each route's Handler class.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Base): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            dict[str, typing.Any]: A dictionary representation of the primary instance object.
+        """
+        record['genes'] = Genes.serialize_instances(instances=instance.genes)
+        return record
 
     @staticmethod
     def convert_fields_to_extensions(record: dict[str, typing.Any]) -> list[dict[str, typing.Any]]:
+        """
+        Converts biomarker fields to extensions. This is going to be replaced very soon.
+        """
+
         extensions = []
         fields = [
             'biomarker_type',
@@ -409,74 +585,51 @@ class Biomarkers(BaseHandler):
                 extensions.append({'name': field, 'value': record.get(field, None)})
         return extensions
 
-    @classmethod
-    def serialize_single_instance(cls, instance: models.Biomarkers) -> dict[str, typing.Any]:
-        serialized_record = cls.serialize_primary_instance(instance=instance)
-        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
-        serialized_record['type'] = 'CategoricalVariant'
-        serialized_record['extensions'] = cls.convert_fields_to_extensions(record=serialized_record)
-        keys_to_remove = [
-            'biomarker_type',
-            'present',
-            'marker',
-            'unit',
-            'equality',
-            'value',
-            'chromosome',
-            'start_position',
-            'end_position',
-            'reference_allele',
-            'alternate_allele',
-            'cdna_change',
-            'protein_change',
-            'variant_annotation',
-            'exon',
-            'rsid',
-            'hgvsg',
-            'hgvsc',
-            'requires_oncogenic',
-            'requires_pathogenic',
-            'rearrangement_type',
-            'locus',
-            'direction',
-            'cytoband',
-            'arm',
-            'status'
-        ]
-        cls.pop_keys(keys=keys_to_remove, record=serialized_record)
-        return serialized_record
-
-    @classmethod
-    def serialize_secondary_instances(cls, instance: models.Biomarkers, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        record['genes'] = Genes.serialize_instances(instances=instance.genes)
-        return record
-
 
 class Codings(BaseHandler):
     """
     Handler class to manage queries against the Codings table.
     """
-
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Base = models.Codings,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
+        Performs join operations on the query to include related tables. This is needed to perform filtering against
+        any field from a related table. Joins are _not_ required for any tables not being filtered against. This
+        function should be implemented by each route's Handler class.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Base, models.Codings): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
         """
+        if not parameters:
+            return statement, joined_tables
 
-        return query
+        if joined_tables is None:
+            joined_tables = set()
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
+        return statement, joined_tables
 
     @classmethod
     def serialize_single_instance(cls, instance: models.Codings) -> dict[str, typing.Any]:
         serialized_record = cls.serialize_primary_instance(instance=instance)
-        #serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['iris'] = [serialized_record['iris']]
         return serialized_record
 
@@ -1133,289 +1286,6 @@ class Statements(BaseHandler):
         )
 
         return statement, joined_tables
-
-    def perform_joins_(self, query: Query, parameters: ImmutableMultiDict) -> Query:
-        """
-            Allow filtering based on:
-            - Biomarker name
-            - Biomarker type
-            - Biomarker coding (name for now, probably?) -- first pass
-            - Gene name
-            - Gene coding -- first pass
-            - Disease coding -- first pass
-            - Therapy name coding -- first pass
-            - Therapy strategy -- not yet implemented
-            - Therapy type coding -- first pass
-            - Document name
-            - Document organization -- first pass
-            - Indication id (or name?) -- first pass
-            - Strength coding
-            - Contribution id
-            - Contribution date -- not yet implemented
-            - Agent name
-            - Proposition id -- first pass
-            - Statement id -- don't need a join
-        """
-        if parameters is {} or None:
-            return query
-
-        CodingFromGene = sqlalchemy.orm.aliased(models.Codings)
-        CodingFromDisease = sqlalchemy.orm.aliased(models.Codings)
-        CodingFromTherapy = sqlalchemy.orm.aliased(models.Codings)
-
-        MappingFromGene = sqlalchemy.orm.aliased(models.Mappings)
-        MappingFromDisease = sqlalchemy.orm.aliased(models.Mappings)
-        MappingFromTherapy = sqlalchemy.orm.aliased(models.Mappings)
-
-        OrganizationFromDocument = sqlalchemy.orm.aliased(models.Organizations)
-
-        DocumentFromStatement = sqlalchemy.orm.aliased(models.Documents)
-        DocumentFromIndication = sqlalchemy.orm.aliased(models.Documents)
-
-        parameter_fields = set(parameters.to_dict(flat=False).keys())
-
-        # Join for Propositions
-        query = (
-            query
-            .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
-        )
-        # Propositions - join for biomarkers and genes
-        biomarkers_propositions = models.AssociationBiomarkersAndPropositions
-        biomarkers_genes = models.AssociationBiomarkersAndGenes
-        genes_mappings = models.AssociationGenesAndMappings
-        alias_genes = sqlalchemy.orm.aliased(models.Genes)
-        alias_codings_p_genes = sqlalchemy.orm.aliased(models.Codings)
-        alias_codings_genes = sqlalchemy.orm.aliased(models.Codings)
-        alias_mappings_genes = sqlalchemy.orm.aliased(models.Mappings)
-        query = (
-            query
-            .join(biomarkers_propositions, models.Propositions.id == biomarkers_propositions.proposition_id)
-            .join(models.Biomarkers, biomarkers_propositions.biomarker_id == models.Biomarkers.id)
-            .join(biomarkers_genes, models.Biomarkers.id == biomarkers_genes.biomarker_id)
-            .join(models.Genes, biomarkers_genes.gene_id == models.Genes.id)
-            .join(alias_codings_p_genes, models.Genes.primary_coding_id == alias_codings_p_genes.id)
-
-            .join(genes_mappings, models.Genes.id == genes_mappings.gene_id)
-            .join(alias_mappings_genes, genes_mappings.mapping_id == alias_mappings_genes.id)
-            .join(alias_codings_genes, alias_mappings_genes.coding_id == alias_codings_genes.id)
-        )
-        # Propositions - join for diseases
-        diseases_mappings = models.AssociationDiseasesAndMappings
-        alias_codings_p_diseases = sqlalchemy.orm.aliased(models.Codings)
-        alias_codings_diseases = sqlalchemy.orm.aliased(models.Codings)
-        alias_mappings_diseases = sqlalchemy.orm.aliased(models.Mappings)
-        query = (
-            query
-            .join(models.Diseases, models.Propositions.condition_qualifier_id == models.Diseases.id)
-            .join(alias_codings_p_diseases, models.Diseases.primary_coding_id == alias_codings_p_diseases.id)
-
-            .join(diseases_mappings, models.Diseases.id == diseases_mappings.disease_id)
-            .join(alias_mappings_diseases, diseases_mappings.mapping_id == alias_mappings_diseases.id)
-            .join(alias_codings_diseases, alias_mappings_diseases.coding_id == alias_codings_diseases.id)
-        )
-        # Propositions - join for therapies
-        therapies_therapy_groups = models.AssociationTherapyAndTherapyGroup
-        alias_codings_p_therapies = sqlalchemy.orm.aliased(models.Codings)
-        alias_codings_p_therapies_tg = sqlalchemy.orm.aliased(models.Codings)
-        alias_mappings_therapies = sqlalchemy.orm.aliased(models.Mappings)
-        alias_mappings_therapy_groups = sqlalchemy.orm.aliased(models.Mappings)
-        alias_therapies = sqlalchemy.orm.aliased(models.Therapies)
-        query = (
-            query
-            .join(models.Therapies, models.Propositions.therapy_id == models.Therapies.id)
-            .join(alias_codings_p_therapies, models.Therapies.primary_coding_id == alias_codings_p_therapies.id)
-
-            # .join(models.TherapyGroups, models.Propositions.therapy_group_id == models.TherapyGroups.id)
-            # .join(therapies_therapy_groups, models.TherapyGroups.id == therapies_therapy_groups.therapy_group_id)
-            # .join(alias_therapies, therapies_therapy_groups.therapy_id == alias_therapies.id)
-            # .join(alias_codings_p_therapies_tg, models.Therapies.primary_coding_id == alias_codings_p_therapies_tg.id)
-        )
-
-        # Strengths
-        alias_codings_strengths = sqlalchemy.orm.aliased(models.Codings)
-        query = (
-            query
-            .join(models.Strengths, models.Statements.strength_id == models.Strengths.id)
-            .join(alias_codings_strengths, models.Strengths.primary_coding_id == alias_codings_strengths.id)
-        )
-
-        # Documents
-        documents_statements = models.AssociationDocumentsAndStatements
-        alias_documents_statements = sqlalchemy.orm.aliased(models.Documents)
-        alias_organizations_statements = sqlalchemy.orm.aliased(models.Organizations)
-        query = (
-            query
-            .join(documents_statements, models.Statements.id == documents_statements.statement_id)
-            .join(alias_documents_statements, documents_statements.document_id == alias_documents_statements.id)
-            .join(alias_organizations_statements, alias_documents_statements.organization_id == alias_organizations_statements.id)
-        )
-
-        # Indications
-        alias_documents_indications = sqlalchemy.orm.aliased(models.Documents)
-        alias_organizations_indications = sqlalchemy.orm.aliased(models.Organizations)
-        query = (
-            query
-            .join(models.Indications, models.Statements.indication_id == models.Indications.id)
-            .join(alias_documents_indications, models.Indications.document_id == alias_documents_indications.id)
-            .join(alias_organizations_indications, alias_documents_indications.organization_id == alias_organizations_indications.id)
-        )
-
-        # Contributions
-        contributions_statements = models.AssociationContributionsAndStatements
-        query = (
-            query
-            .join(contributions_statements, models.Statements.id == contributions_statements.statements_id)
-            .join(models.Contributions, contributions_statements.contribution_id == models.Contributions.id)
-            .join(models.Agents, models.Contributions.agent_id == models.Agents.id)
-        )
-
-        """
-        proposition_fields = {
-            'biomarker',
-            'biomarker_type',
-            'disease',
-            'gene',
-            'therapy',
-            'therapy_strategy',
-            'therapy_type'
-        }
-        if proposition_fields.intersection(parameter_fields):
-            query = (
-                query
-                .join(models.Propositions, models.Statements.proposition_id == models.Propositions.id)
-            )
-            if {'biomarker', 'biomarker_type', 'gene'}.intersection(parameter_fields):
-                biomarkers_propositions = models.AssociationBiomarkersAndPropositions
-                biomarkers_genes = models.AssociationBiomarkersAndGenes
-                genes_mappings = models.AssociationGenesAndMappings
-
-                alias_genes = sqlalchemy.orm.aliased(models.Genes)
-                alias_codings_p_genes = sqlalchemy.orm.aliased(models.Codings)
-                alias_codings_genes = sqlalchemy.orm.aliased(models.Codings)
-                alias_mappings_genes = sqlalchemy.orm.aliased(models.Mappings)
-                query = (
-                    query
-                    .join(biomarkers_propositions, models.Propositions.id == biomarkers_propositions.proposition_id)
-                    .join(models.Biomarkers, biomarkers_propositions.biomarker_id == models.Biomarkers.id)
-                    .join(biomarkers_genes, models.Biomarkers.id == biomarkers_genes.biomarker_id)
-                    .join(models.Genes, biomarkers_genes.gene_id == models.Genes.id)
-                    .join(alias_codings_p_genes, models.Genes.primary_coding_id == alias_codings_p_genes.id)
-
-                    .join(genes_mappings, models.Genes.id == genes_mappings.gene_id)
-                    .join(alias_mappings_genes, genes_mappings.mapping_id == alias_mappings_genes.id)
-                    .join(alias_codings_genes, alias_mappings_genes.coding_id == alias_codings_genes.id)
-                )
-            if {'disease'}.intersection(parameter_fields):
-                diseases_mappings = models.AssociationDiseasesAndMappings
-                alias_codings_p_diseases = sqlalchemy.orm.aliased(models.Codings)
-                alias_codings_diseases = sqlalchemy.orm.aliased(models.Codings)
-                alias_mappings_diseases = sqlalchemy.orm.aliased(models.Mappings)
-                query = (
-                    query
-                    .join(models.Diseases, models.Propositions.condition_qualifier_id == models.Diseases.id)
-                    .join(alias_codings_p_diseases, models.Diseases.primary_coding_id == alias_codings_p_diseases.id)
-
-                    .join(diseases_mappings, models.Diseases.id == diseases_mappings.disease_id)
-                    .join(alias_mappings_diseases, diseases_mappings.mapping_id == alias_mappings_diseases.id)
-                    .join(alias_codings_diseases, alias_mappings_diseases.coding_id == alias_codings_diseases.id)
-                )
-            if {'therapy', 'therapy_strategy', 'therapy_type'}.intersection(parameter_fields):
-                therapies_therapy_groups = models.AssociationTherapyAndTherapyGroup
-                alias_codings_p_therapies = sqlalchemy.orm.aliased(models.Codings)
-                alias_codings_p_therapies_tg = sqlalchemy.orm.aliased(models.Codings)
-                alias_mappings_therapies = sqlalchemy.orm.aliased(models.Mappings)
-                alias_mappings_therapy_groups = sqlalchemy.orm.aliased(models.Mappings)
-                alias_therapies = sqlalchemy.orm.aliased(models.Therapies)
-                query = (
-                    query
-                    .join(models.Therapies, models.Propositions.therapy_id == models.Therapies.id)
-                    .join(alias_codings_p_therapies, models.Therapies.primary_coding_id == alias_codings_p_therapies.id)
-
-                    #.join(models.TherapyGroups, models.Propositions.therapy_group_id == models.TherapyGroups.id)
-                    #.join(therapies_therapy_groups, models.TherapyGroups.id == therapies_therapy_groups.therapy_group_id)
-                    #.join(alias_therapies, therapies_therapy_groups.therapy_id == alias_therapies.id)
-                    #.join(alias_codings_p_therapies_tg, models.Therapies.primary_coding_id == alias_codings_p_therapies_tg.id)
-                )
-        """
-        return query
-
-    def apply_joinedload(self, statement: sqlalchemy.Select) -> sqlalchemy.Select:
-        """
-        Applies joinedload operations for eager loading of related records from other tables. This is needed to
-        serialize fields from other tables. This function should be implemented by each route's Handler class.
-
-        This is Step 3 of managing the query.
-
-        Args:
-            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply joinedload operations to.
-
-        Returns:
-            sqlalchemy.Select: The SQLAlchemy select statement after joinedload operations are applied.
-        """
-        eager_load_options = [
-            (
-                sqlalchemy.orm.joinedload(models.Statements.contributions)
-                .joinedload(models.Contributions.agent)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.documents)
-                .joinedload(models.Documents.organization)
-             ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.indication)
-                .joinedload(models.Indications.document)
-                .joinedload(models.Documents.organization)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.proposition)
-                .joinedload(models.Propositions.biomarkers)
-                .joinedload(models.Biomarkers.genes)
-                .joinedload(models.Genes.primary_coding)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.proposition)
-                .joinedload(models.Propositions.biomarkers)
-                .joinedload(models.Biomarkers.genes)
-                .joinedload(models.Genes.mappings)
-                .joinedload(models.Mappings.primary_coding)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.proposition)
-                .joinedload(models.Propositions.condition_qualifier)
-                .joinedload(models.Diseases.mappings)
-                .joinedload(models.Mappings.primary_coding)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.proposition)
-                .joinedload(models.Propositions.therapy)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.proposition)
-                .joinedload(models.Propositions.therapy)
-                .joinedload(models.Therapies.mappings)
-                .joinedload(models.Mappings.primary_coding)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.proposition)
-                .joinedload(models.Propositions.therapy_group)
-                .joinedload(models.TherapyGroups.therapies)
-                .joinedload(models.Therapies.primary_coding)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.proposition)
-                .joinedload(models.Propositions.therapy_group)
-                .joinedload(models.TherapyGroups.therapies)
-                .joinedload(models.Therapies.mappings)
-                .joinedload(models.Mappings.primary_coding)
-            ),
-            (
-                sqlalchemy.orm.joinedload(models.Statements.proposition)
-                .joinedload(models.Propositions.therapy_group)
-                .joinedload(models.TherapyGroups.therapies)
-                .joinedload(models.Therapies.primary_coding)
-            )
-        ]
-        return statement.options(*eager_load_options)
 
     @classmethod
     def serialize_single_instance(cls, instance: models.Statements) -> dict[str, typing.Any]:
