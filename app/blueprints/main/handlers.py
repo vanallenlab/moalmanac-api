@@ -96,11 +96,18 @@ class BaseHandler:
             Query: The SQLAlchemy query after filter operations are applied.
         """
         filter_map = {
+            'agent': models.Agents.name,
             'biomarker_type': models.Biomarkers.biomarker_type,
             'biomarker': models.Biomarkers.name,
-            'gene': models.Genes.name,
+            'contribution': models.Contributions.id,
             'disease': models.Diseases.name,
-            'therapy': models.Therapies.name
+            'document': models.Documents.id,
+            'gene': models.Genes.name,
+            'indication': models.Indications.id,
+            'organization': models.Organizations.name,
+            #'strength': models.Strengths.id,
+            'therapy': models.Therapies.name,
+            'therapy_type': models.Therapies.therapy_type
         }
 
         and_conditions = []
@@ -209,7 +216,7 @@ class BaseHandler:
         try:
             return int(value)
         except ValueError:
-            return value.lower()
+            return value
 
     @classmethod
     def get_query_parameters(cls, arguments: ImmutableMultiDict) -> dict[str, int | str]:
@@ -225,38 +232,82 @@ class BaseHandler:
         """
         return {key.lower(): cls.convert_parameter_value(value) for key, value in arguments.to_dict().items()}
 
-    #@staticmethod
-    #def get_filter_criteria():
-    #    filter_criteria = []
-    #    for field in ['organization', 'drug_name_brand', 'drug_name_generic']:
-    #        filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
-    #        filter_criteria.append(filter_field)
-
     @staticmethod
     def pop_keys(keys: list[str], record: dict[str, typing.Any]) -> None:
         for key in keys:
             record.pop(key, None)
 
-#    @classmethod
-#    def serialize_instances(cls, rows: list[sqlalchemy.engine.row.Row]) -> list[dict[str, typing.Any]]:
-#        """
-#        7. Serialize Related Records: A function to serialize related table records.
-#        Go through and create a function within each table to serialize their fields
-#        """
-#        result = []
-#        for row in rows:
-#            instance = list(row._mapping.values())[0]
-#            serialized_instance = cls.serialize_single_instance(instance=instance)
-#            result.append(serialized_instance)
-#        return result
-
     @classmethod
     def serialize_single_instance(cls, instance: sqlalchemy.orm.DeclarativeBase) -> dict[str, typing.Any]:
         raise NotImplementedError("Subclasses should implement this method.")
 
+    @classmethod
+    def get_parameters(cls, arguments):
+        #return arguments.to_dict(flat=False)
+        dictionary = arguments.to_dict(flat=False)
+        for key, values in dictionary.items():
+            new_values = []
+            for value in values:
+                new_value = cls.convert_parameter_value(value=value)
+                new_values.append(new_value)
+            dictionary[key] = new_values
+        return dictionary
+
+
+class Agents(BaseHandler):
+    """
+    Handler class to manage queries against the Agents table.
+    """
     @staticmethod
-    def get_parameters(arguments):
-        return arguments.to_dict(flat=False)
+    def perform_joins(statement: sqlalchemy.Select,
+                      parameters: ImmutableMultiDict,
+                      base_table=models.Agents,
+                      joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
+
+        if joined_tables is None:
+            joined_tables = set()
+
+        agent_values = parameters.get('agent', None)
+        if agent_values:
+            if base_table in [models.Contributions, models.Statements] and models.Agents not in joined_tables:
+                statement = statement.join(
+                    models.Agents,
+                    models.Agents.id == models.Contributions.agent_id
+                )
+                joined_tables.add(models.Agents)
+            elif base_table != models.Agents:
+                raise ValueError(f'Unsupported base table for Diseases.perform_joins: {base_table}.')
+
+            conditions = [models.Agents.name.in_(agent_values)]
+            statement = statement.where(sqlalchemy.and_(*conditions))
+
+        return statement, joined_tables
+
+    def apply_joinedload(self, query: Query) -> Query:
+        """
+        3. Joinedload Operations: A function to apply joinedload options for eager loading.
+
+        """
+        return query
+
+    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
+        return query
+
+    @classmethod
+    def serialize_single_instance(cls, instance: models.Agents) -> dict[str, typing.Any]:
+        serialized_record = cls.serialize_primary_instance(instance=instance)
+#        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+
+        #keys_to_remove = [
+        #]
+        #cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+        return serialized_record
+
+    @classmethod
+    def serialize_secondary_instances(cls, instance: models.Agents, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        return record
 
 
 class Biomarkers(BaseHandler):
@@ -438,12 +489,50 @@ class Contributions(BaseHandler):
     """
     Handler class to manage queries against the Contributions table.
     """
+    @staticmethod
+    def perform_joins(statement: sqlalchemy.Select,
+                      parameters: ImmutableMultiDict,
+                      base_table=models.Contributions,
+                      joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+        if joined_tables is None:
+            joined_tables = set()
 
-        return query
+        agent_values = parameters.get('agent', None)
+        contribution_values = parameters.get('contribution', None)
+        # Could expand this to have a filter criteria based on contribution date
+        if agent_values or contribution_values:
+            c_s = models.AssociationContributionsAndStatements
+            if base_table in [models.Statements] and c_s not in joined_tables:
+                statement = statement.join(
+                    c_s,
+                    c_s.statement_id == models.Statements.id
+                )
+                joined_tables.add(c_s)
+
+                statement = statement.join(
+                    models.Contributions,
+                    models.Contributions.id == c_s.contribution_id
+                )
+                joined_tables.add(models.Contributions)
+            elif base_table != models.Contributions:
+                raise ValueError(f'Unsupported base table for Contributions.perform_joins: {base_table}.')
+
+            conditions = []
+            if contribution_values:
+                conditions = [models.Contributions.id.in_(contribution_values)]
+            statement = statement.where(sqlalchemy.and_(*conditions))
+
+            statement, joined_tables = Agents.perform_joins(
+                statement=statement,
+                parameters=parameters,
+                base_table=base_table,
+                joined_tables=joined_tables
+            )
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -553,12 +642,74 @@ class Documents(BaseHandler):
     """
     Handler class to manage queries against the Documents table.
     """
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table=models.Documents,
+            joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+        if joined_tables is None:
+            joined_tables = set()
 
-        return query
+        documents_via_statements = sqlalchemy.orm.aliased(models.Documents)
+        documents_via_indications = sqlalchemy.orm.aliased(models.Documents)
+
+        document_values = parameters.get('document', None)
+        organization_values = parameters.get('organization', None)
+        if document_values or organization_values:
+            if base_table == models.Documents and models.Documents not in joined_tables:
+                conditions = [models.Documents.id.in_(document_values)]
+                statement = statement.where(sqlalchemy.and_(*conditions))
+            elif base_table in [models.Indications, models.Statements] and models.Documents not in joined_tables:
+                conditions = []
+                d_s = models.AssociationDocumentsAndStatements
+                statement = statement.join(
+                    d_s,
+                    d_s.statement_id == models.Statements.id
+                )
+                joined_tables.add(d_s)
+
+                statement = statement.join(
+                    documents_via_statements,
+                    documents_via_statements.id == d_s.document_id
+                )
+                joined_tables.add(models.Documents)
+                if document_values:
+                    conditions.append(documents_via_statements.id.in_(document_values))
+
+                statement = statement.join(
+                    documents_via_indications,
+                    documents_via_indications.id == models.Indications.document_id
+                )
+                joined_tables.add(models.Documents)
+                if document_values:
+                    conditions.append(documents_via_indications.id.in_(document_values))
+
+                if len(conditions) > 1:
+                    combined_condition = sqlalchemy.or_(*conditions)
+                elif conditions:
+                    combined_condition = conditions[0]
+                else:
+                    combined_condition = None
+
+                if combined_condition is not None:
+                    statement = statement.where(sqlalchemy.and_(combined_condition))
+            elif base_table != models.Documents:
+                raise ValueError(f'Unsupported base table for Documents.perform_joins: {base_table}.')
+
+            statement, joined_tables = Organizations.perform_joins(
+                statement=statement,
+                parameters=parameters,
+                base_table=base_table,
+                joined_tables=joined_tables,
+                documents_via_statements=documents_via_statements,
+                documents_via_indications=documents_via_indications
+            )
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -665,14 +816,48 @@ class Genes(BaseHandler):
 
 class Indications(BaseHandler):
     """
-    Handler class to manage queries against the Documents table.
+    Handler class to manage queries against the Indications table.
     """
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table=models.Indications,
+            joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-        return query
+        if joined_tables is None:
+            joined_tables = set()
+
+        document_values = parameters.get('document', None)
+        indication_values = parameters.get('indication', None)
+        organization_values = parameters.get('organization', None)
+        if document_values or indication_values or organization_values:
+            if base_table in [models.Statements] and models.Indications not in joined_tables:
+                statement = statement.join(
+                    models.Indications,
+                    models.Indications.id == models.Statements.indication_id
+                )
+                joined_tables.add(models.Indications)
+            elif base_table != models.Indications:
+                raise ValueError(f'Unsupported base table for Indications.perform_joins: {base_table}.')
+
+            conditions = []
+            if indication_values:
+                conditions.append(models.Indications.id.in_(indication_values))
+            statement = statement.where(sqlalchemy.and_(*conditions))
+
+            if base_table in [models.Documents] and models.Documents not in joined_tables:
+                statement, joined_tables = Documents.perform_joins(
+                    statement=statement,
+                    parameters=parameters,
+                    base_table=base_table,
+                    joined_tables=joined_tables
+                )
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -744,12 +929,59 @@ class Organizations(BaseHandler):
     """
     Handler class to manage queries against the Organizations table.
     """
+    @staticmethod
+    def perform_joins(statement: sqlalchemy.Select,
+                      parameters: ImmutableMultiDict,
+                      base_table=models.Organizations,
+                      joined_tables=None,
+                      documents_via_statements=None,
+                      documents_via_indications=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
 
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
-        """
-        """
+        if joined_tables is None:
+            joined_tables = set()
 
-        return query
+        organizations_via_statements = sqlalchemy.orm.aliased(models.Organizations)
+        organizations_via_indications = sqlalchemy.orm.aliased(models.Organizations)
+
+        organization_values = parameters.get('organization', None)
+        if organization_values:
+            if base_table == models.Organizations and models.Organizations not in joined_tables:
+                conditions = [models.Organizations.name.in_(organization_values)]
+                statement = statement.where(sqlalchemy.and_(*conditions))
+            elif base_table in [models.Documents, models.Indications, models.Statements] and models.Organizations not in joined_tables:
+                conditions = []
+                if documents_via_statements:
+                    statement = statement.join(
+                        organizations_via_statements,
+                        organizations_via_statements.id == documents_via_statements.organization_id
+                    )
+                    conditions.append(organizations_via_statements.name.in_(organization_values))
+                if documents_via_indications:
+                    statement = statement.join(
+                        organizations_via_indications,
+                        organizations_via_indications.id == documents_via_indications.organization_id
+                    )
+                    conditions.append(organizations_via_indications.name.in_(organization_values))
+                if not (documents_via_statements or documents_via_indications):
+                    message = f'Basetable specified as {base_table} to Organizations.perform_joins without providing document alias(es).'
+                    raise ValueError(message)
+                joined_tables.add(models.Organizations)
+
+                if len(conditions) > 1:
+                    combined_condition = sqlalchemy.or_(*conditions)
+                elif conditions:
+                    combined_condition = conditions[0]
+                else:
+                    combined_condition = None
+
+                if combined_condition is not None:
+                    statement = statement.where(sqlalchemy.and_(combined_condition))
+            elif base_table != models.Organizations:
+                raise ValueError(f'Unsupported base table for Organizations.perform_joins: {base_table}.')
+
+        return statement, joined_tables
 
     def apply_joinedload(self, query: Query) -> Query:
         """
@@ -869,7 +1101,31 @@ class Statements(BaseHandler):
         if joined_tables is None:
             joined_tables = set()
 
+        statement, joined_tables = Contributions.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
+        statement, joined_tables = Documents.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
+        statement, joined_tables = Indications.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
         statement, joined_tables = Propositions.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
+        statement, joined_tables = Strengths.perform_joins(
             statement=statement,
             parameters=parameters,
             base_table=base_table,
@@ -877,7 +1133,6 @@ class Statements(BaseHandler):
         )
 
         return statement, joined_tables
-
 
     def perform_joins_(self, query: Query, parameters: ImmutableMultiDict) -> Query:
         """
@@ -1187,6 +1442,64 @@ class Statements(BaseHandler):
         record['indication'] = Indications.serialize_single_instance(instance=instance.indication)
         record['reportedIn'] = Documents.serialize_instances(instances=instance.documents)
         record['proposition'] = Propositions.serialize_single_instance(instance=instance.proposition)
+        record['strengths'] = Strengths.serialize_single_instance(instance=instance.strength)
+        return record
+
+
+class Strengths(BaseHandler):
+    """
+    Handler class to manage queries against the Strengths table.
+    """
+    @staticmethod
+    def perform_joins(statement: sqlalchemy.Select,
+                      parameters: ImmutableMultiDict,
+                      base_table=models.Strengths,
+                      joined_tables=None) -> sqlalchemy.Select:
+        if not parameters:
+            return statement, joined_tables
+
+        if joined_tables is None:
+            joined_tables = set()
+
+        """
+        I'm not sure what this will look like, but it will likely be a join to the codings and mappings table
+        statement, joined_tables = Codings.perform_joins(
+            statement=statement,
+            parameters=parameters,
+            base_table=base_table,
+            joined_tables=joined_tables
+        )
+        """
+
+        return statement, joined_tables
+
+    def apply_joinedload(self, query: Query) -> Query:
+        """
+        3. Joinedload Operations: A function to apply joinedload options for eager loading.
+
+        """
+        return query
+
+    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
+        return query
+
+    @classmethod
+    def serialize_single_instance(cls, instance: models.Strengths) -> dict[str, typing.Any]:
+        serialized_record = cls.serialize_primary_instance(instance=instance)
+        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        serialized_record['conceptType'] = serialized_record['concept_type']
+
+        keys_to_remove = [
+            'concept_type',
+            'primary_coding_id'
+        ]
+        cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+        return serialized_record
+
+    @classmethod
+    def serialize_secondary_instances(cls, instance: models.Strengths, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
+        #record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
         return record
 
 
@@ -1235,8 +1548,6 @@ class Therapies(BaseHandler):
                     therapies_indirect,
                     therapies_indirect.id == models.AssociationTherapyAndTherapyGroup.therapy_id
                 )
-                # This was already added and is added to a set, so it won't change the value of joined_tables
-                # Adding it just for consistency
                 joined_tables.add(models.Therapies)
             elif base_table != models.Therapies:
                 raise ValueError(f'Unsupported base table for Biomarkers.perform_joins: {base_table}.')
@@ -1247,8 +1558,8 @@ class Therapies(BaseHandler):
                 condition_indirect = therapies_indirect.name.in_(therapy_values)
                 conditions.append((condition_direct | condition_indirect))
             if therapy_type_values:
-                condition_direct = therapies_direct.therapy_type.in_(therapy_values)
-                condition_indirect = therapies_indirect.therapy_type.in_(therapy_values)
+                condition_direct = therapies_direct.therapy_type.in_(therapy_type_values)
+                condition_indirect = therapies_indirect.therapy_type.in_(therapy_type_values)
                 conditions.append((condition_direct | condition_indirect))
             statement = statement.where(sqlalchemy.and_(*conditions))
 

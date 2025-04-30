@@ -646,10 +646,10 @@ def get_propositions(propositions_id=None):
         statement = statement.where(models.Propositions.id == propositions_id)
 
     parameters = handler.get_parameters(arguments=flask.request.args)
-    statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
+    #statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
     statement = handler.apply_joinedload(statement=statement)
     statement = handler.apply_filters(statement=statement, parameters=parameters)
-    print(joined_tables)
+    #print(joined_tables)
 
     session_factory = flask.current_app.config['SESSION_FACTORY']
     with session_factory() as session:
@@ -675,11 +675,12 @@ def get_statements(statement_id=None):
         statement = statement.where(models.Statements.id == statement_id)
 
     parameters = handler.get_parameters(arguments=flask.request.args)
+    print(parameters)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    statement = handler.apply_joinedload(statement=statement)
+    #statement = handler.apply_joinedload(statement=statement)
     statement = handler.apply_filters(statement=statement, parameters=parameters)
     print(joined_tables)
-
+    print(statement.compile(compile_kwargs={"literal_binds": True}))
     session_factory = flask.current_app.config['SESSION_FACTORY']
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
