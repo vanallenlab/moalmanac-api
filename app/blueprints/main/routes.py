@@ -678,7 +678,7 @@ def get_statements(statement_id=None):
     parameters = handler.get_parameters(arguments=flask.request.args)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
     # statement = handler.apply_joinedload(statement=statement)
-    statement = handler.apply_filters(statement=statement, parameters=parameters)
+    # statement = handler.apply_filters(statement=statement, parameters=parameters)
     session_factory = flask.current_app.config['SESSION_FACTORY']
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
