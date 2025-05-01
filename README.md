@@ -1,5 +1,5 @@
 # Molecular Oncology Almanac API
-API for moalmanac db and web browser 2.0
+API for the [moalmanac-db](https://github.com/vanallenlab/moalmanac-db) and web browser 2.0
 
 ## Installation 
 ### Download
