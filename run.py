@@ -30,4 +30,3 @@ if __name__ == '__main__':
         raise ValueError(f'Invalid mode: {args.mode}')
 
     app.run(host=host, port=port, debug=debug)
-
