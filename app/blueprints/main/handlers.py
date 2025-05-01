@@ -270,18 +270,6 @@ class BaseHandler:
         except ValueError:
             return value
 
-    @staticmethod
-    def pop_keys(keys: list[str], record: dict[str, typing.Any]) -> None:
-        """
-        Removes keys from the provided dictionary.
-
-        Args:
-            keys (list[str]): A list of keys to remove from the dictionary.
-            record (dict[str, typing.Any]): The dictionary from which to remove the keys.
-        """
-        for key in keys:
-            record.pop(key, None)
-
     @classmethod
     def get_parameters(cls, arguments) -> dict[str, list[str | int]]:
         """
@@ -302,6 +290,92 @@ class BaseHandler:
                 new_values.append(new_value)
             dictionary[key] = new_values
         return dictionary
+
+    @staticmethod
+    def pop_keys(keys: list[str], record: dict[str, typing.Any]) -> None:
+        """
+        Removes keys from the provided dictionary.
+
+        Args:
+            keys (list[str]): A list of keys to remove from the dictionary.
+            record (dict[str, typing.Any]): The dictionary from which to remove the keys.
+        """
+        for key in keys:
+            record.pop(key, None)
+
+    @staticmethod
+    def reorder_dictionary(dictionary: dict, key_order: list[str]) -> dict:
+        """
+        Reorders the keys in a dictionary based on a given list of keys.
+
+        Args:
+            dictionary (dict): The original dictionary to reorder.
+            key_order (list[str]): A list of keys specifying the desired order.
+
+        Returns:
+            dict: A new dictionary with keys reordered.
+        """
+        return {key: dictionary[key] for key in key_order if key in dictionary}
+
+
+class About(BaseHandler):
+    """
+    Handler class to manage queries against the About table.
+    """
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Agents = models.Agents,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Not used for the About table.
+        """
+        return statement, joined_tables
+
+    @classmethod
+    def serialize_single_instance(cls, instance: models.About) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the About table.
+
+        This method extends the base class implementation by serializing the instance and any related tables. The key
+        `id` is removed after serialization.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Agents): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
+        serialized_record = cls.serialize_primary_instance(instance=instance)
+        serialized_record['last_updated'] = cls.convert_date_to_iso(value=serialized_record['last_updated'])
+
+        keys_to_remove = [
+            'id'
+        ]
+        cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+        return serialized_record
+
+    @classmethod
+    def serialize_secondary_instances(cls, instance: models.About, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table.
+
+        The About class does not currently reference other tables.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.About): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
+        return record
 
 
 class Agents(BaseHandler):
@@ -1620,7 +1694,7 @@ class Statements(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table: models.Diseases = models.Diseases,
+            base_table: models.Statements = models.Statements,
             joined_tables: list[models.Base] = None
     ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
@@ -1826,7 +1900,7 @@ class Strengths(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
-        record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
+        # record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
         return record
 
 
@@ -1838,7 +1912,7 @@ class Therapies(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table: models.Diseases = models.Diseases,
+            base_table: models.Therapies = models.Therapies,
             joined_tables: list[models.Base] = None
     ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
@@ -1997,11 +2071,11 @@ class TherapyGroups(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table: models.Diseases = models.Diseases,
+            base_table: models.TherapyGroups = models.TherapyGroups,
             joined_tables: list[models.Base] = None
     ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
-        Performs joins relevant to the Diseases table.
+        Performs joins relevant to the TherapyGroups table.
 
         This method extends the base class implementation. The joins needed for therapy groups are currently covered by
         the Therapies class.

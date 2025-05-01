@@ -1,7 +1,7 @@
 import datetime
 import flask
 import sqlalchemy
-#from sqlalchemy.orm import joinedload
+import uuid
 
 from app import models
 from . import main_bp
@@ -28,141 +28,60 @@ TABLE_MAP = {
 }
 
 
-def apply_filters(filter_criteria, query):
-    filter_map = {
-        'agent': lambda value: models.Agents.name == value,
-        'biomarker_type': lambda value: models.Biomarkers.biomarker_type == value,
-        'biomarker': lambda value: models.Biomarkers.name == value,
-        'gene': lambda value: models.Genes.name == value,
-        'cancer_type': lambda value: models.Diseases.name == value,
-        #'oncotree_code': lambda value: models.Context.oncotree_code == value,
-        #'oncotree_term': lambda value: models.Context.oncotree_term == value,
-        'organization': lambda value: models.Organizations.name == value,
-        #'drug_name_brand': lambda value: models.Documents.drug_name_brand == value,
-        #'drug_name_generic': lambda value: models.Documents.drug_name_generic == value,
-        'therapy_name': lambda value: models.Therapies.name == value,
-        'therapy_type': lambda value: models.Therapies.therapy_type == value
-    }
-
-    and_filters = []
-    or_filters = []
-
-    for criteria in filter_criteria:
-        filter_name = criteria.get('filter')
-        filter_values = criteria.get('values')
-        if (filter_name in filter_map) and filter_values:
-            # ^ This may be problematic for filter names that do not match
-            # Queries across different categories will be combined with an AND operator
-            # Queries across the same category will be combined with an OR operator
-
-            processed_values = []
-            for value in filter_values:
-                formatted_value = value
-                # formatted_value = value.replace(' ', '%20')
-                # Add additional formatting, such as checking against aliase, here
-                processed_values.append(formatted_value)
-
-            if len(processed_values) > 1:
-                # Create an OR condition if multiple of the same filter are passed
-                filter_conditions = [filter_map[filter_name](value) for value in processed_values]
-                or_filters.append(sqlalchemy.or_(*filter_conditions))
-            else:
-                # Otherwise, filter for a single value
-                filter_condition = filter_map[filter_name](processed_values[0])
-                and_filters.append(filter_condition)
-
-    if and_filters:
-        query = query.filter(sqlalchemy.and_(*and_filters))
-    if or_filters:
-        query = query.filter(sqlalchemy.or_(*or_filters))
-
-    return query
-
-
-def convert_date_to_iso(value: datetime.date) -> str:
+def create_response(data, message="", received=None, request_url=None, status_code=200):
     """
-    Converts a datetime.date value to an ISO 8601 format string.
-    
-    Args:
-        value: The datetime.date value to convert.
-    
-    Returns:
-        str: The ISO 8601 format string if the value is a date, otherwise the original value.
     """
-    if isinstance(value, datetime.date):
-        return value.isoformat()
-    else:
-        raise ValueError(f"Input value not of type datetime.date: {value}")
+    if received is None:
+        received = generate_datetime_now()
 
-
-def create_response(data, message="", status=200):
-    """Wrapper function to create a response with metadata."""
-    response = {
-        "status_code": status,
+    timestamp_returned = generate_datetime_now()
+    elapsed = timestamp_returned - received
+    meta = {
         "message": message,
-        "count": data if isinstance(data, int) else len(data),
-        "data": data,
+        "request_url": request_url if request_url else None,
+        "status": "success" if 200 <= status_code < 300 else "error",
+        "status_code": status_code,
+        "timestamp_elapsed": round(elapsed.total_seconds(), 6),
+        "timestamp_received": f"{received.isoformat()}Z" if received else None,
+        "timestamp_returned": f"{timestamp_returned.isoformat()}Z",
+        "trace_id": str(uuid.uuid4()),
+        "data_length": len(data) if hasattr(data, '__len__') else 1,
     }
-    return flask.jsonify(response), status
+    service = get_about(return_as_response=False)
+    response = {
+        "meta": meta,
+        "service": service,
+        "data": data
+    }
+    return flask.jsonify(response), status_code
 
 
-def move_keys_to_extensions(dictionary: dict, keys: list[str]) -> dict:
-    if 'extensions' not in dictionary:
-        dictionary['extensions'] = []
-    for key in keys:
-        extension = [{'name': key, 'value': dictionary[key]}]
-        dictionary['extensions'].append(extension)
-        dictionary.pop(key, None)
-    return dictionary
-
-
-def reorder_dictionary(dictionary: dict, key_order: list[str]) -> dict:
-    """
-    Reorders the keys in a dictionary based on a given list of keys.
-
-    Args:
-        dictionary (dict): The original dictionary to reorder.
-        key_order (list[str]): A list of keys specifying the desired order.
-
-    Returns:
-        reoredered (dict): A new dictionary with keys reordered.
-    """
-    reordered = {key: dictionary[key] for key in key_order if key in dictionary}
-    return reordered
+def generate_datetime_now():
+    return datetime.datetime.now(datetime.timezone.utc)
 
 
 @main_bp.route('/about', methods=['GET'])
-def get_about():
-    session = flask.current_app.config['SESSION']()
-    try:
-        about = session.query(models.About).filter_by(id=0).first()
-        if about:
-            data = about.__dict__
-            data.pop('_sa_instance_state', None)
-            data.pop('id', None)
-
-            data['last_updated'] = convert_date_to_iso(data['last_updated'])
-
-            return create_response(
-                data=[data],
-                message="About metadata retrieved successfully",
-                status=200
-            )
-        else:
-            return create_response(
-                data={},
-                message="No database metadata found",
-                status=404
-            )
-    except Exception as e:
-        print(f"Error occurred: {e}")
+def get_about(return_as_response=True):
+    """
+    Gets service information from the About table.
+    """
+    handler = handlers.About()
+    statement = handler.construct_base_query(model=models.About)
+    session_factory = flask.current_app.config['SESSION_FACTORY']
+    with session_factory() as session:
+        result = handler.execute_query(session=session, statement=statement)
+        serialized = handler.serialize_instances(instances=result)
+        serialized = serialized[0]
+    if return_as_response:
         return create_response(
-            data={"error": {e}},
-            message="An error occurred while retrieving about metadata",
-            status=500
+            request_url=flask.request.url,
+            received=generate_datetime_now(),
+            data=serialized,
+            message="About metadata retrieved successfully",
+            status_code=200
         )
-    finally:
-        session.close()
+    else:
+        return serialized
 
 
 @main_bp.route('/contributions', defaults={'agent': None}, methods=['GET'])
@@ -215,7 +134,7 @@ def get_contributions(agent=None):
         return create_response(
             data=result,
             message="Contributions retrieved successfully",
-            status=200
+            status_code=200
         )
     finally:
         session.close()
@@ -239,7 +158,7 @@ def get_row_count():
         return create_response(
             data={},
             message=f"Table {table_name} not found",
-            status=404
+            status_code=404
         )
 
     session = flask.current_app.config['SESSION']()
@@ -249,14 +168,14 @@ def get_row_count():
             return create_response(
                 data={},
                 message=f"Table {table_name} not found",
-                status=404
+                status_code=404
             )
 
         count = session.query(sqlalchemy.func.count(table_class.id)).scalar()
         return create_response(
             data=count,
             message=f"Row count for {table_name} retrieved successfully",
-            status=200
+            status_code=200
         )
     finally:
         session.close()
@@ -330,7 +249,7 @@ def get_documents():
         return create_response(
             data=result,
             message=f"Documents successfully retrieved",
-            status=200
+            status_code=200
         )
     finally:
         session.close()
@@ -370,7 +289,7 @@ def get_genes(gene=None):
         return create_response(
             data=result,
             message="Genes retrieved successfully",
-            status=200
+            status_code=200
         )
     finally:
         session.close()
@@ -396,7 +315,7 @@ def get_terms(table=None):
         return create_response(
             data=result,
             message="Terms retrieved successfully",
-            status=200
+            status_code=200
         )
     finally:
         session.close()
@@ -418,7 +337,7 @@ def get_term_counts():
         return create_response(
             data=result,
             message="Term counts retrieved successfully",
-            status=200
+            status_code=200
         )
     finally:
         session.close()
@@ -456,7 +375,7 @@ def get_therapy(therapy_name=None):
         return create_response(
             data=result,
             message=f"Statements for therapy {therapy_name} retrieved successfully",
-            status=200
+            status_code=200
         )
     finally:
         session.close()
@@ -471,7 +390,7 @@ def get_unique_values():
         return create_response(
             data={},
             message="Table name and column name are required",
-            status=400
+            status_code=400
         )
 
     session = flask.current_app.config['SESSION']()
@@ -481,14 +400,14 @@ def get_unique_values():
             return create_response(
                 data={},
                 message=f"Table {table_name} not found",
-                status=404
+                status_code=404
             )
 
         if not hasattr(table_class, column_name):
             return create_response(
                 data={},
                 message=f"Column '{column_name}' not found in table '{table_name}'",
-                status=404
+                status_code=404
             )
 
         values = session.query(getattr(table_class, column_name)).distinct().all()
@@ -496,7 +415,7 @@ def get_unique_values():
         return create_response(
             data=data,
             message=f"Unique values for column '{column_name}' in table '{table_name}' retrieved successfully ",
-            status=200
+            status_code=200
         )
     finally:
         session.close()
@@ -658,7 +577,7 @@ def get_propositions(propositions_id=None):
     return create_response(
         data=serialized,
         message=f"Statements retrieved successfully",
-        status=200
+        status_code=200
     )
 
 
@@ -666,15 +585,20 @@ def get_propositions(propositions_id=None):
 @main_bp.route('/statements/<statement_id>', methods=['GET'])
 def get_statements(statement_id=None):
     """
+    Gets all statement records from the database. If a statement_id is provided, return only that record.
+
+    Args:
+        statement_id (int): The id of the statement to retrieve. If None, return all statements.
+
+    Returns:
 
     """
-    # Step 1: Instnatiate the handler for the table
+    received = generate_datetime_now()
     handler = handlers.Statements()
     statement = handler.construct_base_query(model=models.Statements)
     if statement_id:
         statement = statement.where(models.Statements.id == statement_id)
 
-    print(flask.request.args, type(flask.request.args))
     parameters = handler.get_parameters(arguments=flask.request.args)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
     # statement = handler.apply_joinedload(statement=statement)
@@ -683,108 +607,11 @@ def get_statements(statement_id=None):
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
+
     return create_response(
+        request_url=flask.request.url,
+        received=received,
         data=serialized,
         message=f"Statements retrieved successfully",
-        status=200
+        status_code=200
     )
-
-    """
-    session = flask.current_app.config['SESSION']
-    handler = handlers.Statements(session=session)
-    try:
-        query = handler.construct_base_query(model=models.Statements)
-        if statement_id:
-            query = query.filter(models.Statements.id == statement_id)
-        query = handler.perform_joins(query=query, parameters=flask.request.args)
-        query = handler.apply_joinedload(query=query)
-        query = handler.apply_filters(query=query, parameters=flask.request.args)
-        result = handler.execute_query(query=query)
-        serialized = handler.serialize_instances(instances=result)
-        return create_response(
-            data=serialized,
-            message=f"Statements retrieved successfully",
-            status=200
-        )
-    finally:
-        session.close()
-
-
-        query_parameters = flask.request.args.to_dict()
-        query = handlers.Statements.construct_base_query(session=session, model=models.Statements)
-        if statement_id:
-            query = query.filter(models.Statements.id == statement_id)
-
-        query = get_statement_query(session=session, parameters=query_parameters)
-        if statement_id:
-            query = query.filter(models.Statements.id == statement_id)
-
-        results = query.all()
-        results_serialized = serialize_statement_instance(query_results=results, dereference=False)
-
-        return create_response(
-            data=results,
-            message="Statements successfully retrieved",
-            status=200
-        )
-    finally:
-        session.close()
-    """
-"""
-@main_bp.route('/statements', defaults={'statement_id': None}, methods=['GET'])
-@main_bp.route('/statements/<statement_id>', methods=['GET'])
-def get_statements(statement_id=None):
-    session = flask.current_app.config['SESSION']()
-    try:
-        query_parameters = flask.request.args.to_dict()
-
-
-        #filter_criteria = []
-        #for field in ['organization', 'drug_name_brand', 'drug_name_generic']:
-        #    filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
-        #    filter_criteria.append(filter_field)
-        #print(filter_criteria)
-
-        query_parameters = flask.request.args.to_dict()
-        query = get_statement_query(session=session, parameters=query_parameters)
-        if statement_id:
-            query = query.filter(models.Statements.id == statement_id)
-
-        # Get and apply filters
-        fields = [
-            'cancer_type',
-            'biomarker',
-            'biomarker_type',
-            'drug_name_brand',
-            # This field is not present in the Statement table natively, and instead comes in a dictionary once joined
-            'gene',  # I need to split gene off to its own table
-            #'oncotree_code',
-            #'oncotree_term',
-            'organization',
-            'therapy_name',
-            'therapy_type',
-        ]
-        filter_criteria = []
-        for field in fields:
-            filter_field = {'filter': field, 'values': flask.request.args.getlist(field)}
-            filter_criteria.append(filter_field)
-
-        #query = apply_filters(
-        #    filter_criteria=filter_criteria,
-        #    query=query
-        #)
-        print(query)
-
-        # Execute query and return all results
-        #dereference=False
-        results = query.all()
-        results_serialized = serialize_statement_instance(query_results=results, dereference=dereference)
-
-        return create_response(
-            data=results_serialized,
-            message="Statements successfully retrieved",
-            status=200
-        )
-    finally:
-        session.close()
-"""
