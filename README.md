@@ -49,12 +49,12 @@ rm data/moalmanac.sqlite3; python -m app.populate_database -i moalmanac-db/refer
 
 To launch the application for development:
 ```bash
-python dev_run.py
+python run.py --mode development
 ```
 
 To launch the application for production:
 ```bash
-python run.py
+python run.py --mode production
 ```
 
 ## Citation
