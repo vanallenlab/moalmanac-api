@@ -48,6 +48,10 @@ class BaseHandler:
 
         This is Step 2 of managing the query.
 
+        At the moment, this function is also performing filtering based on provided parameters. I am not sure if it
+        makes sense to have apply_filters as a separate function, because it also is dependent on table aliases, I
+        think.
+
         Args:
             statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
             parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
@@ -227,7 +231,7 @@ class BaseHandler:
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
 
         Returns:
-            dict[str, typing.Any]: A dictionary representation of the primary instance object.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
 
         Raises:
             NotImplementedError: If the route's Handler class does not implement this method.
@@ -308,7 +312,7 @@ class Agents(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table: models.Base = models.Agents,
+            base_table: models.Agents = models.Agents,
             joined_tables: list[models.Base] = None
     ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
@@ -324,9 +328,6 @@ class Agents(BaseHandler):
             parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
             base_table (models.Base, models.Agents): The SQLAlchemy model class initially queried against.
             joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
-
-        Returns:
-            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
 
         Returns:
             sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
@@ -389,11 +390,11 @@ class Agents(BaseHandler):
         This is Step 6.3 of managing the query.
 
         Args:
-            instance (models.Base): A SQLAlchemy model instance to serialize.
+            instance (models.Agents): A SQLAlchemy model instance to serialize.
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
 
         Returns:
-            dict[str, typing.Any]: A dictionary representation of the primary instance object.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         return record
 
@@ -406,28 +407,23 @@ class Biomarkers(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table: models.Base = models.Biomarkers,
+            base_table: models.Biomarkers = models.Biomarkers,
             joined_tables: list[models.Base] = None
     ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
         Performs joins relevant to the Biomarkers table.
 
         This method extends the base class implementation. Specifically, it performs a join with the Propositions
-        table, joins the Biomarkers table if either `biomarker` or `biomarker_type` are provided as a parameter, and
+        table, joins the Biomarkers table if either `biomarker`, `biomarker_type`, or `gene` are provided as a parameter, and
         references the Genes perform_joins function if `gene` is provided as a parameter.
-
-        If either `biomarker` or `biomarker_type` are provided as a parameter, a join condition
 
         This is Step 2 of managing the query.
 
         Args:
             statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
             parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
-            base_table (models.Base, models.Biomarkers): The SQLAlchemy model class initially queried against.
+            base_table (models.Biomarkers, models.Biomarkers): The SQLAlchemy model class initially queried against.
             joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
-
-        Returns:
-            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
 
         Returns:
             sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
@@ -531,16 +527,17 @@ class Biomarkers(BaseHandler):
     def serialize_secondary_instances(cls, instance: models.Biomarkers, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
         """
         References `serialize_instance` functions from relevant classes for each secondary table that is referenced
-        within the instance. This function should be implemented by each route's Handler class.
+        within the instance. Specifically, this function extends the base class implementation by serializing the
+        `genes` key by using the Genes model.
 
         This is Step 6.3 of managing the query.
 
         Args:
-            instance (models.Base): A SQLAlchemy model instance to serialize.
+            instance (models.Biomarkers): A SQLAlchemy model instance to serialize.
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
 
         Returns:
-            dict[str, typing.Any]: A dictionary representation of the primary instance object.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record['genes'] = Genes.serialize_instances(instances=instance.genes)
         return record
@@ -550,7 +547,6 @@ class Biomarkers(BaseHandler):
         """
         Converts biomarker fields to extensions. This is going to be replaced very soon.
         """
-
         extensions = []
         fields = [
             'biomarker_type',
@@ -594,7 +590,7 @@ class Codings(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table: models.Base = models.Codings,
+            base_table: models.Codings = models.Codings,
             joined_tables: list[models.Base] = None
     ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
@@ -612,9 +608,6 @@ class Codings(BaseHandler):
 
         Returns:
             sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
-
-        Returns:
-            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
             joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
                 with tables joined within this function added.
         """
@@ -628,6 +621,22 @@ class Codings(BaseHandler):
 
     @classmethod
     def serialize_single_instance(cls, instance: models.Codings) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Codings table.
+
+        This method extends the base class implementation by serializing the instance and any related tables. No keys
+        are removed after serialization, but the `iris` key is turned from a value to a list. If the database expands
+        to support multiple URLs per document, then we will have to move URLs to their own table and change this key
+        to a reference.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Codings): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['iris'] = [serialized_record['iris']]
@@ -635,6 +644,20 @@ class Codings(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Codings, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table.
+
+        The Codings class does not currently reference other tables.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Codings): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         return record
 
 
@@ -643,10 +666,31 @@ class Contributions(BaseHandler):
     Handler class to manage queries against the Contributions table.
     """
     @staticmethod
-    def perform_joins(statement: sqlalchemy.Select,
-                      parameters: ImmutableMultiDict,
-                      base_table=models.Contributions,
-                      joined_tables=None) -> sqlalchemy.Select:
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Contributions = models.Contributions,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Contributions table.
+
+        This method extends the base class implementation by performing a join with the Statements table through the
+        `AssociationContributionsAndStatements` table.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Base, models.Contributions): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -687,18 +731,22 @@ class Contributions(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Contributions) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Contributions table.
+
+        This method extends the base class implementation by serializing the instance and any related tables. The
+        `agent_id` key is removed after serialization.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Contributions): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['date'] = cls.convert_date_to_iso(value=instance.date)
@@ -711,6 +759,19 @@ class Contributions(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Contributions, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the `agent` key using the Agents model.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Contributions): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['agent'] = cls.serialize_primary_instance(instance=instance.agent)
         return record
 
@@ -720,10 +781,31 @@ class Diseases(BaseHandler):
     Handler class to manage queries against the Diseases table.
     """
     @staticmethod
-    def perform_joins(statement: sqlalchemy.Select,
-                      parameters: ImmutableMultiDict,
-                      base_table=models.Diseases,
-                      joined_tables=None) -> sqlalchemy.Select:
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Diseases = models.Diseases,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Diseases table.
+
+        This method extends the base class implementation. Specifically, it performs a join with the Propositions
+        table if `disease` is provided as a parameter.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Diseases, models.Diseases): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -746,28 +828,21 @@ class Diseases(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
-    @staticmethod
-    def convert_fields_to_extensions(instance: models.Diseases):
-        return [
-            {
-                'name': 'solid_tumor',
-                'value': instance.solid_tumor,
-                'description': 'Boolean value for if this tumor type is categorized as a solid tumor.'
-            }
-        ]
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Diseases) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Diseases table.
+
+        This method extends the base class implementation by serializing the instance and any related tables.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Diseases): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['conceptType'] = serialized_record['concept_type']
@@ -776,19 +851,50 @@ class Diseases(BaseHandler):
         keys_to_remove = [
             'concept_type',
             'primary_coding_id',
-            'solid_tumor',
-            'therapy_strategy_description',
-            'therapy_type',
-            'therapy_type_description'
+            'solid_tumor'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Diseases, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `primary_coding` key using the Codings model
+         - `mappings` key using the Mappings model
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Diseases): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
         record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
         return record
+
+    @staticmethod
+    def convert_fields_to_extensions(instance: models.Diseases) -> list[dict[str, typing.Any]]:
+        """
+        Converts specific fields to extensions. Specifically, the `solid_tumor` field of the Diseases model.
+
+        Args:
+            instance (models.Diseases): A SQLAlchemy model instance of the Diseases table to serialize.
+
+        Returns:
+            dict [str, typing.Any]: A dictionary representation of the instance's serialized extensions.
+        """
+        return [
+            {
+                'name': 'solid_tumor',
+                'value': instance.solid_tumor,
+                'description': 'Boolean value for if this tumor type is categorized as a solid tumor.'
+            }
+        ]
 
 
 class Documents(BaseHandler):
@@ -799,8 +905,28 @@ class Documents(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table=models.Documents,
-            joined_tables=None) -> sqlalchemy.Select:
+            base_table: models.Documents = models.Documents,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Documents table.
+
+        This method extends the base class implementation. Specifically, it performs joins with the Indications and/or
+        Statements tables if `document` or `organization` are provided as parameters.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Documents, models.Documents): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -864,29 +990,51 @@ class Documents(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Documents) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Documents table.
+
+        This method extends the base class implementation by serializing the instance and any related tables. A few
+        keys are also converted to iso date format. The key `organization_id` is removed after serialization.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Documents): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['first_published'] = cls.convert_date_to_iso(value=instance.first_published) if instance.first_published else None
         serialized_record['access_date'] = cls.convert_date_to_iso(value=instance.access_date) if instance.access_date else None
         serialized_record['publication_date'] = cls.convert_date_to_iso(value=instance.publication_date)
+
+        keys_to_remove = [
+            'organization_id'
+        ]
+        cls.pop_keys(keys=keys_to_remove, record=serialized_record)
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Documents, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the `organization` key using the Organizations
+        model.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Documents): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['organization'] = Organizations.serialize_single_instance(instance=instance.organization)
-        record.pop('organization_id', None)
         return record
 
 
@@ -898,8 +1046,28 @@ class Genes(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table=models.Genes,
-            joined_tables=None) -> sqlalchemy.Select:
+            base_table: models.Genes = models.Genes,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Genes table.
+
+        This method extends the base class implementation by performing a join with the Biomarkers table through the
+        `AssociationBiomarkersAndGenes` table.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Base, models.Genes): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -923,31 +1091,23 @@ class Genes(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
-    @staticmethod
-    def convert_fields_to_extensions(instance: models.Genes):
-        return [
-            {
-                'name': 'location',
-                'value': instance.location
-            },
-            {
-                'name': 'location_sortable',
-                'value': instance.location_sortable
-            }
-        ]
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Genes) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Genes table.
+
+        This method extends the base class implementation by serializing the instance and any related tables. Several
+        keys are also removed after serialization, specifically: `primary_coding_id`, `location` and
+        `location_sortable`.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Genes): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['extensions'] = cls.convert_fields_to_extensions(instance=instance)
@@ -962,22 +1122,79 @@ class Genes(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Genes, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `primary_coding` key using the Codings model
+         - `mappings` key using the Mappings model
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Genes): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
         record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
         return record
+
+    @staticmethod
+    def convert_fields_to_extensions(instance: models.Genes):
+        """
+        Converts specific fields to extensions. Specifically, the `location` and `location_sortable` fields of
+        the Genes model.
+
+        Args:
+            instance (models.Genes): A SQLAlchemy model instance of the Genes table to serialize.
+
+        Returns:
+            dict [str, typing.Any]: A dictionary representation of the instance's serialized extensions.
+        """
+        return [
+            {
+                'name': 'location',
+                'value': instance.location
+            },
+            {
+                'name': 'location_sortable',
+                'value': instance.location_sortable
+            }
+        ]
 
 
 class Indications(BaseHandler):
     """
     Handler class to manage queries against the Indications table.
     """
-
     @staticmethod
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table=models.Indications,
-            joined_tables=None) -> sqlalchemy.Select:
+            base_table: models.Indications = models.Indications,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Indications table.
+
+        This method extends the base class implementation. Specifically, it performs a join with the Statements table
+        if `document`, `indication`, or `organization` are provided as a parameter.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Indications, models.Indications): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -1012,30 +1229,52 @@ class Indications(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Indications) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Indications table.
+
+        This method extends the base class implementation by serializing the instance and any related tables. In
+        addition, date related fields are converted to iso date format.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Indications): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['initial_approval_date'] = cls.convert_date_to_iso(value=instance.initial_approval_date) if instance.initial_approval_date else None
         serialized_record['reimbursement_date'] = cls.convert_date_to_iso(value=instance.reimbursement_date) if instance.reimbursement_date else None
         serialized_record['date_regular_approval'] = cls.convert_date_to_iso(value=instance.date_regular_approval) if instance.date_regular_approval else None
         serialized_record['date_accelerated_approval'] = cls.convert_date_to_iso(value=instance.date_accelerated_approval) if instance.date_accelerated_approval else None
+
+        keys_to_remove = [
+            'document_id'
+        ]
+        cls.pop_keys(keys=keys_to_remove, record=serialized_record)
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Indications, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `document` key using the Documents model
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Documents): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['document'] = Documents.serialize_single_instance(instance=instance.document)
-        record.pop('document_id', None)
         return record
 
 
@@ -1043,25 +1282,55 @@ class Mappings(BaseHandler):
     """
     Handler class to manage queries against the Mappings table.
     """
-
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Mappings = models.Mappings,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
+        Performs joins relevant to the Mappings table.
+
+        This method extends the base class implementation. This function isn't used at the moment and we will need
+        to expand it, if we want to perform filtering against Mappings and Codings.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Mappings, models.Mappings): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
         """
+        if not parameters:
+            return statement, joined_tables
 
-        return query
+        if joined_tables is None:
+            joined_tables = set()
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
+        return statement, joined_tables
 
     @classmethod
     def serialize_single_instance(cls, instance: models.Mappings) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Mappings table.
+
+        This method extends the base class implementation by serializing the instance and any related tables.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Mappings): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
 
@@ -1074,6 +1343,20 @@ class Mappings(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Mappings, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `coding` key using the Codings model
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Mappings): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['coding'] = Codings.serialize_single_instance(instance=instance.coding)
         return record
 
@@ -1083,12 +1366,35 @@ class Organizations(BaseHandler):
     Handler class to manage queries against the Organizations table.
     """
     @staticmethod
-    def perform_joins(statement: sqlalchemy.Select,
-                      parameters: ImmutableMultiDict,
-                      base_table=models.Organizations,
-                      joined_tables=None,
-                      documents_via_statements=None,
-                      documents_via_indications=None) -> sqlalchemy.Select:
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Organizations = models.Organizations,
+            joined_tables: list[models.Base] = None,
+            documents_via_statements: models.Documents = None,
+            documents_via_indications: models.Documents = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Organizations table.
+
+        This method extends the base class implementation. Specifically, it performs a join with the Propositions
+        table if `disease` is provided as a parameter.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Organizations, models.Organizations): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+            documents_via_statements (models.Documents, optional): An alias of the Documents table used in the query.
+            documents_via_indications (models.Documents, optional): An alias of the Documents table used in the query.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -1136,25 +1442,41 @@ class Organizations(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Organizations) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Organizations table.
+
+        This method extends the base class implementation by serializing the instance and any related tables.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Organizations): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
-        #serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['last_updated'] = cls.convert_date_to_iso(value=instance.last_updated)
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Organizations, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. The Organizations
+        table does not currently reference any other tables.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Organizations): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         return record
 
 
@@ -1163,10 +1485,30 @@ class Propositions(BaseHandler):
     Handler class to manage queries against the Propositions table.
     """
     @staticmethod
-    def perform_joins(statement: sqlalchemy.Select,
-                      parameters: ImmutableMultiDict,
-                      base_table=models.Propositions,
-                      joined_tables=None) -> sqlalchemy.Select:
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Propositions = models.Propositions,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Propositions table.
+
+        This method extends the base class implementation. Specifically, it performs a join with the Statements table.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Propositions, models.Propositions): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -1200,25 +1542,21 @@ class Propositions(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
-    @classmethod
-    def serialize_target_therapeutic(cls, therapy: models.Propositions.therapy, therapy_group: models.Propositions.therapy_group) -> dict[str, typing.Any]:
-        if therapy:
-            return Therapies.serialize_single_instance(instance=therapy)
-        else:
-            return TherapyGroups.serialize_single_instance(instance=therapy_group)
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Propositions) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Propositions table.
+
+        This method extends the base class implementation by serializing the instance and any related tables.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Propositions): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
 
@@ -1233,10 +1571,45 @@ class Propositions(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Propositions, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `biomarkers` key using the Biomarkers model
+         - `condition_qualifier` key using the Diseases model
+        - `therapy and `therapy_group` keys using the Therapies and Therapy Groups models.
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Propositions): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['biomarkers'] = Biomarkers.serialize_instances(instances=instance.biomarkers)
         record['conditionQualifier'] = Diseases.serialize_single_instance(instance=instance.condition_qualifier)
         record['targetTherapeutic'] = cls.serialize_target_therapeutic(therapy=instance.therapy, therapy_group=instance.therapy_group)
         return record
+
+    @classmethod
+    def serialize_target_therapeutic(cls, therapy: models.Propositions.therapy, therapy_group: models.Propositions.therapy_group) -> dict[str, typing.Any]:
+        """
+        A helper function to serialize the target therapeutic for a Proposition instance.
+
+        Uses the Therapies model if the `therapy` field is set, otherwise the `therapy_group` key.
+
+        Args:
+            therapy (models.Propositions.therapy): The `therapy` field of the Proposition instance.
+            therapy_group (models.Propositions.therapy_group): The `therapy_group` field of the Proposition instance.
+
+        Returns:
+            dict[str, typing.Any]: A dictionary representation of the target therapeutic.
+        """
+        if therapy:
+            return Therapies.serialize_single_instance(instance=therapy)
+        else:
+            return TherapyGroups.serialize_single_instance(instance=therapy_group)
 
 
 class Statements(BaseHandler):
@@ -1244,10 +1617,31 @@ class Statements(BaseHandler):
     Handler class to manage queries against the Statements table.
     """
     @staticmethod
-    def perform_joins(statement: sqlalchemy.Select,
-                      parameters: ImmutableMultiDict,
-                      base_table=models.Statements,
-                      joined_tables=None) -> sqlalchemy.Select:
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Diseases = models.Diseases,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Diseases table.
+
+        This method extends the base class implementation by referencing the perform_joins function of other models.
+        Specifically: Contributions, Documents, Indications, Propositions, and Strengths.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Statements, models.Statements): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -1290,7 +1684,17 @@ class Statements(BaseHandler):
     @classmethod
     def serialize_single_instance(cls, instance: models.Statements) -> dict[str, typing.Any]:
         """
+        Serializes a single instance of the Statements table.
+
+        This method extends the base class implementation by serializing the instance and any related tables.
+
         This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Statements): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
@@ -1306,7 +1710,22 @@ class Statements(BaseHandler):
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Statements, record: dict[str, typing.Any]):
         """
-        This is step 6.3
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `contributions` key using the Contributions model
+         - `documents` key using the Documents model
+         - `indication` key using the Indication model
+         - `proposition` key using the Proposition model
+         - `strength` key using the Strengths model
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Statements): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record['contributions'] = Contributions.serialize_instances(instances=instance.contributions)
         record['indication'] = Indications.serialize_single_instance(instance=instance.indication)
@@ -1321,10 +1740,30 @@ class Strengths(BaseHandler):
     Handler class to manage queries against the Strengths table.
     """
     @staticmethod
-    def perform_joins(statement: sqlalchemy.Select,
-                      parameters: ImmutableMultiDict,
-                      base_table=models.Strengths,
-                      joined_tables=None) -> sqlalchemy.Select:
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Strengths = models.Strengths,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Strengths table.
+
+        This method extends the base class implementation.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Strengths, models.Strengths): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -1343,18 +1782,21 @@ class Strengths(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Strengths) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Strengths table.
+
+        This method extends the base class implementation by serializing the instance and any related tables.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Strengths): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['conceptType'] = serialized_record['concept_type']
@@ -1368,8 +1810,23 @@ class Strengths(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Strengths, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `primary_coding` key using the Codings model
+         - `mappings` key using the Mappings model
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Strengths): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
-        #record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
+        record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
         return record
 
 
@@ -1381,8 +1838,28 @@ class Therapies(BaseHandler):
     def perform_joins(
             statement: sqlalchemy.Select,
             parameters: ImmutableMultiDict,
-            base_table=models.Therapies,
-            joined_tables=None) -> sqlalchemy.Select:
+            base_table: models.Diseases = models.Diseases,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
+        """
+        Performs joins relevant to the Therapies table.
+
+        This method extends the base class implementation. Specifically, it performs a join with the Propositions
+        table if either `therapy` or `therapy_group` are provided as a parameter.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.Therapies, models.Therapies): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
+        """
         if not parameters:
             return statement, joined_tables
 
@@ -1435,33 +1912,21 @@ class Therapies(BaseHandler):
 
         return statement, joined_tables
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
-
-    @staticmethod
-    def convert_fields_to_extensions(instance: models.Therapies):
-        return [
-            {
-                'name': 'therapy_strategy',
-                'value': instance.therapy_strategy,
-                'description': 'Description...'
-            },
-            {
-                'name': 'therapy_type',
-                'value': instance.therapy_type,
-                'description': 'Description...'
-            }
-        ]
-
     @classmethod
     def serialize_single_instance(cls, instance: models.Therapies) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the Therapies table.
+
+        This method extends the base class implementation by serializing the instance and any related tables.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.Therapies): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['conceptType'] = serialized_record['concept_type']
@@ -1479,40 +1944,124 @@ class Therapies(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.Therapies, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `primary_coding` key using the Codings model
+         - `mappings` key using the Mappings model
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.Therapies): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
         record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
         return record
+
+    @staticmethod
+    def convert_fields_to_extensions(instance: models.Therapies):
+        """
+        Converts specific fields to extensions. Specifically, the `therapy_strategy` and `therapy_type` field
+        of the Therapies model.
+
+        Args:
+            instance (models.Therapies): A SQLAlchemy model instance of the Therapies table to serialize.
+
+        Returns:
+            dict [str, typing.Any]: A dictionary representation of the instance's serialized extensions.
+        """
+        return [
+            {
+                'name': 'therapy_strategy',
+                'value': instance.therapy_strategy,
+                'description': 'Description...'
+            },
+            {
+                'name': 'therapy_type',
+                'value': instance.therapy_type,
+                'description': 'Description...'
+            }
+        ]
 
 
 class TherapyGroups(BaseHandler):
     """
     Handler class to manage queries against the TherapyGroups table.
     """
-
-    def perform_joins(self, query: Query, parameters: dict[str, int | str] = None) -> Query:
+    @staticmethod
+    def perform_joins(
+            statement: sqlalchemy.Select,
+            parameters: ImmutableMultiDict,
+            base_table: models.Diseases = models.Diseases,
+            joined_tables: list[models.Base] = None
+    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
+        Performs joins relevant to the Diseases table.
+
+        This method extends the base class implementation. The joins needed for therapy groups are currently covered by
+        the Therapies class.
+
+        This is Step 2 of managing the query.
+
+        Args:
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
+            base_table (models.TherapyGroups, models.TherapyGroups): The SQLAlchemy model class initially queried against.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+
+        Returns:
+            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
+                with tables joined within this function added.
         """
+        if not parameters:
+            return statement, joined_tables
 
-        return query
+        if joined_tables is None:
+            joined_tables = set()
 
-    def apply_joinedload(self, query: Query) -> Query:
-        """
-        3. Joinedload Operations: A function to apply joinedload options for eager loading.
-
-        """
-        return query
-
-    def apply_filters(self, query: Query, **filters: dict[str, int | str]) -> Query:
-        return query
+        return statement, joined_tables
 
     @classmethod
     def serialize_single_instance(cls, instance: models.TherapyGroups) -> dict[str, typing.Any]:
+        """
+        Serializes a single instance of the TherapyGroups table.
+
+        This method extends the base class implementation by serializing the instance and any related tables.
+
+        This is Step 6.1 of managing the query.
+
+        Args:
+            instance (models.TherapyGroups): A SQLAlchemy model instance to serialize.
+
+        Returns:
+            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+        """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(cls, instance: models.TherapyGroups, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        """
+        References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
+        function extends the base class implementationby serializing the:
+         - `therapy` key using the Therapies model
+
+        This is Step 6.3 of managing the query.
+
+        Args:
+            instance (models.TherapyGroups): A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+
+        Returns:
+            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+        """
         therapies = []
         for therapy in instance.therapies:
             therapy_instance = Therapies.serialize_single_instance(instance=therapy)
