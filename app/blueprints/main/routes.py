@@ -458,7 +458,7 @@ def get_strengths(strength_name=None):
     handler = handlers.Strengths()
     statement = handler.construct_base_query(model=models.Strengths)
     if strength_name:
-        statement = statement.where(models.Strength.name == strength_name)
+        statement = statement.where(models.Strengths.name == strength_name)
         message_subject = f"Strength name {strength_name}"
     else:
         message_subject = "Strengths"
