@@ -1,5 +1,5 @@
 [Unit]
-Description=uWSGI instance to serve myproject
+Description=Gunicorn instance to serve moalmanac-api
 After=network.target
 
 [Service]
@@ -7,7 +7,7 @@ User=breardon
 Group=www-data
 WorkingDirectory=/home/breardon/moalmanac-api
 Environment="PATH=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin"
-ExecStart=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers 5 --bind unix:moalmanac-api.sock -m 007 run:app --mode production
+ExecStart=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers 5 --bind unix:moalmanac-api.sock -m 007 run:app
 
 [Install]
 WantedBy=multi-user.target
