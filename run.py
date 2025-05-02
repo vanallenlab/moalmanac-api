@@ -13,8 +13,8 @@ if __name__ == '__main__':
     arg_parser.add_argument(
         '-m', '--mode',
         choices=['development', 'production'],
-        default='development',
-        help='Run the API in development or production mode'
+        help='Run the API in development or production mode',
+        required=True
     )
     args = arg_parser.parse_args()
 
