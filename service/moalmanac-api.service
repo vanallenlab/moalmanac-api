@@ -7,7 +7,7 @@ User=breardon
 Group=www-data
 WorkingDirectory=/home/breardon/moalmanac-api
 Environment="PATH=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin"
-ExecStart=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers 5 --bind unix:moalmanac-api.sock -m 007 run:app
+ExecStart=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers 5 --bind unix:moalmanac-api.sock -m 007 run:app --mode production
 
 [Install]
 WantedBy=multi-user.target
