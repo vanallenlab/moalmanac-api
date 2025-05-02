@@ -1,11 +1,19 @@
-from flask import Flask
+import flask
+from . import database
+from . import models
 
 
-def create_app():
-    app = Flask(__name__)
+def create_app(config_path='config.ini'):
+    app = flask.Flask(__name__)
     app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+    app.json.sort_keys = False
 
-    with app.app_context():
-        from . import routes
+    engine, session_factory = database.init_db(config_path=config_path)
+    models.Base.metadata.create_all(bind=engine)
+
+    app.config['SESSION_FACTORY'] = session_factory
+
+    from .blueprints import main
+    app.register_blueprint(main.main_bp)
 
     return app
