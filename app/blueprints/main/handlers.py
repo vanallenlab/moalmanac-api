@@ -595,6 +595,17 @@ class Biomarkers(BaseHandler):
             'status'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        """
+        key_order = [
+            'id',
+            'conceptType',
+            'name',
+            'primaryCoding',
+            'mappings'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
+        """
         return serialized_record
 
     @classmethod
@@ -714,6 +725,16 @@ class Codings(BaseHandler):
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['iris'] = [serialized_record['iris']]
+
+        key_order = [
+            'id',
+            'code',
+            'name',
+            'system',
+            'systemVersion',
+            'iris'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -829,6 +850,15 @@ class Contributions(BaseHandler):
             'agent_id'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        key_order = [
+            'id',
+            'type',
+            'agent',
+            'description',
+            'date'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -928,6 +958,15 @@ class Diseases(BaseHandler):
             'solid_tumor'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        key_order = [
+            'id',
+            'conceptType',
+            'name',
+            'primaryCoding',
+            'mappings'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -1090,6 +1129,18 @@ class Documents(BaseHandler):
             'organization_id'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        """
+        Will add once we have a proper data model for documents
+        key_order = [
+            'id',
+            'conceptType',
+            'name',
+            'primaryCoding',
+            'mappings'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
+        """
         return serialized_record
 
     @classmethod
@@ -1192,6 +1243,16 @@ class Genes(BaseHandler):
             'location_sortable'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        key_order = [
+            'id',
+            'conceptType',
+            'name',
+            'primaryCoding',
+            'mappings',
+            'extensions'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -1330,6 +1391,18 @@ class Indications(BaseHandler):
             'document_id'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        """
+        Add once have proper datamodel
+        key_order = [
+            'id',
+            'conceptType',
+            'name',
+            'primaryCoding',
+            'mappings'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
+        """
         return serialized_record
 
     @classmethod
@@ -1413,6 +1486,12 @@ class Mappings(BaseHandler):
             'coding_id'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        key_order = [
+            'relation',
+            'coding'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -1534,6 +1613,15 @@ class Organizations(BaseHandler):
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
         serialized_record['last_updated'] = cls.convert_date_to_iso(value=instance.last_updated)
+
+        key_order = [
+            'id',
+            'name',
+            'description',
+            'url',
+            'last_updated'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -1641,6 +1729,17 @@ class Propositions(BaseHandler):
             'therapy_group_id'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        key_order = [
+            'id',
+            'type',
+            'predicate',
+            'biomarkers',
+            'subjectVariant',
+            'conditionQualifier',
+            'objectTherapeutic'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -1662,8 +1761,9 @@ class Propositions(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record['biomarkers'] = Biomarkers.serialize_instances(instances=instance.biomarkers)
+        record['subjectVariant'] = {}
         record['conditionQualifier'] = Diseases.serialize_single_instance(instance=instance.condition_qualifier)
-        record['targetTherapeutic'] = cls.serialize_target_therapeutic(therapy=instance.therapy, therapy_group=instance.therapy_group)
+        record['objectTherapeutic'] = cls.serialize_target_therapeutic(therapy=instance.therapy, therapy_group=instance.therapy_group)
         return record
 
     @classmethod
@@ -1779,6 +1879,19 @@ class Statements(BaseHandler):
             'strength_id'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        key_order = [
+            'id',
+            'type',
+            'description',
+            'contributions',
+            'reportedIn',
+            'direction',
+            'indication',
+            'proposition',
+            'strength'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -1880,6 +1993,15 @@ class Strengths(BaseHandler):
             'primary_coding_id'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        key_order = [
+            'id',
+            'conceptType',
+            'name',
+            'primaryCoding',
+            'mappings'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
@@ -1900,6 +2022,7 @@ class Strengths(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
+        record['mappings'] = []
         # record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
         return record
 
@@ -2014,6 +2137,16 @@ class Therapies(BaseHandler):
             'therapy_type_description'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
+
+        key_order = [
+            'id',
+            'conceptType',
+            'name',
+            'primaryCoding',
+            'mappings',
+            'extensions'
+        ]
+        serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
