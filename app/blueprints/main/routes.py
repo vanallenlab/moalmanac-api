@@ -233,7 +233,7 @@ def get_documents(document_id=None):
     handler = handlers.Documents()
     statement = handler.construct_base_query(model=models.Documents)
     if document_id:
-        statement = statement.where(models.Documents.name == document_id)
+        statement = statement.where(models.Documents.id == document_id)
         message_subject = f"Document id {document_id}"
     else:
         message_subject = "Documents"
@@ -357,7 +357,7 @@ def get_organizations(organization_name=None):
     handler = handlers.Organizations()
     statement = handler.construct_base_query(model=models.Organizations)
     if organization_name:
-        statement = statement.where(models.Organizations == organization_name)
+        statement = statement.where(models.Organizations.name == organization_name)
         message_subject = f"Organization {organization_name}"
     else:
         message_subject = "Mappings"
