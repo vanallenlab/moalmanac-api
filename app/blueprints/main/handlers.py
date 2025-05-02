@@ -164,7 +164,7 @@ class BaseHandler:
         )
 
     @classmethod
-    def serialize_instances(cls, instances: list[models.Base]) -> list[dict[str, typing.Any]]:
+    def serialize_instances(cls, instances: list[models.Base], **kwargs) -> list[dict[str, typing.Any]]:
         """
         Serializes the fields populated by relationships with other tables, defined by this table's model
         and the applied joinedload operation.
@@ -179,12 +179,12 @@ class BaseHandler:
         """
         result = []
         for instance in instances:
-            serialized_instance = cls.serialize_single_instance(instance=instance)
+            serialized_instance = cls.serialize_single_instance(instance=instance, **kwargs)
             result.append(serialized_instance)
         return result
 
     @classmethod
-    def serialize_single_instance(cls, instance: models.Base) -> dict[str, typing.Any]:
+    def serialize_single_instance(cls, instance: models.Base, **kwargs) -> dict[str, typing.Any]:
         """
         Performs operations needed to serialize a single instance of the SQLAlchemy model. At minimum, it will serialize
         the primary instance and then any secondary instances that are populated by relationships with other tables. It
@@ -219,7 +219,7 @@ class BaseHandler:
         return {column.name: getattr(instance, column.name) for column in instance.__table__.columns}
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Base, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+    def serialize_secondary_instances(cls, instance: models.Base, record: dict[str, typing.Any], **kwargs) -> dict[str, typing.Any]:
         """
         References `serialize_instance` functions from relevant classes for each secondary table that is referenced
         within the instance. This function should be implemented by each route's Handler class.
@@ -1464,7 +1464,7 @@ class Mappings(BaseHandler):
         return statement, joined_tables
 
     @classmethod
-    def serialize_single_instance(cls, instance: models.Mappings) -> dict[str, typing.Any]:
+    def serialize_single_instance(cls, instance: models.Mappings, pop_primary_coding=True) -> dict[str, typing.Any]:
         """
         Serializes a single instance of the Mappings table.
 
@@ -1474,28 +1474,40 @@ class Mappings(BaseHandler):
 
         Args:
             instance (models.Mappings): A SQLAlchemy model instance to serialize.
+            pop_primary_coding (bool): Remove the primaryCoding key, if True.
 
         Returns:
             dict[str, typing.Any]: A list of dictionaries with all keys serialized.
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
-        serialized_record = cls.serialize_secondary_instances(instance=instance, record=serialized_record)
+        serialized_record = cls.serialize_secondary_instances(
+            instance=instance,
+            record=serialized_record,
+            serialize_primary_coding = True if not pop_primary_coding else False
+        )
 
         keys_to_remove = [
             'primary_coding_id',
             'coding_id'
         ]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
-
-        key_order = [
-            'relation',
-            'coding'
-        ]
+        if pop_primary_coding:
+            key_order = [
+                'relation',
+                'coding'
+            ]
+        else:
+            key_order = [
+                'id',
+                'relation',
+                'primaryCoding',
+                'coding'
+            ]
         serialized_record = cls.reorder_dictionary(dictionary=serialized_record, key_order=key_order)
         return serialized_record
 
     @classmethod
-    def serialize_secondary_instances(cls, instance: models.Mappings, record: dict[str, typing.Any]) -> dict[str, typing.Any]:
+    def serialize_secondary_instances(cls, instance: models.Mappings, record: dict[str, typing.Any], serialize_primary_coding=True) -> dict[str, typing.Any]:
         """
         References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
         function extends the base class implementationby serializing the:
@@ -1506,10 +1518,13 @@ class Mappings(BaseHandler):
         Args:
             instance (models.Mappings): A SQLAlchemy model instance to serialize.
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+            serialize_primary_coding (bool): Serialize the primaryCoding key, if True.
 
         Returns:
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
+        if serialize_primary_coding:
+            record['primaryCoding'] = Codings.serialize_single_instance(instance=instance.primary_coding)
         record['coding'] = Codings.serialize_single_instance(instance=instance.coding)
         return record
 

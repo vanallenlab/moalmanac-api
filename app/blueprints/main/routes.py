@@ -336,7 +336,7 @@ def get_mappings(mapping_id=None):
     session_factory = flask.current_app.config['SESSION_FACTORY']
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
-        serialized = handler.serialize_instances(instances=result)
+        serialized = handler.serialize_instances(instances=result, pop_primary_coding=False)
 
     return create_response(
         request_url=flask.request.url,
