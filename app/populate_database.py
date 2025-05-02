@@ -402,6 +402,13 @@ class SQL:
             )
             session.add(therapy_group)
 
+    #@classmethod
+    #def add_therapy_strategy(cls, records, session):
+    #    for record in records:
+    #        therapy_strategy_instances = cls.get_list_instances(
+    #
+    #        )
+
     @staticmethod
     def get_list_instances(record: dict, key: str, session: sqlalchemy.orm.Session, model: typing.Type[models.Base]):
         id_values = record.get(key, [])
