@@ -2147,6 +2147,7 @@ class Therapies(BaseHandler):
         keys_to_remove = [
             'concept_type',
             'primary_coding_id',
+            'therapy_strategy'
             'therapy_strategy_description',
             'therapy_type',
             'therapy_type_description'
@@ -2200,13 +2201,13 @@ class Therapies(BaseHandler):
         return [
             {
                 'name': 'therapy_strategy',
-                'value': instance.therapy_strategy,
-                'description': 'Description...'
+                'value': [s.name for s in instance.therapy_strategy],
+                'description': instance.therapy_strategy_description
             },
             {
                 'name': 'therapy_type',
                 'value': instance.therapy_type,
-                'description': 'Description...'
+                'description': instance.therapy_type_description
             }
         ]
 

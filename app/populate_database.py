@@ -30,6 +30,21 @@ class Process:
         else:
             return None
 
+    @staticmethod
+    def get_extension(list_of_extensions: list, name: str):
+        """
+        Subsets `list_of_extensions` to retrieve the extension whose name matches `name`.
+
+        Args:
+            - list_of_extensions (list): A list of dictionaries representing extensions.
+            - name (str): The name of the extension to retrieve.
+
+        Returns:
+            - list: A list of extensions whose name value matches `name`.
+
+        """
+        return [extension for extension in list_of_extensions if extension.get('name') == name]
+
 
 class SQL:
     @staticmethod
@@ -359,18 +374,41 @@ class SQL:
             )
             extensions = record.get('extensions', [])
             if extensions:
-                strategy_ids = extensions[0].get('value')
-                strategy_instances = []
-                #strategy_instances = (
-                #    session
-                #    .query(models.TherapyStrategies)
-                #    .filter(models.TherapyStrategies.id.in_(strategy_ids))
-                #    .all()
-                #)
-                therapy_type = extensions[1].get('value', None)
+                therapy_strategy_extension = Process.get_extension(
+                    list_of_extensions=extensions,
+                    name='therapy_strategy'
+                )
+                therapy_strategy_instances = []
+                therapy_strategy_values = therapy_strategy_extension[0].get('value')
+                therapy_strategy_description = therapy_strategy_extension[0].get('description')
+                for strategy in therapy_strategy_values:
+                    existing_strategy = (
+                        session
+                        .query(models.TherapyStrategies)
+                        .filter(models.TherapyStrategies.name == strategy)
+                        .first()
+                    )
+                    if existing_strategy:
+                        therapy_strategy_instance = existing_strategy
+                    else:
+                        therapy_strategy_instance = models.TherapyStrategies(
+                            name=strategy
+                        )
+                        session.add(therapy_strategy_instance)
+                        session.flush()
+                    therapy_strategy_instances.append(therapy_strategy_instance)
+
+                therapy_type_extension = Process.get_extension(
+                    list_of_extensions=extensions,
+                    name='therapy_type'
+                )
+                therapy_type = therapy_type_extension[0].get('value')
+                therapy_type_description = therapy_type_extension[0].get('description')
             else:
-                strategy_instances = []
+                therapy_strategy_instances = []
+                therapy_strategy_description = None
                 therapy_type = None
+                therapy_type_description = None
 
             therapy = models.Therapies(
                 id=record.get('id'),
@@ -378,10 +416,10 @@ class SQL:
                 name=record.get('name'),
                 primary_coding_id=record.get('primary_coding_id'),
                 mappings=mapping_instances,
-                therapy_strategy=[],
-                therapy_strategy_description=record.get('therapy_strategy_description'),
+                therapy_strategy=therapy_strategy_instances,
+                therapy_strategy_description=therapy_strategy_description,
                 therapy_type=therapy_type,
-                therapy_type_description=record.get('therapy_type_description')
+                therapy_type_description=therapy_type_description
             )
             session.add(therapy)
 
@@ -401,13 +439,6 @@ class SQL:
                 therapies=therapy_instances
             )
             session.add(therapy_group)
-
-    #@classmethod
-    #def add_therapy_strategy(cls, records, session):
-    #    for record in records:
-    #        therapy_strategy_instances = cls.get_list_instances(
-    #
-    #        )
 
     @staticmethod
     def get_list_instances(record: dict, key: str, session: sqlalchemy.orm.Session, model: typing.Type[models.Base]):
