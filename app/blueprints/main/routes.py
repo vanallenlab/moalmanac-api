@@ -479,18 +479,18 @@ def get_strengths(strength_name=None):
     )
 
 
-@main_bp.route('/therapies', defaults={'therapy_id': None}, methods=['GET'])
-@main_bp.route('/therapies/<therapy_id>', methods=['GET'])
-def get_therapies(therapy_id=None):
+@main_bp.route('/therapies', defaults={'therapy_name': None}, methods=['GET'])
+@main_bp.route('/therapies/<therapy_name>', methods=['GET'])
+def get_therapies(therapy_name=None):
     """
 
     """
     received = generate_datetime_now()
     handler = handlers.Therapies()
     statement = handler.construct_base_query(model=models.Therapies)
-    if therapy_id:
-        statement = statement.where(models.Therapies.id == therapy_id)
-        message_subject = f"Therapy id {therapy_id}"
+    if therapy_name:
+        statement = statement.where(models.Therapies.name == therapy_name)
+        message_subject = f"Therapy name {therapy_name}"
     else:
         message_subject = "Therapies"
 
