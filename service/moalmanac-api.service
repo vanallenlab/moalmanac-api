@@ -6,6 +6,7 @@ After=network.target
 User=breardon
 Group=www-data
 WorkingDirectory=/home/breardon/moalmanac-api
+EnvironmentFile=/home/breardon/moalmanac-api/.env.production
 Environment="PATH=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin"
 ExecStart=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers 5 --bind unix:moalmanac-api.sock -m 007 run:app
 

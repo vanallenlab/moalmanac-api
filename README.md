@@ -47,20 +47,27 @@ ipython kernel install --user --name=moalmanac-api
 ```
 
 # Usage
-To update the database content from [moalmanac-db](https://github.com/vanallenlab/moalmanac-db):
+## Environment configuration
+Flask configuration variables are managed using environment files:
+
+- [.env](.env) - used for local development
+- [.env.production](.env.production) - used for production, loaded with systemd 
+
+To launch the application for development, using variables from [.env](.env):
 ```bash
-rm data/moalmanac.sqlite3; python -m app.populate_database -i moalmanac-db/referenced/ -c config.ini
+python run.py
 ```
 
-To launch the application for development:
-```bash
-python run.py --mode development
+## Production deployment
+This repository uses [Gunicorn](https://gunicorn.org) to serve the Flask application for production. The service is configured using a [systemd unit file, service/moalmanac-api.service](service/moalmanac-api.service), which sets environment variables from [.env.production](.env.production) via the `EnvironmentFile` variable:
+```ini
+EnvironmentFile=/home/breardon/moalmanac-api/.env.production
 ```
-
-To launch the application for production:
-```bash
-python run.py --mode production
+Gunicorn is launched using the provided `ExecStart` command:
+```ini
+/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers 5 --bind unix:moalmanac-api.sock -m 007 run:app
 ```
+Systemd and Gunicorn manage launching the application for production using the [service/moalmanac-api.service](service/moalmanac-api.service) file, so there is no need to run `python run.py` for production use.
 
 ## Citation
 If you find this tool or any code herein useful, please cite:  
