@@ -303,6 +303,7 @@ def get_indications(indication_id=None):
     parameters = handler.get_parameters(arguments=flask.request.args)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
     session_factory = flask.current_app.config['SESSION_FACTORY']
+    print(statement.compile(compile_kwargs={"literal_binds": True}))
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
@@ -347,20 +348,20 @@ def get_mappings(mapping_id=None):
     )
 
 
-@main_bp.route('/organizations', defaults={'organization_name': None}, methods=['GET'])
-@main_bp.route('/organizations/<organization_name>', methods=['GET'])
-def get_organizations(organization_name=None):
+@main_bp.route('/organizations', defaults={'organization_id': None}, methods=['GET'])
+@main_bp.route('/organizations/<organization_id>', methods=['GET'])
+def get_organizations(organization_id=None):
     """
 
     """
     received = generate_datetime_now()
     handler = handlers.Organizations()
     statement = handler.construct_base_query(model=models.Organizations)
-    if organization_name:
-        statement = statement.where(models.Organizations.name == organization_name)
-        message_subject = f"Organization {organization_name}"
+    if organization_id:
+        statement = statement.where(models.Organizations.id == organization_id)
+        message_subject = f"Organization {organization_id}"
     else:
-        message_subject = "Mappings"
+        message_subject = "Organizations"
 
     parameters = handler.get_parameters(arguments=flask.request.args)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)

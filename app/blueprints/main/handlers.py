@@ -1053,8 +1053,9 @@ class Documents(BaseHandler):
         organization_values = parameters.get('organization', None)
         if document_values or organization_values:
             if base_table == models.Documents and models.Documents not in joined_tables:
-                conditions = [models.Documents.id.in_(document_values)]
-                statement = statement.where(sqlalchemy.and_(*conditions))
+                if document_values:
+                    conditions = [models.Documents.id.in_(document_values)]
+                    statement = statement.where(sqlalchemy.and_(*conditions))
             elif base_table in [models.Indications, models.Statements] and models.Documents not in joined_tables:
                 conditions = []
                 d_s = models.AssociationDocumentsAndStatements
@@ -1070,6 +1071,7 @@ class Documents(BaseHandler):
                 )
                 joined_tables.add(models.Documents)
                 if document_values:
+                    #print(document_values)
                     conditions.append(documents_via_statements.id.in_(document_values))
 
                 statement = statement.join(
@@ -1346,6 +1348,8 @@ class Indications(BaseHandler):
                     models.Indications.id == models.Statements.indication_id
                 )
                 joined_tables.add(models.Indications)
+
+                # statement = statement.join(models.Indications, models.Indications.id == models.Documents.indication_id)
             elif base_table != models.Indications:
                 raise ValueError(f'Unsupported base table for Indications.perform_joins: {base_table}.')
 
@@ -1354,13 +1358,12 @@ class Indications(BaseHandler):
                 conditions.append(models.Indications.id.in_(indication_values))
             statement = statement.where(sqlalchemy.and_(*conditions))
 
-            if base_table in [models.Documents] and models.Documents not in joined_tables:
-                statement, joined_tables = Documents.perform_joins(
-                    statement=statement,
-                    parameters=parameters,
-                    base_table=base_table,
-                    joined_tables=joined_tables
-                )
+            statement, joined_tables = Documents.perform_joins(
+                statement=statement,
+                parameters=parameters,
+                base_table=base_table,
+                joined_tables=joined_tables
+            )
 
         return statement, joined_tables
 
@@ -1575,7 +1578,7 @@ class Organizations(BaseHandler):
         organization_values = parameters.get('organization', None)
         if organization_values:
             if base_table == models.Organizations and models.Organizations not in joined_tables:
-                conditions = [models.Organizations.name.in_(organization_values)]
+                conditions = [models.Organizations.id.in_(organization_values)]
                 statement = statement.where(sqlalchemy.and_(*conditions))
             elif base_table in [models.Documents, models.Indications, models.Statements] and models.Organizations not in joined_tables:
                 conditions = []
@@ -1584,13 +1587,13 @@ class Organizations(BaseHandler):
                         organizations_via_statements,
                         organizations_via_statements.id == documents_via_statements.organization_id
                     )
-                    conditions.append(organizations_via_statements.name.in_(organization_values))
+                    conditions.append(organizations_via_statements.id.in_(organization_values))
                 if documents_via_indications:
                     statement = statement.join(
                         organizations_via_indications,
                         organizations_via_indications.id == documents_via_indications.organization_id
                     )
-                    conditions.append(organizations_via_indications.name.in_(organization_values))
+                    conditions.append(organizations_via_indications.id.in_(organization_values))
                 if not (documents_via_statements or documents_via_indications):
                     message = f'Basetable specified as {base_table} to Organizations.perform_joins without providing document alias(es).'
                     raise ValueError(message)
@@ -1605,6 +1608,7 @@ class Organizations(BaseHandler):
 
                 if combined_condition is not None:
                     statement = statement.where(sqlalchemy.and_(combined_condition))
+
             elif base_table != models.Organizations:
                 raise ValueError(f'Unsupported base table for Organizations.perform_joins: {base_table}.')
 
