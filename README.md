@@ -13,9 +13,14 @@ This repository includes [moalmanac-db](https://github.com/vanallenlab/moalmanac
 git submodule update --init --recursive
 ```
 
-To update moalmanac-db to a specific commit, use [update_submodule_to_commit.sh](update_submodule_to_commit.sh):
+To update moalmanac-db to the latest commit, use [update_submodule_to_commit.sh](update_submodule_to_commit.sh):
 ```bash
-bash update_submodule_to_commit moalmanac-db/ <commit hash>
+bash update_submodule_to_commit 
+```
+
+Alternatively, to update moalmanac-db to a specific commit,
+```bash
+bash update_submodule_to_commit <commit hash>
 ```
 
 ### Python dependencies
