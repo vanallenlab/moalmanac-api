@@ -216,7 +216,7 @@ class Documents(Base):
     __tablename__ = 'documents'
 
     # Fields
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     subtype = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
@@ -290,8 +290,8 @@ class Indications(Base):
     __tablename__ = 'indications'
 
     # Fields
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    document_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('documents.id'), nullable=False)
+    id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
+    document_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('documents.id'), nullable=False)
     indication = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     initial_approval_date = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
     initial_approval_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -322,7 +322,7 @@ class Organizations(Base):
     __tablename__ = 'organizations'
 
     # Fields
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
@@ -554,7 +554,7 @@ class AssociationDiseasesAndMappings(Base):
 class AssociationDocumentsAndStatements(Base):
     __tablename__ = "_association_documents_and_statements"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    document_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('documents.id'), nullable=False)
+    document_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('documents.id'), nullable=False)
     statement_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('statements.id'), nullable=False)
 
 
