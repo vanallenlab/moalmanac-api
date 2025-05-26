@@ -8,7 +8,7 @@ This repository can be downloaded through GitHub by either using the website or 
 git clone https://github.com/vanallenlab/moalmanac-api.git --recursive-submodules
 cd moalmanac-api
 ```
-This repository includes [moalmanac-db](https://github.com/vanallenlab/moalmanac-db) as a [submodule](https://github.blog/open-source/git/working-with-submodules/). You can update moalmanac-db to the latest commit 
+This repository includes [moalmanac-db](https://github.com/vanallenlab/moalmanac-db) as a [submodule](https://github.blog/open-source/git/working-with-submodules/). You can update moalmanac-db to the latest commit: 
 ```bash
 git submodule update --init --recursive
 ```
@@ -18,7 +18,7 @@ To update moalmanac-db to the latest commit, use [update_submodule_to_commit.sh]
 bash update_submodule_to_commit 
 ```
 
-Alternatively, to update moalmanac-db to a specific commit,
+Alternatively, to update moalmanac-db to a specific commit:
 ```bash
 bash update_submodule_to_commit <commit hash>
 ```
@@ -46,8 +46,8 @@ pip install jupyter
 ipython kernel install --user --name=moalmanac-api
 ```
 
-# Usage
-## Environment configuration
+## Usage
+### Environment configuration
 Flask configuration variables are managed using environment files:
 
 - [.env](.env) - used for local development
@@ -58,7 +58,7 @@ To launch the application for development, using variables from [.env](.env):
 python run.py
 ```
 
-## Production deployment
+### Production deployment
 This repository uses [Gunicorn](https://gunicorn.org) to serve the Flask application for production. The service is configured using a [systemd unit file, service/moalmanac-api.service](service/moalmanac-api.service), which sets environment variables from [.env.production](.env.production) via the `EnvironmentFile` variable:
 ```ini
 EnvironmentFile=/home/breardon/moalmanac-api/.env.production
