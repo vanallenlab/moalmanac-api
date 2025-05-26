@@ -1,29 +1,16 @@
-import argparse
+import dotenv
+import os
 
 from app import create_app
 
+dotenv.load_dotenv(override=False)
 app = create_app()
 
 
 if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser(
-        prog='Molecular Oncology Almanac API',
-        description='REST API for the Molecular Oncology Almanac database'
-    )
-    arg_parser.add_argument(
-        '-d', '--development',
-        help='Run the API in development',
-        action='store_true'
-    )
-    args = arg_parser.parse_args()
-
-    if args.development:
-        host = 'localhost'
-        port = 8000
-        debug = True
-    else:
-        host = '0.0.0.0'
-        port = 5000
-        debug = False
+    host = os.environ.get('FLASK_HOST', '0.0.0.0')
+    port = int(os.environ.get('FLASK_PORT', 5000))
+    debug = bool(os.environ.get('FLASK_DEBUG', False))
+    print(host, port, debug, type(debug))
 
     app.run(host=host, port=port, debug=debug)
