@@ -1851,24 +1851,18 @@ class Statements(BaseHandler):
         if joined_tables is None:
             joined_tables = set()
 
-        print("Joins before contributions")
-        print(joined_tables)
         statement, joined_tables = Contributions.perform_joins(
             statement=statement,
             parameters=parameters,
             base_table=base_table,
             joined_tables=joined_tables
         )
-        print("Joins before documents")
-        print(joined_tables)
         statement, joined_tables = Documents.perform_joins(
             statement=statement,
             parameters=parameters,
             base_table=base_table,
             joined_tables=joined_tables
         )
-        print("Joins before indications")
-        print(joined_tables)
         statement, joined_tables = Indications.perform_joins(
             statement=statement,
             parameters=parameters,
