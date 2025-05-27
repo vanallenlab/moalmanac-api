@@ -1053,8 +1053,9 @@ class Documents(BaseHandler):
         organization_values = parameters.get('organization', None)
         if document_values or organization_values:
             if base_table == models.Documents and models.Documents not in joined_tables:
-                conditions = [models.Documents.id.in_(document_values)]
-                statement = statement.where(sqlalchemy.and_(*conditions))
+                if document_values:
+                    conditions = [models.Documents.id.in_(document_values)]
+                    statement = statement.where(sqlalchemy.and_(*conditions))
             elif base_table in [models.Statements, models.Indications] and models.Documents not in joined_tables:
                 conditions = []
                 if base_table == models.Statements:
@@ -1589,13 +1590,12 @@ class Organizations(BaseHandler):
                 statement = statement.where(sqlalchemy.and_(*conditions))
             elif base_table in [models.Documents, models.Indications, models.Statements] and models.Organizations not in joined_tables:
                 conditions = []
-                if base_table == models.Statements:
-                #if documents_via_statements:
+                if base_table == models.Documents:
                     statement = statement.join(
-                        organizations_via_statements,
-                        organizations_via_statements.id == documents_via_statements.organization_id
+                        models.Organizations,
+                        models.Organizations.id == models.Documents.organization_id
                     )
-                    conditions.append(organizations_via_statements.id.in_(organization_values))
+                    conditions.append(models.Organizations.id.in_(organization_values))
                 elif base_table == models.Indications:
                 #if documents_via_indications:
                     statement = statement.join(
@@ -1603,6 +1603,13 @@ class Organizations(BaseHandler):
                         organizations_via_indications.id == documents_via_indications.organization_id
                     )
                     conditions.append(organizations_via_indications.id.in_(organization_values))
+                elif base_table == models.Statements:
+                #if documents_via_statements:
+                    statement = statement.join(
+                        organizations_via_statements,
+                        organizations_via_statements.id == documents_via_statements.organization_id
+                    )
+                    conditions.append(organizations_via_statements.id.in_(organization_values))
                 else:
                 #if not (documents_via_statements or documents_via_indications):
                     message = f'Basetable specified as {base_table} to Organizations.perform_joins without providing document alias(es).'
