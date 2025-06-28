@@ -466,7 +466,8 @@ def get_statements(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-    Gets the Statements table from the database.
+    Gets the Statements table from the database. This endpoint essentially fetches the entire database, and will take
+    several seconds to complete.
     """
     received = generate_datetime_now()
     handler = handlers.Statements()
