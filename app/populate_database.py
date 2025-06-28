@@ -1,6 +1,5 @@
 import argparse
 import datetime
-import flask
 import json
 import pandas
 import sqlalchemy
@@ -754,90 +753,89 @@ class Summary:
 
 def main(referenced_dictionary, config_path='config.ini'):
     app = create_app(config_path=config_path)
-    with app.app_context():
-        session = flask.current_app.config['SESSION_FACTORY']()
-        try:
-            root = f"{referenced_dictionary}"
+    session = app.state.session_factory()
+    try:
+        root = f"{referenced_dictionary}"
 
-            about = Process.load_json(f"{root}/about.json")
-            SQL.add_about(record=about, session=session)
-            session.commit()
+        about = Process.load_json(f"{root}/about.json")
+        SQL.add_about(record=about, session=session)
+        session.commit()
 
-            codings = Process.load_json(f"{root}/codings.json")
-            SQL.add_codings(records=codings, session=session)
-            session.commit()
+        codings = Process.load_json(f"{root}/codings.json")
+        SQL.add_codings(records=codings, session=session)
+        session.commit()
 
-            mappings = Process.load_json(f"{root}/mappings.json")
-            SQL.add_mappings(records=mappings, session=session)
-            session.commit()
+        mappings = Process.load_json(f"{root}/mappings.json")
+        SQL.add_mappings(records=mappings, session=session)
+        session.commit()
 
-            agents = Process.load_json(f"{root}/agents.json")
-            SQL.add_agents(records=agents, session=session)
-            session.commit()
+        agents = Process.load_json(f"{root}/agents.json")
+        SQL.add_agents(records=agents, session=session)
+        session.commit()
 
-            genes = Process.load_json(f"{root}/genes.json")
-            SQL.add_genes(records=genes, session=session)
-            session.commit()
+        genes = Process.load_json(f"{root}/genes.json")
+        SQL.add_genes(records=genes, session=session)
+        session.commit()
 
-            biomarkers = Process.load_json(f"{root}/biomarkers.json")
-            SQL.add_biomarkers(records=biomarkers, session=session)
-            session.commit()
+        biomarkers = Process.load_json(f"{root}/biomarkers.json")
+        SQL.add_biomarkers(records=biomarkers, session=session)
+        session.commit()
 
-            diseases = Process.load_json(f"{root}/diseases.json")
-            SQL.add_diseases(records=diseases, session=session)
-            session.commit()
+        diseases = Process.load_json(f"{root}/diseases.json")
+        SQL.add_diseases(records=diseases, session=session)
+        session.commit()
 
-            therapies = Process.load_json(f"{root}/therapies.json")
-            SQL.add_therapies(records=therapies, session=session)
-            session.commit()
+        therapies = Process.load_json(f"{root}/therapies.json")
+        SQL.add_therapies(records=therapies, session=session)
+        session.commit()
 
-            therapy_groups = Process.load_json(f"{root}/therapy_groups.json")
-            SQL.add_therapy_groups(records=therapy_groups, session=session)
-            session.commit()
+        therapy_groups = Process.load_json(f"{root}/therapy_groups.json")
+        SQL.add_therapy_groups(records=therapy_groups, session=session)
+        session.commit()
 
-            contributions = Process.load_json(f"{root}/contributions.json")
-            SQL.add_contributions(records=contributions, session=session)
-            session.commit()
+        contributions = Process.load_json(f"{root}/contributions.json")
+        SQL.add_contributions(records=contributions, session=session)
+        session.commit()
 
-            documents = Process.load_json(f"{root}/documents.json")
-            SQL.add_documents(records=documents, session=session)
-            session.commit()
+        documents = Process.load_json(f"{root}/documents.json")
+        SQL.add_documents(records=documents, session=session)
+        session.commit()
 
-            indications = Process.load_json(f"{root}/indications.json")
-            SQL.add_indications(records=indications, session=session)
-            session.commit()
+        indications = Process.load_json(f"{root}/indications.json")
+        SQL.add_indications(records=indications, session=session)
+        session.commit()
 
-            organizations = Process.load_json(f"{root}/organizations.json")
-            SQL.add_organizations(records=organizations, session=session)
-            session.commit()
+        organizations = Process.load_json(f"{root}/organizations.json")
+        SQL.add_organizations(records=organizations, session=session)
+        session.commit()
 
-            propositions = Process.load_json(f"{root}/propositions.json")
-            SQL.add_propositions(records=propositions, session=session)
-            session.commit()
+        propositions = Process.load_json(f"{root}/propositions.json")
+        SQL.add_propositions(records=propositions, session=session)
+        session.commit()
 
-            strengths = Process.load_json(f"{root}/strengths.json")
-            SQL.add_strengths(records=strengths, session=session)
-            session.commit()
+        strengths = Process.load_json(f"{root}/strengths.json")
+        SQL.add_strengths(records=strengths, session=session)
+        session.commit()
 
-            statements = Process.load_json(f"{root}/statements.json")
-            SQL.add_statements(records=statements, session=session)
-            session.commit()
+        statements = Process.load_json(f"{root}/statements.json")
+        SQL.add_statements(records=statements, session=session)
+        session.commit()
 
-            terms = Summary.list_terms(session=session)
-            SQL.add_terms(records=terms, session=session)
-            session.commit()
+        terms = Summary.list_terms(session=session)
+        SQL.add_terms(records=terms, session=session)
+        session.commit()
 
-            terms_count = Summary.count_terms(records=terms)
-            SQL.add_term_counts(records=terms_count, session=session)
-            session.commit()
-            print(terms_count)
+        terms_count = Summary.count_terms(records=terms)
+        SQL.add_term_counts(records=terms_count, session=session)
+        session.commit()
+        print(terms_count)
 
-        except Exception as e:
-            print(f"Error occurred: {e}")
-            session.rollback()
-        finally:
-            session.close()
-            return 'Success!'
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        session.rollback()
+    finally:
+        session.close()
+        return 'Success!'
 
 
 if __name__ == "__main__":
