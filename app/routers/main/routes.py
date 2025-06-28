@@ -22,8 +22,6 @@ def create_response(
         request_url=None,
         status_code=200,
 ):
-    """
-    """
     if received is None:
         received = generate_datetime_now()
 
@@ -65,7 +63,7 @@ def get_about(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-    Gets service information from the About table.
+    Retrieves service metadata from the About table in the database.
     """
     with session_factory() as session:
         result = get_service_metadata(session=session)
@@ -86,7 +84,7 @@ def get_agents(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Retrieves Agents table from database.
     """
     received = generate_datetime_now()
     handler = handlers.Agents()
@@ -117,6 +115,9 @@ def get_biomarkers(
         biomarker_name: str = fastapi.Query(default=None),
         session_factory=fastapi.Depends(get_session_factory)
 ):
+    """
+    Retrieves Biomarkers table from database.
+    """
     received = generate_datetime_now()
     handler = handlers.Biomarkers()
     statement = handler.construct_base_query(model=models.Biomarkers)
@@ -149,6 +150,9 @@ def get_codings(
         coding_id: str = fastapi.Query(default=None),
         session_factory=fastapi.Depends(get_session_factory)
 ):
+    """
+    Retrieves Codings table from the database. Codings are representations of a concept from another website.
+    """
     received = generate_datetime_now()
     handler = handlers.Codings()
     statement = handler.construct_base_query(model=models.Codings)
@@ -181,6 +185,9 @@ def get_contributions(
         contribution_id: str = fastapi.Query(default=None),
         session_factory=fastapi.Depends(get_session_factory)
 ):
+    """
+    Retrieves Contributions table from the database.
+    """
     received = generate_datetime_now()
     handler = handlers.Contributions()
     statement = handler.construct_base_query(model=models.Contributions)
@@ -214,7 +221,7 @@ def get_diseases(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Retrieves Diseases table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Diseases()
@@ -249,7 +256,7 @@ def get_documents(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Retrieves Documents table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Documents()
@@ -284,7 +291,7 @@ def get_genes(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Retrieves Genes table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Genes()
@@ -319,7 +326,7 @@ def get_indications(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Retrieves Indications (Regulatory approvals) table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Indications()
@@ -354,7 +361,7 @@ def get_mappings(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-    Hmm... this serializes by dropping the primary coding since it is used within codings...
+    Retrieves Mappings table from the database. Mappings are relationships between two Codings.
     """
     received = generate_datetime_now()
     handler = handlers.Mappings()
@@ -389,7 +396,7 @@ def get_organizations(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Retrieves Organization table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Organizations()
@@ -424,7 +431,7 @@ def get_propositions(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Retrieves the Propositions table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Propositions()
@@ -459,13 +466,7 @@ def get_statements(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-    Gets all statement records from the database. If a statement_id is provided, return only that record.
-
-    Args:
-        statement_id (int): The id of the statement to retrieve. If None, return all statements.
-
-    Returns:
-
+    Gets the Statements table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Statements()
@@ -502,7 +503,7 @@ def get_strengths(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Gets the Strengths table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Strengths()
@@ -537,7 +538,7 @@ def get_therapies(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Get the Therapies table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Therapies()
@@ -572,7 +573,7 @@ def get_therapy_groups(
         session_factory=fastapi.Depends(get_session_factory)
 ):
     """
-
+    Gets the Therapy Groups table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.TherapyGroups()
