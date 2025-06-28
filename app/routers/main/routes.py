@@ -1,16 +1,27 @@
 import datetime
-import flask
+import fastapi
 import sqlalchemy
+import typing
 import uuid
 
 from app import models
-from . import main_bp
 from . import handlers
 
+router = fastapi.APIRouter()
 
-def create_response(data, message="", received=None, request_url=None, status_code=200):
-    """
-    """
+
+def get_session_factory(request: fastapi.Request):
+    return request.app.state.session_factory
+
+
+def create_response(
+        data,
+        session,
+        message="",
+        received=None,
+        request_url=None,
+        status_code=200,
+):
     if received is None:
         received = generate_datetime_now()
 
@@ -27,55 +38,53 @@ def create_response(data, message="", received=None, request_url=None, status_co
         "trace_id": str(uuid.uuid4()),
         "data_length": len(data) if hasattr(data, '__len__') else 1,
     }
-    service = get_about(return_as_response=False)
-    response = {
+    return {
         "meta": meta,
-        "service": service,
+        "service": get_service_metadata(session=session),
         "data": data
     }
-    return flask.jsonify(response), status_code
+
+
+def get_service_metadata(session) -> dict:
+    handler = handlers.About()
+    statement = handler.construct_base_query(model=models.About)
+    result = handler.execute_query(session=session, statement=statement)
+    serialized = handler.serialize_instances(instances=result)
+    return serialized[0]
 
 
 def generate_datetime_now():
     return datetime.datetime.now(datetime.timezone.utc)
 
 
-@main_bp.route('/tables', methods=['GET'])
-def list_tables():
-    inspector = sqlalchemy.inspect(models.engine)
-    tables = inspector.get_table_names()
-    return create_response(tables, "Tables retrieved successfully")
-
-
-@main_bp.route('/about', methods=['GET'])
-def get_about(return_as_response=True):
+@router.get("/about", tags=["Service Info"])
+def get_about(
+        request: fastapi.Request,
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-    Gets service information from the About table.
+    Retrieves service metadata from the About table in the database.
     """
-    handler = handlers.About()
-    statement = handler.construct_base_query(model=models.About)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
     with session_factory() as session:
-        result = handler.execute_query(session=session, statement=statement)
-        serialized = handler.serialize_instances(instances=result)
-        serialized = serialized[0]
-    if return_as_response:
+        result = get_service_metadata(session=session)
         return create_response(
-            request_url=flask.request.url,
-            received=generate_datetime_now(),
-            data=serialized,
+            data=result,
             message="About metadata retrieved successfully",
+            received=generate_datetime_now(),
+            request_url=str(request.url),
+            session=session,
             status_code=200
         )
-    else:
-        return serialized
 
 
-@main_bp.route('/agents', defaults={'agent_name': None}, methods=['GET'])
-@main_bp.route('/agents/<agent_name>', methods=['GET'])
-def get_agents(agent_name=None):
+@router.get("/agents", tags=["Entities"])
+def get_agents(
+        request: fastapi.Request,
+        agent_name: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Agents table from database.
     """
     received = generate_datetime_now()
     handler = handlers.Agents()
@@ -83,27 +92,31 @@ def get_agents(agent_name=None):
     if agent_name:
         statement = statement.where(models.Agents.name == agent_name)
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
-    return create_response(
-        request_url=flask.request.url,
-        received=received,
-        data=serialized,
-        message=f"Agents retrieved successfully",
-        status_code=200
-    )
+        return create_response(
+            data=serialized,
+            message=f"Agents retrieved successfully",
+            received=received,
+            request_url=str(request.url),
+            session=session,
+            status_code=200
+        )
 
 
-@main_bp.route('/biomarkers', defaults={'biomarker_name': None}, methods=['GET'])
-@main_bp.route('/biomarkers/<biomarker_name>', methods=['GET'])
-def get_biomarkers(biomarker_name=None):
+@router.get("/biomarkers", tags=["Entities"])
+def get_biomarkers(
+        request: fastapi.Request,
+        biomarker_name: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Biomarkers table from database.
     """
     received = generate_datetime_now()
     handler = handlers.Biomarkers()
@@ -114,27 +127,31 @@ def get_biomarkers(biomarker_name=None):
     else:
         message_subject = "Biomarkers"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
-    return create_response(
-        request_url=flask.request.url,
-        received=received,
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        status_code=200
-    )
+        return create_response(
+            data=serialized,
+            message=f"{message_subject} retrieved successfully",
+            received=received,
+            request_url=str(request.url),
+            session=session,
+            status_code=200
+        )
 
 
-@main_bp.route('/codings', defaults={'coding_id': None}, methods=['GET'])
-@main_bp.route('/codings/<coding_id>', methods=['GET'])
-def get_codings(coding_id=None):
+@router.get("/codings", tags=["Entities"])
+def get_codings(
+        request: fastapi.Request,
+        coding_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Codings table from the database. Codings are representations of a concept from another website.
     """
     received = generate_datetime_now()
     handler = handlers.Codings()
@@ -145,27 +162,31 @@ def get_codings(coding_id=None):
     else:
         message_subject = "Codings"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
-    return create_response(
-        request_url=flask.request.url,
-        received=received,
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        status_code=200
-    )
+        return create_response(
+            data=serialized,
+            message=f"{message_subject} retrieved successfully",
+            received=received,
+            request_url=str(request.url),
+            session=session,
+            status_code=200
+        )
 
 
-@main_bp.route('/contributions', defaults={'contribution_id': None}, methods=['GET'])
-@main_bp.route('/contributions/<contribution_id>', methods=['GET'])
-def get_contributions(contribution_id=None):
+@router.get("/contributions", tags=["Entities"])
+def get_contributions(
+        request: fastapi.Request,
+        contribution_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Contributions table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Contributions()
@@ -176,27 +197,31 @@ def get_contributions(contribution_id=None):
     else:
         message_subject = "Contributions"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
-    return create_response(
-        request_url=flask.request.url,
-        received=received,
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        status_code=200
-    )
+        return create_response(
+            data=serialized,
+            message=f"{message_subject} retrieved successfully",
+            received=received,
+            request_url=str(request.url),
+            session=session,
+            status_code=200
+        )
 
 
-@main_bp.route('/diseases', defaults={'disease_name': None}, methods=['GET'])
-@main_bp.route('/diseases/<disease_name>', methods=['GET'])
-def get_diseases(disease_name=None):
+@router.get("/diseases", tags=["Entities"])
+def get_diseases(
+        request: fastapi.Request,
+        disease_name: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Diseases table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Diseases()
@@ -207,27 +232,31 @@ def get_diseases(disease_name=None):
     else:
         message_subject = "Diseases"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/documents', defaults={'document_id': None}, methods=['GET'])
-@main_bp.route('/documents/<document_id>', methods=['GET'])
-def get_documents(document_id=None):
+@router.get("/documents", tags=["Entities"])
+def get_documents(
+        request: fastapi.Request,
+        document_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Documents table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Documents()
@@ -238,27 +267,31 @@ def get_documents(document_id=None):
     else:
         message_subject = "Documents"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/genes', defaults={'gene_name': None}, methods=['GET'])
-@main_bp.route('/genes/<gene_name>', methods=['GET'])
-def get_genes(gene_name=None):
+@router.get("/genes", tags=["Entities"])
+def get_genes(
+        request: fastapi.Request,
+        gene_name: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Genes table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Genes()
@@ -269,27 +302,31 @@ def get_genes(gene_name=None):
     else:
         message_subject = "Genes"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/indications', defaults={'indication_id': None}, methods=['GET'])
-@main_bp.route('/indications/<indication_id>', methods=['GET'])
-def get_indications(indication_id=None):
+@router.get("/indications", tags=["Entities"])
+def get_indications(
+        request: fastapi.Request,
+        indication_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Indications (Regulatory approvals) table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Indications()
@@ -300,27 +337,31 @@ def get_indications(indication_id=None):
     else:
         message_subject = "Indications"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/mappings', defaults={'mapping_id': None}, methods=['GET'])
-@main_bp.route('/mappings/<mapping_id>', methods=['GET'])
-def get_mappings(mapping_id=None):
+@router.get("/mappings", tags=["Entities"])
+def get_mappings(
+        request: fastapi.Request,
+        mapping_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-    Hmm... this serializes by dropping the primary coding since it is used within codings...
+    Retrieves Mappings table from the database. Mappings are relationships between two Codings.
     """
     received = generate_datetime_now()
     handler = handlers.Mappings()
@@ -331,27 +372,31 @@ def get_mappings(mapping_id=None):
     else:
         message_subject = "Mappings"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result, pop_primary_coding=False)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/organizations', defaults={'organization_id': None}, methods=['GET'])
-@main_bp.route('/organizations/<organization_id>', methods=['GET'])
-def get_organizations(organization_id=None):
+@router.get("/organizations", tags=["Entities"])
+def get_organizations(
+        request: fastapi.Request,
+        organization_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves Organization table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Organizations()
@@ -362,27 +407,31 @@ def get_organizations(organization_id=None):
     else:
         message_subject = "Organizations"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/propositions', defaults={'proposition_id': None}, methods=['GET'])
-@main_bp.route('/propositions/<proposition_id>', methods=['GET'])
-def get_propositions(proposition_id=None):
+@router.get("/propositions", tags=["Entities"])
+def get_propositions(
+        request: fastapi.Request,
+        proposition_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Retrieves the Propositions table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Propositions()
@@ -393,33 +442,32 @@ def get_propositions(proposition_id=None):
     else:
         message_subject = "Propositions"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/statements', defaults={'statement_id': None}, methods=['GET'])
-@main_bp.route('/statements/<statement_id>', methods=['GET'])
-def get_statements(statement_id=None):
+@router.get("/statements", tags=["Entities"])
+def get_statements(
+        request: fastapi.Request,
+        statement_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-    Gets all statement records from the database. If a statement_id is provided, return only that record.
-
-    Args:
-        statement_id (int): The id of the statement to retrieve. If None, return all statements.
-
-    Returns:
-
+    Gets the Statements table from the database. This endpoint essentially fetches the entire database, and will take
+    several seconds to complete.
     """
     received = generate_datetime_now()
     handler = handlers.Statements()
@@ -430,29 +478,33 @@ def get_statements(statement_id=None):
     else:
         message_subject = "Statements"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
     # statement = handler.apply_joinedload(statement=statement)
     # statement = handler.apply_filters(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/strengths', defaults={'strength_name': None}, methods=['GET'])
-@main_bp.route('/strengths/<strength_name>', methods=['GET'])
-def get_strengths(strength_name=None):
+@router.get("/strengths", tags=["Entities"])
+def get_strengths(
+        request: fastapi.Request,
+        strength_name: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Gets the Strengths table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Strengths()
@@ -463,27 +515,31 @@ def get_strengths(strength_name=None):
     else:
         message_subject = "Strengths"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/therapies', defaults={'therapy_name': None}, methods=['GET'])
-@main_bp.route('/therapies/<therapy_name>', methods=['GET'])
-def get_therapies(therapy_name=None):
+@router.get("/therapies", tags=["Entities"])
+def get_therapies(
+        request: fastapi.Request,
+        therapy_name: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Get the Therapies table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.Therapies()
@@ -494,27 +550,31 @@ def get_therapies(therapy_name=None):
     else:
         message_subject = "Therapies"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
 
 
-@main_bp.route('/therapygroups', defaults={'therapy_group_id': None}, methods=['GET'])
-@main_bp.route('/therapygroups/<therapy_group_id>', methods=['GET'])
-def get_therapy_groups(therapy_group_id=None):
+@router.get("/therapygroups", tags=["Entities"])
+def get_therapy_groups(
+        request: fastapi.Request,
+        therapy_group_id: str = fastapi.Query(default=None),
+        session_factory=fastapi.Depends(get_session_factory)
+):
     """
-
+    Gets the Therapy Groups table from the database.
     """
     received = generate_datetime_now()
     handler = handlers.TherapyGroups()
@@ -525,17 +585,18 @@ def get_therapy_groups(therapy_group_id=None):
     else:
         message_subject = "Therapy groups"
 
-    parameters = handler.get_parameters(arguments=flask.request.args)
+    parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(statement=statement, parameters=parameters)
-    session_factory = flask.current_app.config['SESSION_FACTORY']
+
     with session_factory() as session:
         result = handler.execute_query(session=session, statement=statement)
         serialized = handler.serialize_instances(instances=result)
 
     return create_response(
-        request_url=flask.request.url,
-        received=received,
         data=serialized,
         message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        session=session,
         status_code=200
     )
