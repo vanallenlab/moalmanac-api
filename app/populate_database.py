@@ -8,8 +8,8 @@ import typing
 
 from sqlalchemy.orm import sessionmaker
 
-from . import create_app
-from . import models
+from app.main import create_app
+from app import models
 
 
 class Process:

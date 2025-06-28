@@ -282,13 +282,12 @@ class BaseHandler:
         Returns:
             dictionary (dict[str, list[str | int]]): A dictionary with parameter names as keys and values as lists.
         """
-        dictionary = arguments.to_dict(flat=False)
-        for key, values in dictionary.items():
-            new_values = []
-            for value in values:
-                new_value = cls.convert_parameter_value(value=value)
-                new_values.append(new_value)
-            dictionary[key] = new_values
+        dictionary = {}
+        for key, value in arguments.multi_items():
+            if key not in dictionary:
+                dictionary[key] = []
+            new_value = cls.convert_parameter_value(value=value)
+            dictionary[key].append(new_value)
         return dictionary
 
     @staticmethod
