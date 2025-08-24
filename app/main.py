@@ -9,9 +9,7 @@ from app.routers.main import router as main_router
 
 class PrettyJSONResponse(fastapi.responses.JSONResponse):
     def render(self, content: object) -> bytes:
-        return json.dumps(content, indent=2, ensure_ascii=False).encode(
-            "utf-8"
-        )
+        return json.dumps(content, indent=2, ensure_ascii=False).encode("utf-8")
 
 
 def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
@@ -20,7 +18,7 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
             "name": "MOAlmanac API GitHub",
             "url": "https://github.com/vanallenlab/moalmanac-api",
         },
-        default_response_class=PrettyJSONResponse,
+        default_response_class=fastapi.responses.ORJSONResponse,
         description=(
             "The Molecular Oncology Almanac (MOAlmanac) is a paired knowledgebase and clinical interpretation "
             "algorithm for precision cancer medicine. Visit [our website](https://dev.moalmanac.org) for more "

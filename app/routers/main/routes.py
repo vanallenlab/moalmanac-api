@@ -1,6 +1,7 @@
 import datetime
 import fastapi
 import sqlalchemy
+import time
 import typing
 import uuid
 
@@ -56,6 +57,7 @@ def create_response(
     elapsed = returned - received
 
     meta = {
+        "data_length": len(data) if hasattr(data, "__len__") else 1,
         "message": message,
         "request_url": request_url,
         "status": "success" if 200 <= status_code < 300 else "error",
@@ -63,8 +65,8 @@ def create_response(
         "timestamp_elapsed": round(elapsed.total_seconds(), 6),
         "timestamp_received": f"{received.isoformat()}Z" if received else None,
         "timestamp_returned": f"{returned.isoformat()}Z",
-        "trace_id": str(uuid.uuid4()),
-        "data_length": len(data) if hasattr(data, "__len__") else 1,
+        "trace_id": str(uuid.uuid4())
+        
     }
     return {
         "meta": meta,
@@ -81,6 +83,18 @@ def get_service_metadata(database: sqlalchemy.orm.Session) -> dict:
     return serialized[0]
 
 
+_service_cache: dict[str, tuple[float, dict]] = {}
+def get_service_metadata_cached(database: sqlalchemy.orm.Session, ttl: int = 300) -> dict:
+    now = time.time()
+    hit = _service_cache.get("about")
+    if hit and now - hit[0] < ttl:
+        return hit[1]
+    
+    value = get_service_metadata(database=database)
+    _service_cache["about"] = (now, value)
+    return value
+
+
 @router.get("/about", tags=["Service Info"])
 def get_about(
     request: fastapi.Request,
@@ -90,7 +104,7 @@ def get_about(
     Retrieves service metadata from the About table in the database.
     """
     received = generate_datetime_now()
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
     return create_response(
         data=service,
         message="About metadata retrieved successfully",
@@ -124,7 +138,7 @@ def get_agents(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -162,7 +176,7 @@ def get_biomarkers(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -200,7 +214,7 @@ def get_codings(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -238,7 +252,7 @@ def get_contributions(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -276,7 +290,7 @@ def get_diseases(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -314,7 +328,7 @@ def get_documents(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -352,7 +366,7 @@ def get_genes(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -390,7 +404,7 @@ def get_indications(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -428,7 +442,7 @@ def get_mappings(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -466,7 +480,7 @@ def get_organizations(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -504,7 +518,7 @@ def get_propositions(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -545,7 +559,7 @@ def get_statements(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -583,7 +597,7 @@ def get_strengths(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -621,7 +635,7 @@ def get_therapies(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
@@ -661,7 +675,7 @@ def get_therapy_groups(
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata(database=database)
+    service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
