@@ -1,6 +1,5 @@
 import fastapi
 import json
-from starlette.middleware.gzip import GZipMiddleware
 
 from app import database
 from app import models
@@ -43,8 +42,6 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
         redoc_url=None,
         version="draft",
     )
-
-    app.add_middleware(GZipMiddleware)
 
     engine, session_factory = database.init_db(config_path=config_path)
     models.Base.metadata.create_all(bind=engine)
