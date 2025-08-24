@@ -1,33 +1,38 @@
 import configparser
 import os
 import sqlalchemy
-from sqlalchemy.engine import Engine
+import typing
 from sqlalchemy.orm import sessionmaker
 
 
-def read_config_ini(path: str) -> configparser.ConfigParser():
+def get_database(
+    session: sessionmaker[sqlalchemy.orm.Session],
+) -> typing.Generator[sqlalchemy.orm.Session, None, None]:
     """
-    Reads a configuration file in INI format.
+    Yields a sqlalchemy.orm.Session created from the provided sessionmaker.
 
     Args:
-        path (str): The path to the database configuration file.
+        session (sessionmaker[sqlalchemy.orm.Session]): The sessionmaker instance for creating database sessions.
 
     Returns:
-        config (configparser.ConfigParser()): A ConfigParser object containing the configuration data.
+        sqlalchemy.orm.Session: The database session object.
 
     Raises:
-        FileNotFoundError: If the specified configuration file does not exist.
+        ...
     """
-    config = configparser.ConfigParser()
+    database = session()
+    try:
+        yield database  # type: ignore
+    except Exception:
+        database.rollback()
+        raise
+    finally:
+        database.close()
 
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Config file not found at {path}")
 
-    config.read(path)
-    return config
-
-
-def init_db(config_path: str) -> tuple[Engine, sessionmaker]:
+def init_db(
+    config_path: str,
+) -> tuple[sqlalchemy.Engine, sessionmaker[sqlalchemy.orm.Session]]:
     """
     Initializes the sqlite database connection and session.
 
@@ -38,8 +43,7 @@ def init_db(config_path: str) -> tuple[Engine, sessionmaker]:
         config_path (str): The path to the database configuration file.
 
     Returns:
-        tuple[sqqlalchemy.orm.engine, sqlalchemy.orm.Session]: A tuple containing the SQLAlchemy engine
-            and configured session.
+        tuple[sqlalchemy.engine.Engine, sessionmaker[sqlalchemy.orm.Session]]: A tuple containing the SQLAlchemy engine and configured session.
 
     Raises:
         FileNotFoundError: If the specified configuration file does not exist.
@@ -47,10 +51,43 @@ def init_db(config_path: str) -> tuple[Engine, sessionmaker]:
     """
     config = read_config_ini(path=config_path)
     try:
-        path = config['database']['path']
-    except KeyError:
-        raise KeyError("Database path not found within configuration file.")
-    path = os.path.abspath(path)
-    engine = sqlalchemy.create_engine(f"sqlite:///{path}")
-    session_factory = sessionmaker(bind=engine)
+        path = os.path.abspath(config["database"]["path"])
+    except KeyError as error:
+        raise KeyError(
+            "Database path not found within configuration file."
+        ) from error
+    engine = sqlalchemy.create_engine(
+        f"sqlite:///{path}",
+        connect_args={"check_same_thread": False},
+        poolclass=sqlalchemy.pool.NullPool,
+        pool_pre_ping=True,
+        future=True,
+    )
+    session_factory = sessionmaker(
+        bind=engine,
+        autocommit=False,
+        autoflush=False,
+        expire_on_commit=False,
+        future=True,
+    )
     return engine, session_factory
+
+
+def read_config_ini(path: str) -> configparser.ConfigParser:
+    """
+    Reads a configuration file in INI format.
+
+    Args:
+        path (str): The path to the database configuration file.
+
+    Returns:
+        config (configparser.ConfigParser): A ConfigParser object containing the configuration data.
+
+    Raises:
+        FileNotFoundError: If the specified configuration file does not exist.
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Config file not found at {path}")
+    config = configparser.ConfigParser()
+    config.read(path)
+    return config

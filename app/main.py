@@ -1,6 +1,5 @@
 import fastapi
 import json
-from starlette.middleware.gzip import GZipMiddleware
 
 from app import database
 from app import models
@@ -8,23 +7,15 @@ from app.routers.main import router as main_router
 
 
 class PrettyJSONResponse(fastapi.responses.JSONResponse):
-    def render(self, content: any) -> bytes:
-        return (
-            json
-            .dumps(
-                content,
-                indent=2,
-                ensure_ascii=False
-            )
-            .encode('utf-8')
-        )
+    def render(self, content: object) -> bytes:
+        return json.dumps(content, indent=2, ensure_ascii=False).encode("utf-8")
 
 
-def create_app(config_path='config.ini') -> fastapi.FastAPI:
+def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
     app = fastapi.FastAPI(
         contact={
             "name": "MOAlmanac API GitHub",
-            "url": "https://github.com/vanallenlab/moalmanac-api"
+            "url": "https://github.com/vanallenlab/moalmanac-api",
         },
         default_response_class=PrettyJSONResponse,
         description=(
@@ -35,24 +26,22 @@ def create_app(config_path='config.ini') -> fastapi.FastAPI:
         docs_url="/",
         license_info={
             "name": "License: GNU GPL, Version 2",
-            "url": "https://github.com/vanallenlab/moalmanac-api/blob/main/LICENSE"
+            "url": "https://github.com/vanallenlab/moalmanac-api/blob/main/LICENSE",
         },
         openapi_tags=[
             {
                 "name": "Entities",
-                "description": "Access to the database content."
+                "description": "Access to the database content.",
             },
             {
                 "name": "Service Info",
-                "description": "Metadata about the API service."
-            }
+                "description": "Metadata about the API service.",
+            },
         ],
-        title='Molecular Oncology Almanac API',
+        title="Molecular Oncology Almanac API",
         redoc_url=None,
-        version="draft"
+        version="draft",
     )
-
-    app.add_middleware(GZipMiddleware)
 
     engine, session_factory = database.init_db(config_path=config_path)
     models.Base.metadata.create_all(bind=engine)
