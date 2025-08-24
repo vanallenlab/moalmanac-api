@@ -17,7 +17,7 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
             "name": "MOAlmanac API GitHub",
             "url": "https://github.com/vanallenlab/moalmanac-api",
         },
-        default_response_class=fastapi.responses.ORJSONResponse,
+        default_response_class=PrettyJSONResponse,
         description=(
             "The Molecular Oncology Almanac (MOAlmanac) is a paired knowledgebase and clinical interpretation "
             "algorithm for precision cancer medicine. Visit [our website](https://dev.moalmanac.org) for more "
