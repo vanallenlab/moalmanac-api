@@ -30,12 +30,16 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
         },
         openapi_tags=[
             {
-                "name": "Entities",
-                "description": "Access to the database content.",
+                "name": "Service Info",
+                "description": "Get metadata about the API service.",
             },
             {
-                "name": "Service Info",
-                "description": "Metadata about the API service.",
+                "name": "Search",
+                "description": "Search across database records. Primarily uses /propositions endpoint with additional aggregated information.",
+            },
+            {
+                "name": "Entities",
+                "description": "Access to the database content.",
             },
         ],
         title="Molecular Oncology Almanac API",
