@@ -1861,6 +1861,11 @@ class Propositions(BaseHandler):
                 f"Unsupported base table for Propositions.perform_joins: {base_table}."
             )
 
+        proposition_values = parameters.get("proposition_id", None)
+        if proposition_values:
+            conditions = [models.Propositions.id.in_(proposition_values)]
+            statement = statement.where(sqlalchemy.and_(*conditions))
+
         statement, joined_tables = Biomarkers.perform_joins(
             statement=statement,
             parameters=parameters,

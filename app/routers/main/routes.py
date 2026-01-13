@@ -537,6 +537,7 @@ def get_propositions(
 def get_search(
     request: fastapi.Request,
     proposition_id: int | None = fastapi.Query(default=None),
+    include_empty: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -558,13 +559,22 @@ def get_search(
     )
 
     result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result, session=database, parameters=parameters)
+    serialized = handler.serialize_instances(
+        instances=result, session=database, parameters=parameters
+    )
+    if not include_empty:
+        serialized = [
+            proposition
+            for proposition in serialized
+            if (proposition.get("aggregates", {}).get("statement_count", 0) or 0) > 0
+        ]
+    suffix = "" if not include_empty else " (including zero-statement propositions)"
 
     service = get_service_metadata_cached(database=database)
 
     return create_response(
         data=serialized,
-        message=f"{message_subject} retrieved successfully",
+        message=f"{message_subject} retrieved successfully{suffix}",
         received=received,
         request_url=str(request.url),
         status_code=200,
