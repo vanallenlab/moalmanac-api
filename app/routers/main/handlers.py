@@ -1993,7 +1993,7 @@ class Searches(Propositions):
     """
 
     @classmethod
-    def aggregates_statements_by_proposition_ids(
+    def aggregate_statements_by_proposition_ids(
         cls,
         session: sqlalchemy.orm.Session,
         proposition_ids: list[int],
@@ -2019,20 +2019,20 @@ class Searches(Propositions):
             .all()
         )
 
-        by_strength_rows = (
+        by_direction_rows = (
             base_statement_query.with_entities(
                 models.Statements.proposition_id,
-                models.Statements.strength_id,
+                models.Statements.direction,
                 sqlalchemy.func.count(models.Statements.id).label("count"),
             )
             .filter(models.Statements.proposition_id.in_(proposition_ids))
-            .group_by(models.Statements.proposition_id, models.Statements.strength_id)
+            .group_by(models.Statements.proposition_id, models.Statements.direction)
             .all()
         )
-        by_strength: dict[int, list[dict[str, typing.Any]]] = {}
-        for prop_id, strength_id, count in by_strength_rows:
-            by_strength.setdefault(prop_id, []).append(
-                {"strength_id": strength_id, "count": int(count)}
+        by_direction: dict[int, list[dict[str, typing.Any]]] = {}
+        for prop_id, direction, count in by_direction_rows:
+            by_direction.setdefault(prop_id, []).append(
+                {"direction": direction, "count": int(count)}
             )
 
         by_document_rows = (
@@ -2049,7 +2049,7 @@ class Searches(Propositions):
         by_document: dict[int, list[dict[str, typing.Any]]] = {}
         for prop_id, document_id, count in by_document_rows:
             by_document.setdefault(prop_id, []).append(
-                {"document_id": document_id, "count": int(count)}
+                {"id": document_id, "count": int(count)}
             )
 
         by_organization_rows = (
@@ -2067,16 +2067,33 @@ class Searches(Propositions):
         by_organization: dict[int, list[dict[str, typing.Any]]] = {}
         for prop_id, organization_id, count in by_organization_rows:
             by_organization.setdefault(prop_id, []).append(
-                {"organization_id": organization_id, "count": int(count)}
+                {"id": organization_id, "count": int(count)}
+            )
+
+        by_strength_rows = (
+            base_statement_query.with_entities(
+                models.Statements.proposition_id,
+                models.Statements.strength_id,
+                sqlalchemy.func.count(models.Statements.id).label("count"),
+            )
+            .filter(models.Statements.proposition_id.in_(proposition_ids))
+            .group_by(models.Statements.proposition_id, models.Statements.strength_id)
+            .all()
+        )
+        by_strength: dict[int, list[dict[str, typing.Any]]] = {}
+        for prop_id, strength_id, count in by_strength_rows:
+            by_strength.setdefault(prop_id, []).append(
+                {"id": strength_id, "count": int(count)}
             )
 
         aggregates: dict[int, dict[str, typing.Any]] = {}
         for proposition_id in proposition_ids:
             aggregates[proposition_id] = {
                 "statement_count": int(statement_counts.get(proposition_id, 0)),
+                "by_direction": by_direction.get(proposition_id, []),
+                "by_document": by_document.get(proposition_id, []),
                 "by_organization": by_organization.get(proposition_id, []),
                 "by_strength": by_strength.get(proposition_id, []),
-                "by_document": by_document.get(proposition_id, []),
             }
 
         return aggregates
@@ -2189,7 +2206,7 @@ class Searches(Propositions):
             return serialized
 
         proposition_ids = [rec["id"] for rec in serialized if "id" in rec]
-        agg = cls.aggregates_statements_by_proposition_ids(
+        agg = cls.aggregate_statements_by_proposition_ids(
             session=session,
             proposition_ids=proposition_ids,
             parameters=parameters,
