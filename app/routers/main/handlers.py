@@ -2005,7 +2005,7 @@ class Searches(Propositions):
         if not proposition_ids:
             return {}
 
-        base_statement_query = cls.filtered_statements_query_by_organizations(
+        base_statement_query = cls.filtered_statements_query(
             session=session, proposition_ids=proposition_ids, parameters=parameters
         )
 
@@ -2165,7 +2165,7 @@ class Searches(Propositions):
         }
 
     @staticmethod
-    def filtered_statements_query_by_organizations(
+    def filtered_statements_query(
         session: sqlalchemy.orm.Session,
         proposition_ids: list[int],
         parameters: dict[str, typing.Any] | None,
@@ -2174,14 +2174,33 @@ class Searches(Propositions):
             models.Statements.proposition_id.in_(proposition_ids)
         )
 
+        document_ids = (parameters or {}).get("document")
+        indication_ids = (parameters or {}).get("indication")
         organization_ids = (parameters or {}).get("organization")
+
+        need_document_join = bool(document_ids or organization_ids)
+        if need_document_join:
+            query = query.join(models.Statements.documents)
+
+        if document_ids:
+            if isinstance(document_ids, str):
+                document_ids = [document_ids]
+            else:
+                query = query.filter(models.Documents.id.in_(document_ids))
+
+        if indication_ids:
+            if isinstance(indication_ids, str):
+                indication_ids = [indication_ids]
+            else:
+                query = query.filter(
+                    models.Statements.indication_id.in_(indication_ids)
+                )
+
         if organization_ids:
             if isinstance(organization_ids, str):
                 organization_ids = [organization_ids]
-            query = (
-                query.join(models.Statements.documents)
-                .join(models.Documents.organization)
-                .filter(models.Organizations.id.in_(organization_ids))
+            query = query.join(models.Documents.organization).filter(
+                models.Organizations.id.in_(organization_ids)
             )
 
         return query

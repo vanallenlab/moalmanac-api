@@ -549,9 +549,11 @@ def get_search(
     statement = handler.construct_base_query(model=models.Propositions)
     if proposition_id:
         statement = statement.where(models.Propositions.id == proposition_id)
-        message_subject = f"Proposition id {proposition_id}"
+        message_subject = (
+            f"Search results by Proposition where proposition id {proposition_id}"
+        )
     else:
-        message_subject = "Propositions"
+        message_subject = "Search results by Proposition"
 
     parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(
