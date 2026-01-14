@@ -380,7 +380,7 @@ class Statements(Base):
     proposition_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('propositions.id'), nullable=False)
     direction = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     strength_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('strengths.id'), nullable=False)
-    indication_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('indications.id'), nullable=True)
+    indication_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('indications.id'), nullable=True)
 
     # Relationships
     contributions = sqlalchemy.orm.Relationship(

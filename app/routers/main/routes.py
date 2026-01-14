@@ -65,8 +65,7 @@ def create_response(
         "timestamp_elapsed": round(elapsed.total_seconds(), 6),
         "timestamp_received": f"{received.isoformat()}Z" if received else None,
         "timestamp_returned": f"{returned.isoformat()}Z",
-        "trace_id": str(uuid.uuid4())
-        
+        "trace_id": str(uuid.uuid4()),
     }
     return {
         "meta": meta,
@@ -84,12 +83,16 @@ def get_service_metadata(database: sqlalchemy.orm.Session) -> dict:
 
 
 _service_cache: dict[str, tuple[float, dict]] = {}
-def get_service_metadata_cached(database: sqlalchemy.orm.Session, ttl: int = 300) -> dict:
+
+
+def get_service_metadata_cached(
+    database: sqlalchemy.orm.Session, ttl: int = 300
+) -> dict:
     now = time.time()
     hit = _service_cache.get("about")
     if hit and now - hit[0] < ttl:
         return hit[1]
-    
+
     value = get_service_metadata(database=database)
     _service_cache["about"] = (now, value)
     return value
@@ -530,6 +533,57 @@ def get_propositions(
     )
 
 
+@router.get("/search", tags=["Search"])
+def get_search(
+    request: fastapi.Request,
+    proposition_id: int | None = fastapi.Query(default=None),
+    include_empty: bool = fastapi.Query(default=False),
+    database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
+):
+    """
+    Searches across Propositions table from the database.
+    Aggregate information will be displayed alongside each proposition.
+    """
+    received = generate_datetime_now()
+    handler = handlers.Searches()
+    statement = handler.construct_base_query(model=models.Propositions)
+    if proposition_id:
+        statement = statement.where(models.Propositions.id == proposition_id)
+        message_subject = (
+            f"Search results by Proposition where proposition id {proposition_id}"
+        )
+    else:
+        message_subject = "Search results by Proposition"
+
+    parameters = handler.get_parameters(arguments=request.query_params)
+    statement, joined_tables = handler.perform_joins(
+        statement=statement, parameters=parameters
+    )
+
+    result = handler.execute_query(session=database, statement=statement)
+    serialized = handler.serialize_instances(
+        instances=result, session=database, parameters=parameters
+    )
+    if not include_empty:
+        serialized = [
+            proposition
+            for proposition in serialized
+            if (proposition.get("aggregates", {}).get("statement_count", 0) or 0) > 0
+        ]
+    suffix = "" if not include_empty else " (including zero-statement propositions)"
+
+    service = get_service_metadata_cached(database=database)
+
+    return create_response(
+        data=serialized,
+        message=f"{message_subject} retrieved successfully{suffix}",
+        received=received,
+        request_url=str(request.url),
+        status_code=200,
+        service=service,
+    )
+
+
 @router.get("/statements", tags=["Entities"])
 def get_statements(
     request: fastapi.Request,
@@ -660,9 +714,7 @@ def get_therapy_groups(
     handler = handlers.TherapyGroups()
     statement = handler.construct_base_query(model=models.TherapyGroups)
     if therapy_group_id:
-        statement = statement.where(
-            models.TherapyGroups.id == therapy_group_id
-        )
+        statement = statement.where(models.TherapyGroups.id == therapy_group_id)
         message_subject = f"Therapy group id {therapy_group_id}"
     else:
         message_subject = "Therapy groups"
