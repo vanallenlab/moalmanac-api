@@ -613,9 +613,7 @@ class Agents(BaseHandler):
         serialized_record = cls.serialize_secondary_instances(
             instance=instance, record=serialized_record
         )
-        serialized_record["last_updated"] = cls.convert_date_to_iso(
-            value=instance.last_updated
-        )
+        serialized_record["last_updated"] = instance.last_updated
 
         # keys_to_remove = [
         # ]
@@ -1394,8 +1392,8 @@ class Documents(BaseHandler):
         Returns:
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
-        record["organization"] = Agents.serialize_single_instance(
-            instance=instance.organization
+        record["agent"] = Agents.serialize_single_instance(
+            instance=instance.agent
         )
         return record
 
@@ -1562,7 +1560,7 @@ class Indications(BaseHandler):
         Performs joins relevant to the Indications table.
 
         This method extends the base class implementation. Specifically, it performs a join with the Statements table
-        if `document`, `indication`, or `organization` are provided as a parameter.
+        if `document`, `indication`, or `agent` are provided as a parameter.
 
         This is Step 2 of managing the query.
 
@@ -1585,8 +1583,8 @@ class Indications(BaseHandler):
 
         document_values = parameters.get("document", None)
         indication_values = parameters.get("indication", None)
-        organization_values = parameters.get("agent", None)
-        if document_values or indication_values or organization_values:
+        agent_values = parameters.get("agent", None)
+        if document_values or indication_values or agent_values:
             if (
                 base_table in [models.Statements]
                 and models.Indications not in joined_tables
@@ -2042,22 +2040,22 @@ class Searches(Propositions):
                 {"id": document_id, "count": int(count)}
             )
 
-        by_organization_rows = (
+        by_agent_rows = (
             base_statement_query.with_entities(
                 models.Statements.proposition_id,
                 models.Agents.id.label("agent_id"),
                 sqlalchemy.func.count(models.Statements.id).label("count"),
             )
             .join(models.Statements.documents)
-            .join(models.Documents.organization)
+            .join(models.Documents.agent)
             .filter(models.Statements.proposition_id.in_(proposition_ids))
             .group_by(models.Statements.proposition_id, models.Agents.id)
             .all()
         )
-        by_organization: dict[int, list[dict[str, typing.Any]]] = {}
-        for prop_id, organization_id, count in by_organization_rows:
-            by_organization.setdefault(prop_id, []).append(
-                {"id": organization_id, "count": int(count)}
+        by_agent: dict[int, list[dict[str, typing.Any]]] = {}
+        for prop_id, agent_id, count in by_agent_rows:
+            by_agent.setdefault(prop_id, []).append(
+                {"id": agent_id, "count": int(count)}
             )
 
         by_strength_rows = (
@@ -2082,7 +2080,7 @@ class Searches(Propositions):
                 "statement_count": int(statement_counts.get(proposition_id, 0)),
                 "by_direction": by_direction.get(proposition_id, []),
                 "by_document": by_document.get(proposition_id, []),
-                "by_organization": by_organization.get(proposition_id, []),
+                "by_agent": by_agent.get(proposition_id, []),
                 "by_strength": by_strength.get(proposition_id, []),
             }
 
@@ -2094,35 +2092,35 @@ class Searches(Propositions):
     ) -> None:
         """
         Dereferences ids within aggregates dictionary from /search endpoint.
-        Currently dereferences organizations and strengths.
+        Currently dereferences agents and strengths.
         """
 
         # These are typing hints, and are the dtype of the `id` value for each dict.
         # Typing hints are probably my favorite Python thing I learned in 2025.
         # Say hello if you read this!
-        organization_ids: set[str] = set()
+        agent_ids: set[str] = set()
         strength_ids: set[int] = set()
 
         for agg in aggregates.values():
-            for row in agg.get("by_organization", []):
-                organization_id = row.get("organization_id")
-                if organization_id is not None:
-                    organization_ids.add(organization_id)
+            for row in agg.get("by_agent", []):
+                agent_id = row.get("agent_id")
+                if agent_id is not None:
+                    agent_ids.add(agent_id)
             for row in agg.get("by_strength", []):
                 strength_id = row.get("strength_id")
                 if strength_id is not None:
                     strength_ids.add(strength_id)
 
-        organization_lookup: dict[str, dict[str, typing.Any]] = {}
-        if organization_ids:
-            organization_instances = (
+        agent_lookup: dict[str, dict[str, typing.Any]] = {}
+        if agent_ids:
+            agent_instances = (
                 session.query(models.Agents)
-                .filter(models.Agents.id.in_(list(organization_ids)))
+                .filter(models.Agents.id.in_(list(agent_ids)))
                 .all()
             )
-            for organization in organization_instances:
-                organization_lookup[organization.id] = Agents.serialize_single_instance(
-                    instance=organization
+            for agent in agent_instances:
+                agent_lookup[agent.id] = Agents.serialize_single_instance(
+                    instance=agent
                 )
 
         strength_lookup: dict[int, dict[str, typing.Any]] = {}
@@ -2138,9 +2136,9 @@ class Searches(Propositions):
                 )
 
         for agg in aggregates.values():
-            for row in agg.get("by_organization", []):
-                organization_id = row.pop("organization_id", None)
-                row["organization"] = organization_lookup.get(organization_id)
+            for row in agg.get("by_agent", []):
+                agent_id = row.pop("agent_id", None)
+                row["agent"] = agent_lookup.get(agent_id)
             for row in agg.get("by_strength", []):
                 strength_id = row.pop("strength_id", None)
                 row["strength"] = strength_lookup.get(strength_id)
@@ -2149,7 +2147,7 @@ class Searches(Propositions):
     def empty_aggregates() -> dict[str, typing.Any]:
         return {
             "statement_count": 0,
-            "by_organization": [],
+            "by_agent": [],
             "by_strength": [],
             "by_document": [],
         }
@@ -2166,9 +2164,9 @@ class Searches(Propositions):
 
         document_ids = (parameters or {}).get("document")
         indication_ids = (parameters or {}).get("indication")
-        organization_ids = (parameters or {}).get("organization")
+        agent_ids = (parameters or {}).get("agent")
 
-        need_document_join = bool(document_ids or organization_ids)
+        need_document_join = bool(document_ids or agent_ids)
         if need_document_join:
             query = query.join(models.Statements.documents)
 
@@ -2186,11 +2184,11 @@ class Searches(Propositions):
                     models.Statements.indication_id.in_(indication_ids)
                 )
 
-        if organization_ids:
-            if isinstance(organization_ids, str):
-                organization_ids = [organization_ids]
-            query = query.join(models.Documents.organization).filter(
-                models.Agents.id.in_(organization_ids)
+        if agent_ids:
+            if isinstance(agent_ids, str):
+                agent_ids = [agent_ids]
+            query = query.join(models.Documents.agent).filter(
+                models.Agents.id.in_(agent_ids)
             )
 
         return query

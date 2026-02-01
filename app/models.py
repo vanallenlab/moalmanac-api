@@ -37,7 +37,7 @@ class Agents(Base):
     )
     documents = sqlalchemy.orm.Relationship(
         "Documents",
-        back_populates="organization",
+        back_populates="agent",
     )
 
 
@@ -233,7 +233,7 @@ class Documents(Base):
         "Indications",
         back_populates="document",
     )
-    organization = sqlalchemy.orm.Relationship(
+    agent = sqlalchemy.orm.Relationship(
         "Agents",
         back_populates="documents",
     )
