@@ -1249,7 +1249,8 @@ class Documents(BaseHandler):
 
         document_values = parameters.get("document", None)
         agent_values = parameters.get("agent", None)
-        if document_values or agent_values:
+        agent_id_values = parameters.get("agent_id", None)
+        if document_values or agent_values or agent_id_values:
             if base_table == models.Documents and models.Documents not in joined_tables:
                 if document_values:
                     conditions = [models.Documents.id.in_(document_values)]
@@ -1392,9 +1393,7 @@ class Documents(BaseHandler):
         Returns:
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
-        record["agent"] = Agents.serialize_single_instance(
-            instance=instance.agent
-        )
+        record["agent"] = Agents.serialize_single_instance(instance=instance.agent)
         return record
 
 
@@ -1584,7 +1583,15 @@ class Indications(BaseHandler):
         document_values = parameters.get("document", None)
         indication_values = parameters.get("indication", None)
         agent_values = parameters.get("agent", None)
-        if document_values or indication_values or agent_values:
+        agent_id_values = parameters.get("agent_id", None)
+        agent_type_values = parameters.get("agent_type", None)
+        if (
+            document_values
+            or indication_values
+            or agent_values
+            or agent_id_values
+            or agent_type_values
+        ):
             if (
                 base_table in [models.Statements]
                 and models.Indications not in joined_tables
