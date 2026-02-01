@@ -983,6 +983,13 @@ class Contributions(BaseHandler):
         agent_id_values = parameters.get("agent_id", None)
         contribution_values = parameters.get("contribution", None)
         # Could expand this to have a filter criteria based on contribution date
+        if (
+            base_table == models.Statements
+            and not contribution_values
+            and (agent_values or agent_id_values)
+        ):
+            return statement, joined_tables
+
         if agent_values or agent_id_values or contribution_values:
             c_s = models.AssociationContributionsAndStatements
             if base_table in [models.Statements] and c_s not in joined_tables:
