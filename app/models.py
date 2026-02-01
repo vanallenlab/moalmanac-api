@@ -233,7 +233,7 @@ class Documents(Base):
         "Indications",
         back_populates="document",
     )
-    agents = sqlalchemy.orm.Relationship(
+    organization = sqlalchemy.orm.Relationship(
         "Agents",
         back_populates="documents",
     )

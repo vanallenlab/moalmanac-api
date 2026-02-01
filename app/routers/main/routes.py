@@ -457,44 +457,6 @@ def get_mappings(
     )
 
 
-@router.get("/organizations", tags=["Entities"])
-def get_organizations(
-    request: fastapi.Request,
-    organization_id: str = fastapi.Query(default=None),
-    database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
-):
-    """
-    Retrieves Organization table from the database.
-    """
-    received = generate_datetime_now()
-    handler = handlers.Organizations()
-    statement = handler.construct_base_query(model=models.Organizations)
-    if organization_id:
-        statement = statement.where(models.Organizations.id == organization_id)
-        message_subject = f"Organization {organization_id}"
-    else:
-        message_subject = "Organizations"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
-    )
-
-
 @router.get("/propositions", tags=["Entities"])
 def get_propositions(
     request: fastapi.Request,

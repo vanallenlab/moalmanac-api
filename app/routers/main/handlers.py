@@ -523,9 +523,10 @@ class Agents(BaseHandler):
                 and models.Agents not in joined_tables
             ):
                 statement = statement.join(
-                    model.Agents, model.Agents.id == models.Contributions.agent_id
+                    models.Agents, 
+                    models.Agents.id == models.Contributions.agent_id
                 )
-                joined_tables.add(Agents)
+                joined_tables.add(models.Agents)
 
                 conditions = []
                 if agent_ids:
@@ -1395,7 +1396,7 @@ class Documents(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record["organization"] = Agents.serialize_single_instance(
-            instance=instance.agent
+            instance=instance.organization
         )
         return record
 
@@ -2049,7 +2050,7 @@ class Searches(Propositions):
                 sqlalchemy.func.count(models.Statements.id).label("count"),
             )
             .join(models.Statements.documents)
-            .join(models.Documents.agents)
+            .join(models.Documents.organization)
             .filter(models.Statements.proposition_id.in_(proposition_ids))
             .group_by(models.Statements.proposition_id, models.Agents.id)
             .all()
@@ -2189,8 +2190,10 @@ class Searches(Propositions):
         if organization_ids:
             if isinstance(organization_ids, str):
                 organization_ids = [organization_ids]
-            query = query.join(models.Documents.organization).filter(
-                models.Organizations.id.in_(organization_ids)
+            query = (
+                query
+                .join(models.Documents.organization)
+                .filter(models.Agents.id.in_(organization_ids))
             )
 
         return query
