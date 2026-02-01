@@ -454,10 +454,10 @@ class Agents(BaseHandler):
         # Parameters
         agent_ids = cls.normalize_to_list(parameters.get("agent_id", None))
         agent_names = cls.normalize_to_list(parameters.get("agent", None))
-        agent_subtypes = cls.normalize_to_list(parameters.get("agent_subtype", None))
+        agent_types = cls.normalize_to_list(parameters.get("agent_type", None))
 
         # If no filter, return the statement and joined_tables without modification
-        if not any([agent_ids, agent_names, agent_subtypes]):
+        if not any([agent_ids, agent_names, agent_types]):
             return statement, joined_tables
 
         agents_via_statements = sqlalchemy.orm.aliased(models.Agents)
@@ -472,8 +472,8 @@ class Agents(BaseHandler):
                 conditions.append(models.Agents.id.in_(agent_ids))
             if agent_names:
                 conditions.append(models.Agents.name.in_(agent_names))
-            if agent_subtypes:
-                conditions.append(models.Agents.subtype.in_(agent_subtypes))
+            if agent_types:
+                conditions.append(models.Agents.agent_type.in_(agent_types))
             if conditions:
                 path_conditions.append(sqlalchemy.and_(*conditions))
 
@@ -489,8 +489,8 @@ class Agents(BaseHandler):
                 conditions.append(models.Agents.id.in_(agent_ids))
             if agent_names:
                 conditions.append(models.Agents.name.in_(agent_names))
-            if agent_subtypes:
-                conditions.append(models.Agents.subtype.in_(agent_subtypes))
+            if agent_types:
+                conditions.append(models.Agents.agent_type.in_(agent_types))
             if conditions:
                 path_conditions.append(sqlalchemy.and_(*conditions))
 
@@ -511,8 +511,8 @@ class Agents(BaseHandler):
                 conditions.append(agents_via_indications.id.in_(agent_ids))
             if agent_names:
                 conditions.append(agents_via_indications.name.in_(agent_names))
-            if agent_subtypes:
-                conditions.append(agents_via_indications.subtype.in_(agent_subtypes))
+            if agent_types:
+                conditions.append(agents_via_indications.agent_type.in_(agent_types))
             if conditions:
                 path_conditions.append(sqlalchemy.and_(*conditions))
 
@@ -523,8 +523,7 @@ class Agents(BaseHandler):
                 and models.Agents not in joined_tables
             ):
                 statement = statement.join(
-                    models.Agents, 
-                    models.Agents.id == models.Contributions.agent_id
+                    models.Agents, models.Agents.id == models.Contributions.agent_id
                 )
                 joined_tables.add(models.Agents)
 
@@ -533,8 +532,8 @@ class Agents(BaseHandler):
                     conditions.append(models.Agents.id.in_(agent_ids))
                 if agent_names:
                     conditions.append(models.Agents.name.in_(agent_names))
-                if agent_subtypes:
-                    conditions.append(models.Agents.subtype.in_(agent_subtypes))
+                if agent_types:
+                    conditions.append(models.Agents.agent_type.in_(agent_types))
                 if conditions:
                     path_conditions.append(sqlalchemy.and_(*conditions))
 
@@ -549,8 +548,8 @@ class Agents(BaseHandler):
                     conditions.append(agents_via_statements.id.in_(agent_ids))
                 if agent_names:
                     conditions.append(agents_via_statements.name.in_(agent_names))
-                if agent_subtypes:
-                    conditions.append(agents_via_statements.subtype.in_(agent_subtypes))
+                if agent_types:
+                    conditions.append(agents_via_statements.agent_type.in_(agent_types))
                 if conditions:
                     path_conditions.append(sqlalchemy.and_(*conditions))
 
@@ -571,8 +570,8 @@ class Agents(BaseHandler):
                     conditions.append(models.Agents.id.in_(agent_ids))
                 if agent_names:
                     conditions.append(models.Agents.name.in_(agent_names))
-                if agent_subtypes:
-                    conditions.append(models.Agents.subtype.in_(agent_subtypes))
+                if agent_types:
+                    conditions.append(models.Agents.agent_type.in_(agent_types))
                 if conditions:
                     path_conditions.append(sqlalchemy.and_(*conditions))
 
@@ -2122,8 +2121,8 @@ class Searches(Propositions):
                 .all()
             )
             for organization in organization_instances:
-                organization_lookup[organization.id] = (
-                    Agents.serialize_single_instance(instance=organization)
+                organization_lookup[organization.id] = Agents.serialize_single_instance(
+                    instance=organization
                 )
 
         strength_lookup: dict[int, dict[str, typing.Any]] = {}
@@ -2190,10 +2189,8 @@ class Searches(Propositions):
         if organization_ids:
             if isinstance(organization_ids, str):
                 organization_ids = [organization_ids]
-            query = (
-                query
-                .join(models.Documents.organization)
-                .filter(models.Agents.id.in_(organization_ids))
+            query = query.join(models.Documents.organization).filter(
+                models.Agents.id.in_(organization_ids)
             )
 
         return query

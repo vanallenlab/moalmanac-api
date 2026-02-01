@@ -69,22 +69,27 @@ class SQL:
     def add_agents(cls, records, session):
         for record in records:
             extensions = record.get("extensions", [])
-            last_updated = Process.get_extension(
+            last_updated_extension = Process.get_extension(
                 list_of_extensions=extensions,
                 name="last_updated",
             )
-            url = Process.get_extension(
+            last_updated_date = Process.parse_date(
+                last_updated_extension[0].get("value")
+                if last_updated_extension
+                else None
+            )
+            url_extension = Process.get_extension(
                 list_of_extensions=extensions,
                 name="url",
             )
             agent = models.Agents(
                 id=record.get("id"),
                 type=record.get("type"),
-                subtype=record.get("subtype"),
+                agent_type=record.get("agentType"),
                 name=record.get("name"),
                 description=record.get("description"),
-                last_updated=last_updated if last_updated else None,
-                url=url if url else None,
+                last_updated=last_updated_date,
+                url=url_extension[0].get("value") if url_extension else None,
             )
             session.add(agent)
 
@@ -709,7 +714,7 @@ def main(referenced_dictionary, config_path="config.ini"):
         session.commit()
 
         agents = Process.load_json(f"{root}/agents.json")
-        SQL.add_codings(records=agents, session=session)
+        SQL.add_agents(records=agents, session=session)
         session.commit()
 
         codings = Process.load_json(f"{root}/codings.json")
@@ -718,10 +723,6 @@ def main(referenced_dictionary, config_path="config.ini"):
 
         mappings = Process.load_json(f"{root}/mappings.json")
         SQL.add_mappings(records=mappings, session=session)
-        session.commit()
-
-        agents = Process.load_json(f"{root}/agents.json")
-        SQL.add_agents(records=agents, session=session)
         session.commit()
 
         genes = Process.load_json(f"{root}/genes.json")

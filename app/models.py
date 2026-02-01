@@ -22,9 +22,9 @@ class Agents(Base):
     __tablename__ = "agents"
 
     # Fields
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    subtype = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    agent_type = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     last_updated = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
