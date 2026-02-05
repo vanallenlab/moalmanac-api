@@ -1,0 +1,7 @@
+{
+    "python.defaultInterpreterPath": "/opt/miniconda3/envs/moalmanac-api/bin/python",
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python-envs.pythonProjects": [],
+    "terminal.integrated.environmentChangesRelaunch": true
+}

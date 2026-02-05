@@ -117,7 +117,6 @@ class BaseHandler:
             "document": models.Documents.id,
             "gene": models.Genes.name,
             "indication": models.Indications.id,
-            "organization": models.Organizations.name,
             # 'strength': models.Strengths.id,
             "therapy": models.Therapies.name,
             "therapy_type": models.Therapies.therapy_type,
@@ -161,6 +160,27 @@ class BaseHandler:
             list[model.Base]: A list of SQLAlchemy model instances returned by the query.
         """
         return session.execute(statement=statement).unique().scalars().all()
+
+    @staticmethod
+    def normalize_to_list(value) -> list[str] | None:
+        """
+        Normalize a provided value to a list
+
+        Args:
+            value (list, tuple, set, str, or None): Input value.
+
+        Returns:
+            list | None: Input normalized to a list
+        """
+        if value is None:
+            return None
+        elif isinstance(value, str) and "," in value:
+            parts = [v.strip() for v in value.split(",")]
+            return [p for p in parts if p]
+        elif isinstance(value, (list, tuple, set)):
+            return list(value)
+        else:
+            return [value]
 
     @classmethod
     def serialize_instances(
@@ -395,18 +415,20 @@ class Agents(BaseHandler):
     Handler class to manage queries against the Agents table.
     """
 
-    @staticmethod
+    @classmethod
     def perform_joins(
+        cls,
         statement: sqlalchemy.Select,
         parameters: ImmutableMultiDict,
         base_table: models.Agents = models.Agents,
-        joined_tables: list[models.Base] = None,
+        joined_tables: list[models.Base] | None = None,
+        documents_via_statements: models.Documents | None = None,
+        documents_via_indications: models.Documents | None = None,
     ) -> tuple[sqlalchemy.Select, list[models.Base]]:
         """
         Performs joins relevant to the Agents table.
 
-        This method extends the base class implementation by performing a join with the Contributions table and joining
-        on the Agents table using the `id` field of Agents.
+        This method extends the base class implementation by performing a join with the Contributions and Documents tables and joining on the Agents table, using the `id` field of Agents.
 
         This is Step 2 of managing the query.
 
@@ -415,6 +437,8 @@ class Agents(BaseHandler):
             parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
             base_table (models.Base, models.Agents): The SQLAlchemy model class initially queried against.
             joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
+            documents_via_statements (models.Documents, optional): An alias of the Documents table used in the query.
+            documents_via_indications (models.Documents, optional): An alias of the Documents table used in the query.
 
         Returns:
             sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
@@ -427,23 +451,143 @@ class Agents(BaseHandler):
         if joined_tables is None:
             joined_tables = set()
 
-        agent_values = parameters.get("agent", None)
-        if agent_values:
+        # Parameters
+        agent_ids = cls.normalize_to_list(parameters.get("agent_id", None))
+        agent_names = cls.normalize_to_list(parameters.get("agent", None))
+        agent_types = cls.normalize_to_list(parameters.get("agent_type", None))
+
+        # If no filter, return the statement and joined_tables without modification
+        if not any([agent_ids, agent_names, agent_types]):
+            return statement, joined_tables
+
+        agents_via_statements = sqlalchemy.orm.aliased(models.Agents)
+        agents_via_indications = sqlalchemy.orm.aliased(models.Agents)
+
+        path_conditions: list[sqlalchemy.sql.ClauseElement] = []
+
+        # If base_table is Agents
+        if base_table == models.Agents:
+            conditions = []
+            if agent_ids:
+                conditions.append(models.Agents.id.in_(agent_ids))
+            if agent_names:
+                conditions.append(models.Agents.name.in_(agent_names))
+            if agent_types:
+                conditions.append(models.Agents.agent_type.in_(agent_types))
+            if conditions:
+                path_conditions.append(sqlalchemy.and_(*conditions))
+
+        # If base_table is Documents (Documents.agent_id == Agents.id)
+        elif base_table == models.Documents:
+            if models.Agents not in joined_tables:
+                statement = statement.join(
+                    models.Agents, models.Agents.id == models.Documents.agent_id
+                )
+                joined_tables.add(models.Agents)
+            conditions = []
+            if agent_ids:
+                conditions.append(models.Agents.id.in_(agent_ids))
+            if agent_names:
+                conditions.append(models.Agents.name.in_(agent_names))
+            if agent_types:
+                conditions.append(models.Agents.agent_type.in_(agent_types))
+            if conditions:
+                path_conditions.append(sqlalchemy.and_(*conditions))
+
+        # If base_table is Indications (via documents_via_indications alias)
+        elif base_table == models.Indications:
+            if documents_via_indications is None:
+                raise ValueError(
+                    "base_table specified as Indications to Agents.perform_joins without providing documents_via_indications alias."
+                )
+
+            statement = statement.join(
+                agents_via_indications,
+                agents_via_indications.id == documents_via_indications.agent_id,
+            )
+
+            conditions = []
+            if agent_ids:
+                conditions.append(agents_via_indications.id.in_(agent_ids))
+            if agent_names:
+                conditions.append(agents_via_indications.name.in_(agent_names))
+            if agent_types:
+                conditions.append(agents_via_indications.agent_type.in_(agent_types))
+            if conditions:
+                path_conditions.append(sqlalchemy.and_(*conditions))
+
+        # If base_table is Statements (via documents_via_statements alias)
+        elif base_table == models.Statements:
             if (
-                base_table in [models.Contributions, models.Statements]
+                models.Contributions in joined_tables
                 and models.Agents not in joined_tables
             ):
                 statement = statement.join(
                     models.Agents, models.Agents.id == models.Contributions.agent_id
                 )
                 joined_tables.add(models.Agents)
-            elif base_table != models.Agents:
-                raise ValueError(
-                    f"Unsupported base table for Diseases.perform_joins: {base_table}."
+
+                conditions = []
+                if agent_ids:
+                    conditions.append(models.Agents.id.in_(agent_ids))
+                if agent_names:
+                    conditions.append(models.Agents.name.in_(agent_names))
+                if agent_types:
+                    conditions.append(models.Agents.agent_type.in_(agent_types))
+                if conditions:
+                    path_conditions.append(sqlalchemy.and_(*conditions))
+
+            if documents_via_statements is not None:
+                statement = statement.join(
+                    agents_via_statements,
+                    agents_via_statements.id == documents_via_statements.agent_id,
                 )
 
-            conditions = [models.Agents.name.in_(agent_values)]
-            statement = statement.where(sqlalchemy.and_(*conditions))
+                conditions = []
+                if agent_ids:
+                    conditions.append(agents_via_statements.id.in_(agent_ids))
+                if agent_names:
+                    conditions.append(agents_via_statements.name.in_(agent_names))
+                if agent_types:
+                    conditions.append(agents_via_statements.agent_type.in_(agent_types))
+                if conditions:
+                    path_conditions.append(sqlalchemy.and_(*conditions))
+
+            if not path_conditions:
+                raise ValueError(
+                    "base_table specified as Statements to Agents.perform_joins but no supported join path was available. Either documents_via_statements was not passed to source agents via documents via statements, or Contributors was not joined for agents via contributions."
+                )
+
+        elif base_table == models.Contributions:
+            if models.Agents not in joined_tables:
+                statement = statement.join(
+                    models.Agents, models.Agents.id == models.Contributions.agent_id
+                )
+                joined_tables.add(models.Agents)
+
+                conditions = []
+                if agent_ids:
+                    conditions.append(models.Agents.id.in_(agent_ids))
+                if agent_names:
+                    conditions.append(models.Agents.name.in_(agent_names))
+                if agent_types:
+                    conditions.append(models.Agents.agent_type.in_(agent_types))
+                if conditions:
+                    path_conditions.append(sqlalchemy.and_(*conditions))
+
+            else:
+                raise ValueError(
+                    f"Unsupported base table for Agents.perform_joins: {base_table}."
+                )
+
+        if len(path_conditions) == 1:
+            statement = statement.where(path_conditions[0])
+        elif len(path_conditions) > 1:
+            statement = statement.where(sqlalchemy.or_(*path_conditions))
+        else:
+            raise ValueError(
+                "No path conditions observed for Agents.perform_joins, this should not happen :("
+            )
 
         return statement, joined_tables
 
@@ -469,6 +613,7 @@ class Agents(BaseHandler):
         serialized_record = cls.serialize_secondary_instances(
             instance=instance, record=serialized_record
         )
+        serialized_record["last_updated"] = instance.last_updated
 
         # keys_to_remove = [
         # ]
@@ -835,9 +980,17 @@ class Contributions(BaseHandler):
             joined_tables = set()
 
         agent_values = parameters.get("agent", None)
+        agent_id_values = parameters.get("agent_id", None)
         contribution_values = parameters.get("contribution", None)
         # Could expand this to have a filter criteria based on contribution date
-        if agent_values or contribution_values:
+        if (
+            base_table == models.Statements
+            and not contribution_values
+            and (agent_values or agent_id_values)
+        ):
+            return statement, joined_tables
+
+        if agent_values or agent_id_values or contribution_values:
             c_s = models.AssociationContributionsAndStatements
             if base_table in [models.Statements] and c_s not in joined_tables:
                 statement = statement.join(
@@ -1078,7 +1231,7 @@ class Documents(BaseHandler):
         Performs joins relevant to the Documents table.
 
         This method extends the base class implementation. Specifically, it performs joins with the Indications and/or
-        Statements tables if `document` or `organization` are provided as parameters.
+        Statements tables if `document` or `agent` are provided as parameters.
 
         This is Step 2 of managing the query.
 
@@ -1103,8 +1256,9 @@ class Documents(BaseHandler):
         documents_via_indications = sqlalchemy.orm.aliased(models.Documents)
 
         document_values = parameters.get("document", None)
-        organization_values = parameters.get("organization", None)
-        if document_values or organization_values:
+        agent_values = parameters.get("agent", None)
+        agent_id_values = parameters.get("agent_id", None)
+        if document_values or agent_values or agent_id_values:
             if base_table == models.Documents and models.Documents not in joined_tables:
                 if document_values:
                     conditions = [models.Documents.id.in_(document_values)]
@@ -1166,7 +1320,7 @@ class Documents(BaseHandler):
                     f"Unsupported base table for Documents.perform_joins: {base_table}."
                 )
 
-            statement, joined_tables = Organizations.perform_joins(
+            statement, joined_tables = Agents.perform_joins(
                 statement=statement,
                 parameters=parameters,
                 base_table=base_table,
@@ -1185,7 +1339,7 @@ class Documents(BaseHandler):
         Serializes a single instance of the Documents table.
 
         This method extends the base class implementation by serializing the instance and any related tables. A few
-        keys are also converted to iso date format. The key `organization_id` is removed after serialization.
+        keys are also converted to iso date format. The key `agent_id` is removed after serialization.
 
         This is Step 6.1 of managing the query.
 
@@ -1213,7 +1367,7 @@ class Documents(BaseHandler):
             value=instance.publication_date
         )
 
-        keys_to_remove = ["organization_id"]
+        keys_to_remove = ["agent_id"]
         cls.pop_keys(keys=keys_to_remove, record=serialized_record)
 
         """
@@ -1235,7 +1389,7 @@ class Documents(BaseHandler):
     ) -> dict[str, typing.Any]:
         """
         References `serialize_instance` functions from relevant classes for each secondary table. Specifically, this
-        function extends the base class implementationby serializing the `organization` key using the Organizations
+        function extends the base class implementation by serializing the `agent` key using the Agents
         model.
 
         This is Step 6.3 of managing the query.
@@ -1247,9 +1401,7 @@ class Documents(BaseHandler):
         Returns:
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
-        record["organization"] = Organizations.serialize_single_instance(
-            instance=instance.organization
-        )
+        record["agent"] = Agents.serialize_single_instance(instance=instance.agent)
         return record
 
 
@@ -1415,7 +1567,7 @@ class Indications(BaseHandler):
         Performs joins relevant to the Indications table.
 
         This method extends the base class implementation. Specifically, it performs a join with the Statements table
-        if `document`, `indication`, or `organization` are provided as a parameter.
+        if `document`, `indication`, or `agent` are provided as a parameter.
 
         This is Step 2 of managing the query.
 
@@ -1438,8 +1590,9 @@ class Indications(BaseHandler):
 
         document_values = parameters.get("document", None)
         indication_values = parameters.get("indication", None)
-        organization_values = parameters.get("organization", None)
-        if document_values or indication_values or organization_values:
+        agent_values = parameters.get("agent", None)
+        agent_id_values = parameters.get("agent_id", None)
+        if document_values or indication_values or agent_values or agent_id_values:
             if (
                 base_table in [models.Statements]
                 and models.Indications not in joined_tables
@@ -1654,163 +1807,6 @@ class Mappings(BaseHandler):
                 instance=instance.primary_coding
             )
         record["coding"] = Codings.serialize_single_instance(instance=instance.coding)
-        return record
-
-
-class Organizations(BaseHandler):
-    """
-    Handler class to manage queries against the Organizations table.
-    """
-
-    @staticmethod
-    def perform_joins(
-        statement: sqlalchemy.Select,
-        parameters: ImmutableMultiDict,
-        base_table: models.Organizations = models.Organizations,
-        joined_tables: list[models.Base] = None,
-        documents_via_statements: models.Documents = None,
-        documents_via_indications: models.Documents = None,
-    ) -> tuple[sqlalchemy.Select, list[models.Base]]:
-        """
-        Performs joins relevant to the Organizations table.
-
-        This method extends the base class implementation. Specifically, it performs a join with the Propositions
-        table if `disease` is provided as a parameter.
-
-        This is Step 2 of managing the query.
-
-        Args:
-            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply join operations to.
-            parameters (dict[str, typing.Any): A dictionary of route parameters to apply to the query as filters.
-            base_table (models.Organizations, models.Organizations): The SQLAlchemy model class initially queried against.
-            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined.
-            documents_via_statements (models.Documents, optional): An alias of the Documents table used in the query.
-            documents_via_indications (models.Documents, optional): An alias of the Documents table used in the query.
-
-        Returns:
-            sqlalchemy.Select: The SQLAlchemy select statement after join operations are applied.
-            joined_tables (list[models.Base], optional): A list of SQLAlchemy model classes of tables already joined,
-                with tables joined within this function added.
-        """
-        if not parameters:
-            return statement, joined_tables
-
-        if joined_tables is None:
-            joined_tables = set()
-
-        organizations_via_statements = sqlalchemy.orm.aliased(models.Organizations)
-        organizations_via_indications = sqlalchemy.orm.aliased(models.Organizations)
-
-        organization_values = parameters.get("organization", None)
-        if organization_values:
-            if (
-                base_table == models.Organizations
-                and models.Organizations not in joined_tables
-            ):
-                conditions = [models.Organizations.id.in_(organization_values)]
-                statement = statement.where(sqlalchemy.and_(*conditions))
-            elif (
-                base_table in [models.Documents, models.Indications, models.Statements]
-                and models.Organizations not in joined_tables
-            ):
-                conditions = []
-                if base_table == models.Documents:
-                    statement = statement.join(
-                        models.Organizations,
-                        models.Organizations.id == models.Documents.organization_id,
-                    )
-                    conditions.append(models.Organizations.id.in_(organization_values))
-                elif base_table == models.Indications:
-                    # if documents_via_indications:
-                    statement = statement.join(
-                        organizations_via_indications,
-                        organizations_via_indications.id
-                        == documents_via_indications.organization_id,
-                    )
-                    conditions.append(
-                        organizations_via_indications.id.in_(organization_values)
-                    )
-                elif base_table == models.Statements:
-                    # if documents_via_statements:
-                    statement = statement.join(
-                        organizations_via_statements,
-                        organizations_via_statements.id
-                        == documents_via_statements.organization_id,
-                    )
-                    conditions.append(
-                        organizations_via_statements.id.in_(organization_values)
-                    )
-                else:
-                    # if not (documents_via_statements or documents_via_indications):
-                    message = f"Basetable specified as {base_table} to Organizations.perform_joins without providing document alias(es)."
-                    raise ValueError(message)
-                joined_tables.add(models.Organizations)
-
-                if len(conditions) > 1:
-                    combined_condition = sqlalchemy.or_(*conditions)
-                elif conditions:
-                    combined_condition = conditions[0]
-                else:
-                    combined_condition = None
-
-                if combined_condition is not None:
-                    statement = statement.where(sqlalchemy.and_(combined_condition))
-
-            elif base_table != models.Organizations:
-                raise ValueError(
-                    f"Unsupported base table for Organizations.perform_joins: {base_table}."
-                )
-
-        return statement, joined_tables
-
-    @classmethod
-    def serialize_single_instance(
-        cls, instance: models.Organizations
-    ) -> dict[str, typing.Any]:
-        """
-        Serializes a single instance of the Organizations table.
-
-        This method extends the base class implementation by serializing the instance and any related tables.
-
-        This is Step 6.1 of managing the query.
-
-        Args:
-            instance (models.Organizations): A SQLAlchemy model instance to serialize.
-
-        Returns:
-            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
-        """
-        serialized_record = cls.serialize_primary_instance(instance=instance)
-        serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
-        )
-        serialized_record["last_updated"] = cls.convert_date_to_iso(
-            value=instance.last_updated
-        )
-
-        key_order = ["id", "name", "description", "url", "last_updated"]
-        serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
-        )
-        return serialized_record
-
-    @classmethod
-    def serialize_secondary_instances(
-        cls, instance: models.Organizations, record: dict[str, typing.Any]
-    ) -> dict[str, typing.Any]:
-        """
-        References `serialize_instance` functions from relevant classes for each secondary table. The Organizations
-        table does not currently reference any other tables.
-
-        This is Step 6.3 of managing the query.
-
-        Args:
-            instance (models.Organizations): A SQLAlchemy model instance to serialize.
-            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
-
-        Returns:
-            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
-        """
         return record
 
 
@@ -2052,22 +2048,22 @@ class Searches(Propositions):
                 {"id": document_id, "count": int(count)}
             )
 
-        by_organization_rows = (
+        by_agent_rows = (
             base_statement_query.with_entities(
                 models.Statements.proposition_id,
-                models.Organizations.id.label("organization_id"),
+                models.Agents.id.label("agent_id"),
                 sqlalchemy.func.count(models.Statements.id).label("count"),
             )
             .join(models.Statements.documents)
-            .join(models.Documents.organization)
+            .join(models.Documents.agent)
             .filter(models.Statements.proposition_id.in_(proposition_ids))
-            .group_by(models.Statements.proposition_id, models.Organizations.id)
+            .group_by(models.Statements.proposition_id, models.Agents.id)
             .all()
         )
-        by_organization: dict[int, list[dict[str, typing.Any]]] = {}
-        for prop_id, organization_id, count in by_organization_rows:
-            by_organization.setdefault(prop_id, []).append(
-                {"id": organization_id, "count": int(count)}
+        by_agent: dict[int, list[dict[str, typing.Any]]] = {}
+        for prop_id, agent_id, count in by_agent_rows:
+            by_agent.setdefault(prop_id, []).append(
+                {"id": agent_id, "count": int(count)}
             )
 
         by_strength_rows = (
@@ -2092,7 +2088,7 @@ class Searches(Propositions):
                 "statement_count": int(statement_counts.get(proposition_id, 0)),
                 "by_direction": by_direction.get(proposition_id, []),
                 "by_document": by_document.get(proposition_id, []),
-                "by_organization": by_organization.get(proposition_id, []),
+                "by_agent": by_agent.get(proposition_id, []),
                 "by_strength": by_strength.get(proposition_id, []),
             }
 
@@ -2104,35 +2100,35 @@ class Searches(Propositions):
     ) -> None:
         """
         Dereferences ids within aggregates dictionary from /search endpoint.
-        Currently dereferences organizations and strengths.
+        Currently dereferences agents and strengths.
         """
 
         # These are typing hints, and are the dtype of the `id` value for each dict.
         # Typing hints are probably my favorite Python thing I learned in 2025.
         # Say hello if you read this!
-        organization_ids: set[str] = set()
+        agent_ids: set[str] = set()
         strength_ids: set[int] = set()
 
         for agg in aggregates.values():
-            for row in agg.get("by_organization", []):
-                organization_id = row.get("organization_id")
-                if organization_id is not None:
-                    organization_ids.add(organization_id)
+            for row in agg.get("by_agent", []):
+                agent_id = row.get("agent_id")
+                if agent_id is not None:
+                    agent_ids.add(agent_id)
             for row in agg.get("by_strength", []):
                 strength_id = row.get("strength_id")
                 if strength_id is not None:
                     strength_ids.add(strength_id)
 
-        organization_lookup: dict[str, dict[str, typing.Any]] = {}
-        if organization_ids:
-            organization_instances = (
-                session.query(models.Organizations)
-                .filter(models.Organizations.id.in_(list(organization_ids)))
+        agent_lookup: dict[str, dict[str, typing.Any]] = {}
+        if agent_ids:
+            agent_instances = (
+                session.query(models.Agents)
+                .filter(models.Agents.id.in_(list(agent_ids)))
                 .all()
             )
-            for organization in organization_instances:
-                organization_lookup[organization.id] = (
-                    Organizations.serialize_single_instance(instance=organization)
+            for agent in agent_instances:
+                agent_lookup[agent.id] = Agents.serialize_single_instance(
+                    instance=agent
                 )
 
         strength_lookup: dict[int, dict[str, typing.Any]] = {}
@@ -2148,9 +2144,9 @@ class Searches(Propositions):
                 )
 
         for agg in aggregates.values():
-            for row in agg.get("by_organization", []):
-                organization_id = row.pop("organization_id", None)
-                row["organization"] = organization_lookup.get(organization_id)
+            for row in agg.get("by_agent", []):
+                agent_id = row.pop("agent_id", None)
+                row["agent"] = agent_lookup.get(agent_id)
             for row in agg.get("by_strength", []):
                 strength_id = row.pop("strength_id", None)
                 row["strength"] = strength_lookup.get(strength_id)
@@ -2159,7 +2155,7 @@ class Searches(Propositions):
     def empty_aggregates() -> dict[str, typing.Any]:
         return {
             "statement_count": 0,
-            "by_organization": [],
+            "by_agent": [],
             "by_strength": [],
             "by_document": [],
         }
@@ -2176,9 +2172,9 @@ class Searches(Propositions):
 
         document_ids = (parameters or {}).get("document")
         indication_ids = (parameters or {}).get("indication")
-        organization_ids = (parameters or {}).get("organization")
+        agent_ids = (parameters or {}).get("agent")
 
-        need_document_join = bool(document_ids or organization_ids)
+        need_document_join = bool(document_ids or agent_ids)
         if need_document_join:
             query = query.join(models.Statements.documents)
 
@@ -2196,11 +2192,11 @@ class Searches(Propositions):
                     models.Statements.indication_id.in_(indication_ids)
                 )
 
-        if organization_ids:
-            if isinstance(organization_ids, str):
-                organization_ids = [organization_ids]
-            query = query.join(models.Documents.organization).filter(
-                models.Organizations.id.in_(organization_ids)
+        if agent_ids:
+            if isinstance(agent_ids, str):
+                agent_ids = [agent_ids]
+            query = query.join(models.Documents.agent).filter(
+                models.Agents.id.in_(agent_ids)
             )
 
         return query
