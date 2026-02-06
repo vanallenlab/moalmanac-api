@@ -519,12 +519,15 @@ def get_search(
 
     parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
+        statement=statement, 
+        parameters=parameters,
     )
 
     result = handler.execute_query(session=database, statement=statement)
     serialized = handler.serialize_instances(
-        instances=result, session=database, parameters=parameters
+        instances=result, 
+        session=database, 
+        parameters=parameters,
     )
     if not include_empty:
         serialized = [

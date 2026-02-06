@@ -2002,7 +2002,9 @@ class Searches(Propositions):
             return {}
 
         base_statement_query = cls.filtered_statements_query(
-            session=session, proposition_ids=proposition_ids, parameters=parameters
+            session=session, 
+            proposition_ids=proposition_ids, 
+            parameters=parameters,
         )
 
         statement_counts = dict(
@@ -2172,7 +2174,7 @@ class Searches(Propositions):
 
         document_ids = (parameters or {}).get("document")
         indication_ids = (parameters or {}).get("indication")
-        agent_ids = (parameters or {}).get("agent")
+        agent_ids = (parameters or {}).get("agent_id")
 
         need_document_join = bool(document_ids or agent_ids)
         if need_document_join:
