@@ -427,7 +427,7 @@ class Documents(Base):
         sqlalchemy.String,
         nullable=False,
     )
-    subtype = sqlalchemy.Column(
+    document_type = sqlalchemy.Column(
         sqlalchemy.String,
         nullable=False,
     )
@@ -435,14 +435,31 @@ class Documents(Base):
         sqlalchemy.String,
         nullable=False,
     )
-    # aliases = sqlalchemy.Column(sqlalchemy.List, nullable=True,)
-    citation = sqlalchemy.Column(
+    title = sqlalchemy.Column(
         sqlalchemy.String,
+        nullable=True,
+    )
+    # aliases = sqlalchemy.Column(sqlalchemy.List, nullable=True,)
+    description = sqlalchemy.Column(
+        sqlalchemy.String,
+        nullable=False,
+    )
+    doi = sqlalchemy.Column(
+        sqlalchemy.String,
+        nullable=True,
+    )
+    pmid = sqlalchemy.Column(
+        sqlalchemy.Integer,
+        nullable=True,
+    )
+    agent_id = sqlalchemy.Column(
+        sqlalchemy.String,
+        sqlalchemy.ForeignKey("agents.id"),
         nullable=False,
     )
     company = sqlalchemy.Column(
         sqlalchemy.String,
-        nullable=False,
+        nullable=True,
     )
     drug_name_brand = sqlalchemy.Column(
         sqlalchemy.String,
@@ -452,33 +469,24 @@ class Documents(Base):
         sqlalchemy.String,
         nullable=True,
     )
-    first_published = sqlalchemy.Column(
+    first_publication_date = sqlalchemy.Column(
         sqlalchemy.Date,
         nullable=True,
     )
-    access_date = sqlalchemy.Column(
-        sqlalchemy.Date,
+    identification_number = sqlalchemy.Column(
+        sqlalchemy.Integer,
         nullable=True,
-    )
-    agent_id = sqlalchemy.Column(
-        sqlalchemy.String,
-        sqlalchemy.ForeignKey("agents.id"),
-        nullable=False,
     )
     publication_date = sqlalchemy.Column(
         sqlalchemy.Date,
-        nullable=False,
+        nullable=False
     )
-    url = sqlalchemy.Column(
+    status = sqlalchemy.Column(
         sqlalchemy.String,
-        nullable=False,
+        nullable=True
     )
-    url_drug = sqlalchemy.Column(
-        sqlalchemy.String,
-        nullable=True,
-    )
-    application_number = sqlalchemy.Column(
-        sqlalchemy.Integer,
+    access_date = sqlalchemy.Column(
+        sqlalchemy.Date,
         nullable=True,
     )
 
@@ -494,6 +502,11 @@ class Documents(Base):
     statements = sqlalchemy.orm.Relationship(
         "Statements",
         secondary="_association_documents_and_statements",
+        back_populates="documents",
+    )
+    urls = sqlalchemy.orm.Relationship(
+        "URLs",
+        secondary="_association_documents_and_urls",
         back_populates="documents",
     )
 
@@ -948,6 +961,13 @@ class URLs(Base):
     url = sqlalchemy.Column(
         sqlalchemy.String,
         nullable=False,
+    )
+
+    # Relationships
+    documents = sqlalchemy.orm.Relationship(
+        "Documents",
+        secondary="_association_documents_and_urls",
+        back_populates="urls"
     )
 
 
