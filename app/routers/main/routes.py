@@ -1,12 +1,13 @@
 import datetime
-import fastapi
-import sqlalchemy
 import time
 import typing
 import uuid
 
-from app import database
-from app import models
+import fastapi
+import sqlalchemy
+
+from app import database, models
+
 from . import handlers
 
 router = fastapi.APIRouter()
