@@ -5,5 +5,8 @@
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",
     "python-envs.pythonProjects": [],
-    "terminal.integrated.environmentChangesRelaunch": true
+    "terminal.integrated.environmentChangesRelaunch": true,
+    "cSpell.words": [
+        "sessionmaker"
+    ]
 }
