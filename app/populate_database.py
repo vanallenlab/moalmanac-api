@@ -1,14 +1,13 @@
 import argparse
 import datetime
 import json
-import pandas
-import sqlalchemy
 import typing
 
-from sqlalchemy.orm import sessionmaker
+import pandas
+import sqlalchemy
 
-from app.main import create_app
 from app import models
+from app.main import create_app
 
 
 class Process:

@@ -13,7 +13,7 @@ def get_database(
     Yields a sqlalchemy.orm.Session created from the provided sessionmaker.
 
     Args:
-        session (sessionmaker[sqlalchemy.orm.Session]): The sessionmaker instance for 
+        session (sessionmaker[sqlalchemy.orm.Session]): The sessionmaker instance for
         creating database sessions.
 
     Returns:
@@ -38,15 +38,15 @@ def init_db(
     """
     Initializes the sqlite database connection and session.
 
-    This function reads the configuration file for the app from a specific file 
-    (`config_path`), creates an SQLAlchemy engine, and configures a session for 
+    This function reads the configuration file for the app from a specific file
+    (`config_path`), creates an SQLAlchemy engine, and configures a session for
     database interactions.
 
     Args:
         config_path (str): The path to the database configuration file.
 
     Returns:
-        tuple[sqlalchemy.engine.Engine, sessionmaker[sqlalchemy.orm.Session]]: A tuple 
+        tuple[sqlalchemy.engine.Engine, sessionmaker[sqlalchemy.orm.Session]]: A tuple
         containing the SQLAlchemy engine and configured session.
 
     Raises:
@@ -57,9 +57,7 @@ def init_db(
     try:
         path = os.path.abspath(config["database"]["path"])
     except KeyError as error:
-        raise KeyError(
-            "Database path not found within configuration file."
-        ) from error
+        raise KeyError("Database path not found within configuration file.") from error
     engine = sqlalchemy.create_engine(
         f"sqlite:///{path}",
         connect_args={"check_same_thread": False},
@@ -85,7 +83,8 @@ def read_config_ini(path: str) -> configparser.ConfigParser:
         path (str): The path to the database configuration file.
 
     Returns:
-        config (configparser.ConfigParser): A ConfigParser object containing the configuration data.
+        config (configparser.ConfigParser): A ConfigParser object containing the 
+        configuration data.
 
     Raises:
         FileNotFoundError: If the specified configuration file does not exist.
