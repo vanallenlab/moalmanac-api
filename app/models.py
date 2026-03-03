@@ -485,10 +485,6 @@ class Documents(Base):
         sqlalchemy.String,
         nullable=True
     )
-    access_date = sqlalchemy.Column(
-        sqlalchemy.Date,
-        nullable=True,
-    )
 
     # Relationships
     indications = sqlalchemy.orm.Relationship(
@@ -1078,7 +1074,7 @@ class AssociationDocumentsAndURLs(Base):
     )
     url_id = sqlalchemy.Column(
         sqlalchemy.String,
-        sqlalchemy.ForeignKey("url.id"),
+        sqlalchemy.ForeignKey("urls.id"),
         nullable=False,
     )
 

@@ -1,7 +1,8 @@
 import configparser
 import os
-import sqlalchemy
 import typing
+
+import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 
 
@@ -12,7 +13,8 @@ def get_database(
     Yields a sqlalchemy.orm.Session created from the provided sessionmaker.
 
     Args:
-        session (sessionmaker[sqlalchemy.orm.Session]): The sessionmaker instance for creating database sessions.
+        session (sessionmaker[sqlalchemy.orm.Session]): The sessionmaker instance for 
+        creating database sessions.
 
     Returns:
         sqlalchemy.orm.Session: The database session object.
@@ -36,14 +38,16 @@ def init_db(
     """
     Initializes the sqlite database connection and session.
 
-    This function reads the configuration file for the app from a specific file (`config_path`),
-    creates an SQLAlchemy engine, and configures a session for database interactions.
+    This function reads the configuration file for the app from a specific file 
+    (`config_path`), creates an SQLAlchemy engine, and configures a session for 
+    database interactions.
 
     Args:
         config_path (str): The path to the database configuration file.
 
     Returns:
-        tuple[sqlalchemy.engine.Engine, sessionmaker[sqlalchemy.orm.Session]]: A tuple containing the SQLAlchemy engine and configured session.
+        tuple[sqlalchemy.engine.Engine, sessionmaker[sqlalchemy.orm.Session]]: A tuple 
+        containing the SQLAlchemy engine and configured session.
 
     Raises:
         FileNotFoundError: If the specified configuration file does not exist.
