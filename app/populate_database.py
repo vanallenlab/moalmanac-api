@@ -33,7 +33,8 @@ class Process:
     @staticmethod
     def get_extension(list_of_extensions: list, name: str):
         """
-        Subsets `list_of_extensions` to retrieve the extension whose name matches `name`.
+        Subsets `list_of_extensions` to retrieve the extension whose name 
+        matches `name`.
 
         Args:
             - list_of_extensions (list): A list of dictionaries representing extensions.
@@ -339,7 +340,13 @@ class SQL:
         for record in records:
             # mapping_ids = record.get('mappings', [])
             # if mapping_ids:
-            #    mapping_instances = models.Mappings.query.filter(models.Mappings.id.in_(mapping_ids)).all()
+            #    mapping_instances = (
+            #       models
+            #       .Mappings
+            #       .query
+            #       .filter(models.Mappings.id.in_(mapping_ids))
+            #       .all()
+            #    )
             # else:
             #    mapping_instances = []
 
