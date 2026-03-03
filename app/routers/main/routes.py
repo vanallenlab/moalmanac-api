@@ -136,7 +136,8 @@ def get_agents(
 
     parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
+        statement=statement, 
+        parameters=parameters,
     )
 
     result = handler.execute_query(session=database, statement=statement)
@@ -146,7 +147,7 @@ def get_agents(
 
     return create_response(
         data=serialized,
-        message=f"Agents retrieved successfully",
+        message="Agents retrieved successfully",
         received=received,
         request_url=str(request.url),
         status_code=200,
@@ -174,7 +175,8 @@ def get_biomarkers(
 
     parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
+        statement=statement, 
+        parameters=parameters,
     )
 
     result = handler.execute_query(session=database, statement=statement)
@@ -199,7 +201,8 @@ def get_codings(
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Codings table from the database. Codings are representations of a concept from another website.
+    Retrieves Codings table from the database. Codings are representations of a 
+    concept from another website.
     """
     received = generate_datetime_now()
     handler = handlers.Codings()
@@ -212,7 +215,8 @@ def get_codings(
 
     parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
+        statement=statement, 
+        parameters=parameters,
     )
 
     result = handler.execute_query(session=database, statement=statement)
@@ -250,7 +254,8 @@ def get_contributions(
 
     parameters = handler.get_parameters(arguments=request.query_params)
     statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
+        statement=statement, 
+        parameters=parameters,
     )
 
     result = handler.execute_query(session=database, statement=statement)
