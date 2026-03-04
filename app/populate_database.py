@@ -85,7 +85,7 @@ class SQL:
             agent = models.Agents(
                 id=record.get("id"),
                 type=record.get("type"),
-                agent_type=record.get("agentType"),
+                agentType=record.get("agentType"),
                 name=record.get("name"),
                 description=record.get("description"),
                 last_updated=last_updated_date,
@@ -193,17 +193,26 @@ class SQL:
         for record in records:
             first_publication_date = record.get("first_publication_date", None)
             first_publication_date = Process.parse_date(first_publication_date)
+            
             publication_date = record.get("publication_date", None)
             publication_date = Process.parse_date(publication_date)
+
+            url_instances = cls.get_list_instances(
+                record=record,
+                key="urls",
+                session=session,
+                model=models.URLs,
+            )
 
             document = models.Documents(
                 id=record.get("id"),
                 type=record.get("type"),
-                document_type=record.get("documentType"),
+                documentType=record.get("documentType"),
                 name=record.get("name"),
                 title=record.get("title", None),
-                #  aliases=record.get('aliases', None),
+                aliases=record.get('aliases', None),
                 description=record.get("description"),
+                urls=url_instances,
                 doi=record.get("doi", None),
                 pmid=record.get("pmid", None),
                 agent_id=record.get("agent_id", None),

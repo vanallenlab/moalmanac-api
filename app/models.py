@@ -1,4 +1,7 @@
+import datetime
+
 import sqlalchemy
+import sqlalchemy.orm
 
 
 class Base(sqlalchemy.orm.DeclarativeBase):
@@ -50,7 +53,7 @@ class Agents(Base):
         sqlalchemy.String,
         nullable=False,
     )
-    agent_type = sqlalchemy.Column(
+    agentType = sqlalchemy.Column(
         sqlalchemy.String,
         nullable=False,
     )
@@ -62,9 +65,11 @@ class Agents(Base):
         sqlalchemy.String,
         nullable=False,
     )
-    last_updated = sqlalchemy.Column(
-        sqlalchemy.Date,
-        nullable=True,
+    last_updated: sqlalchemy.orm.Mapped[datetime.date | None] = (
+        sqlalchemy.orm.mapped_column(
+            sqlalchemy.Date,
+            nullable=True
+        )
     )
     url = sqlalchemy.Column(
         sqlalchemy.String,
@@ -426,7 +431,7 @@ class Documents(Base):
         sqlalchemy.String,
         nullable=False,
     )
-    document_type = sqlalchemy.Column(
+    documentType = sqlalchemy.Column(
         sqlalchemy.String,
         nullable=False,
     )
@@ -438,7 +443,11 @@ class Documents(Base):
         sqlalchemy.String,
         nullable=True,
     )
-    # aliases = sqlalchemy.Column(sqlalchemy.List, nullable=True,)
+    aliases = sqlalchemy.Column(
+        sqlalchemy.JSON, 
+        nullable=True,
+        default=list,
+    )
     description = sqlalchemy.Column(
         sqlalchemy.String,
         nullable=False,
@@ -468,17 +477,21 @@ class Documents(Base):
         sqlalchemy.String,
         nullable=True,
     )
-    first_publication_date = sqlalchemy.Column(
-        sqlalchemy.Date,
-        nullable=True,
+    first_publication_date: sqlalchemy.orm.Mapped[datetime.date | None] = (
+        sqlalchemy.orm.mapped_column(
+            sqlalchemy.Date,
+            nullable=True
+        )
     )
     identification_number = sqlalchemy.Column(
         sqlalchemy.Integer,
         nullable=True,
     )
-    publication_date = sqlalchemy.Column(
-        sqlalchemy.Date,
-        nullable=False
+    publication_date: sqlalchemy.orm.Mapped[datetime.date] = (
+        sqlalchemy.orm.mapped_column(
+            sqlalchemy.Date,
+            nullable=False
+        )
     )
     status = sqlalchemy.Column(
         sqlalchemy.String,
