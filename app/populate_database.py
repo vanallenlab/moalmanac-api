@@ -482,7 +482,12 @@ class SQL:
     ):
         id_values = record.get(key, [])
         if id_values:
-            instances = session.query(model).filter(model.id.in_(id_values)).all()
+            instances = (
+                session
+                .query(model)
+                .filter(model.id.in_(id_values))
+                .all()
+            )
         else:
             instances = []
         return instances

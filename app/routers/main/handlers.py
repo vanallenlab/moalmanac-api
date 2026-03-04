@@ -21,17 +21,19 @@ class BaseHandler:
         pass
 
     @staticmethod
-    def construct_base_query(model: models.Base) -> sqlalchemy.Select:
+    def construct_base_query(model: type[models.Base]) -> sqlalchemy.sql.Select:
         """
         Constructs a base SQLAlchemy select statement from the primary table model.
 
         This is Step 1 in managing the query.
 
         Args:
-            model (models.Base): The SQLAlchemy model class representing the table.
+            model (type[models.Base]): 
+                The SQLAlchemy ORM model class representing the table.
 
         Returns:
-            Select: A SQLAlchemy select statement for the provided `model`.
+            sqlalchemy.sql.Select: 
+                A SQLAlchemy select statement for the provided model.
         """
         return sqlalchemy.select(model)
 
@@ -79,23 +81,30 @@ class BaseHandler:
     @staticmethod
     def apply_joinedload(statement: sqlalchemy.Select) -> sqlalchemy.Select:
         """
-        Applies joinedload operations for eager loading of related records from other tables. This is optional to speed
-        up serializing fields from other tables. Otherwise, a separate query is made for each time a specific instance
-        is serialized. If used, this function should be implemented by each route's Handler class.
+        Applies joinedload operations for eager loading of related records from other 
+        tables. This is optional to speed up serializing fields from other tables. 
+        Otherwise, a separate query is made for each time a specific instance is 
+        serialized. If used, this function should be implemented by each route's Handler 
+        class.
 
-        I decided to remove this function from each Handler after some tests when accessing the /statements route. When
-        applying joinedloads, it took 1.0762, 1.0843, and 1.0488 seconds to return and serialize all statements in the
-        database (~1400). Without applying joinedloads, it took 0.9771, 0.9389, and 0.9704 seconds. This was removed for
-        the time being because it was causing warnings when trying to selectively join and filter statements. Plus, not
-        inlcuding it only seems to add a tenth of a second with the current database size.
+        I decided to remove this function from each Handler after some tests when 
+        accessing the /statements route. When applying joinedloads, it took 1.0762, 
+        1.0843, and 1.0488 seconds to return and serialize all statements in the 
+        database (~1400). Without applying joinedloads, it took 0.9771, 0.9389, and 
+        0.9704 seconds. This was removed for the time being because it was causing 
+        warnings when trying to selectively join and filter statements. Plus, not 
+        including it only seems to add a tenth of a second with the current database 
+        size.
 
         This is Step 3 of managing the query.
 
         Args:
-            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply joinedload operations to.
+            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply 
+            joinedload operations to.
 
         Returns:
-            statement (sqlalchemy.Select): The SQLAlchemy select statement after joinedload operations are applied.
+            statement (sqlalchemy.Select): The SQLAlchemy select statement after 
+            joinedload operations are applied.
         """
         return statement
 
