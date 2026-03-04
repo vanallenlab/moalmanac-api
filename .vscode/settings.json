@@ -1,10 +1,18 @@
 {
+    "editor.codeActionsOnSave": {
+        "source.fixAll.ruff": "explicit",
+        "source.organizeImports.ruff": "explicit"
+    },
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
+    "files.trimTrailingWhitespace": true,
     "python.defaultInterpreterPath": "/opt/miniconda3/envs/moalmanac-api/bin/python",
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",
     "python-envs.pythonProjects": [],
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
     "terminal.integrated.environmentChangesRelaunch": true,
     "cSpell.words": [
         "sessionmaker"

@@ -1,6 +1,17 @@
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "I"]
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+  "W",
+  "COM",
+  "UP",
+]
+fixable = ["ALL"]
+ignore = ["E501"]
 
 [tool.ruff.format]
 quote-style = "double"
