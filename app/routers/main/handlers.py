@@ -57,24 +57,25 @@ class BaseHandler:
         function, because it also is dependent on table aliases, I think.
 
         Args:
-            - statement (sqlalchemy.Select): The SQLAlchemy select statement to apply 
-            join operations to.
-            - parameters (dict[str, typing.Any): A dictionary of route parameters to 
-            apply to the query as filters.
-            - base_table (models.Base): The SQLAlchemy model class representing the 
-            base table of the query.
-            - joined_tables (list[models.Base], optional): A list of SQLAlchemy model 
-            classes of tables already joined.
+            statement (sqlalchemy.Select): 
+                The SQLAlchemy select statement to apply join operations to.
+            parameters (dict[str, typing.Any): 
+                A dictionary of route parameters to  apply to the query as filters.
+            base_table (models.Base): 
+                The SQLAlchemy model class representing the  base table of the query.
+            joined_tables (list[models.Base], optional): 
+                A list of SQLAlchemy model classes of tables already joined.
 
         Returns:
-            - sqlalchemy.Select: The SQLAlchemy select statement after join operations 
-            are applied.
-            - joined_tables (list[models.Base], optional): A list of SQLAlchemy model 
-            classes of tables already joined, with tables joined within this function 
-            added.
+            sqlalchemy.Select: 
+                The SQLAlchemy select statement after join operations are applied.
+            joined_tables (list[models.Base], optional): 
+                A list of SQLAlchemy model classes of tables already joined, with 
+                tables joined within this function added.
 
         Raises:
-            NotImplementedError: If the route's Handler class does not implement this method.
+            NotImplementedError: 
+                If the route's Handler class does not implement this method.
         """
         raise NotImplementedError("Subclasses should implement this method.")
 
@@ -99,18 +100,20 @@ class BaseHandler:
         This is Step 3 of managing the query.
 
         Args:
-            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply 
-            joinedload operations to.
+            statement (sqlalchemy.Select): 
+                The SQLAlchemy select statement to apply joinedload operations to.
 
         Returns:
-            statement (sqlalchemy.Select): The SQLAlchemy select statement after 
-            joinedload operations are applied.
+            statement (sqlalchemy.Select): 
+                The SQLAlchemy select statement after joinedload operations are applied.
         """
         return statement
 
     @classmethod
     def apply_filters(
-        cls, statement: sqlalchemy.Select, parameters: ImmutableMultiDict
+        cls, 
+        statement: sqlalchemy.Select, 
+        parameters: ImmutableMultiDict,
     ) -> sqlalchemy.Select:
         """
         Applies filters to the query, based on the parameters provided to the route.
@@ -118,11 +121,14 @@ class BaseHandler:
         This is Step 4 of managing the query.
 
         Args:
-            statement (sqlalchemy.Select): The SQLAlchemy select statement to apply filter operations to.
-            parameters (ImmutableMultiDict): Parameters provided to the route as a flask.request.args.
+            statement (sqlalchemy.Select): 
+                The SQLAlchemy select statement to apply filter operations to.
+            parameters (ImmutableMultiDict): 
+                Parameters provided to the route as a flask.request.args.
 
         Returns:
-            statement (sqlalchemy.Select): The SQLAlchemy select statement after filter operations are applied.
+            statement (sqlalchemy.Select): 
+                The SQLAlchemy select statement after filter operations are applied.
         """
         filter_map = {
             "agent": models.Agents.name,
@@ -161,19 +167,24 @@ class BaseHandler:
 
     @staticmethod
     def execute_query(
-        session: sqlalchemy.orm.Session, statement: sqlalchemy.sql.Executable
+        session: sqlalchemy.orm.Session, 
+        statement: sqlalchemy.sql.Executable,
     ) -> list[models.Base]:
         """
-        Executes the given SQLAlchemy statement and returns the results as a list of SQLAlchemy model instances.
+        Executes the given SQLAlchemy statement and returns the results as a list of 
+        SQLAlchemy model instances.
 
         This is Step 5 of managing the query.
 
         Args:
-            session (sqlalchemy.orm.Session): A session instance.
-            statement (sqlalchemy.sql.Executable): The SQLAlchemy statement to execute.
+            session (sqlalchemy.orm.Session): 
+                A session instance.
+            statement (sqlalchemy.sql.Executable):
+                 The SQLAlchemy statement to execute.
 
         Returns:
-            list[model.Base]: A list of SQLAlchemy model instances returned by the query.
+            list[model.Base]: 
+                A list of SQLAlchemy model instances returned by the query.
         """
         return session.execute(statement=statement).unique().scalars().all()
 
@@ -183,10 +194,12 @@ class BaseHandler:
         Normalize a provided value to a list
 
         Args:
-            value (list, tuple, set, str, or None): Input value.
+            value (list, tuple, set, str, or None): 
+                Input value.
 
         Returns:
-            list | None: Input normalized to a list
+            list | None: 
+                Input normalized to a list
         """
         if value is None:
             return None
@@ -200,19 +213,23 @@ class BaseHandler:
 
     @classmethod
     def serialize_instances(
-        cls, instances: list[models.Base], **kwargs
+        cls, 
+        instances: list[models.Base], 
+        **kwargs,
     ) -> list[dict[str, typing.Any]]:
         """
-        Serializes the fields populated by relationships with other tables, defined by this table's model
-        and the applied joinedload operation.
+        Serializes the fields populated by relationships with other tables, defined by 
+        this table's model and the applied joinedload operation.
 
         This is Step 6 of managing the query.
 
         Args:
-            instances (list[models.Base]): A list of SQLAlchemy model instances to serialize.
+            instances (list[models.Base]): 
+                A list of SQLAlchemy model instances to serialize.
 
         Returns:
-            list[dict[str, typing.Any]]: A list of dictionaries with all keys serialized.
+            list[dict[str, typing.Any]]: 
+                A list of dictionaries with all keys serialized.
         """
         result = []
         for instance in instances:
@@ -224,23 +241,29 @@ class BaseHandler:
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Base, **kwargs
+        cls, 
+        instance: models.Base, 
+        **kwargs,
     ) -> dict[str, typing.Any]:
         """
-        Performs operations needed to serialize a single instance of the SQLAlchemy model. At minimum, it will serialize
-        the primary instance and then any secondary instances that are populated by relationships with other tables. It
+        Performs operations needed to serialize a single instance of the SQLAlchemy 
+        model. At minimum, it will serialize the primary instance and then any 
+        secondary instances that are populated by relationships with other tables. It 
         will also remove any keys that are not needed after serialization.
 
         This is Step 6.1 of managing the query.
 
         Args:
-            instance (models.Base): A SQLAlchemy model instance to serialize.
+            instance (models.Base): 
+                A SQLAlchemy model instance to serialize.
 
         Returns:
-            dict[str, typing.Any]: A list of dictionaries with all keys serialized.
+            dict[str, typing.Any]: 
+                A list of dictionaries with all keys serialized.
 
         Raises:
-            NotImplementedError: If the route's Handler class does not implement this method.
+            NotImplementedError: If the route's Handler class does not implement this 
+            method.
         """
         raise NotImplementedError("Subclasses should implement this method.")
 
@@ -252,10 +275,12 @@ class BaseHandler:
         This is Step 6.2 of managing the query.
 
         Args:
-            instance (models.Base): A SQLAlchemy model instance to serialize.
+            instance (models.Base): 
+                A SQLAlchemy model instance to serialize.
 
         Returns:
-            dict[str, typing.Any]: A dictionary representation of the Row object.
+            dict[str, typing.Any]: 
+                A dictionary representation of the Row object.
         """
         return {
             column.name: getattr(instance, column.name)
@@ -264,23 +289,31 @@ class BaseHandler:
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Base, record: dict[str, typing.Any], **kwargs
+        cls, 
+        instance: models.Base, 
+        record: dict[str, typing.Any], 
+        **kwargs,
     ) -> dict[str, typing.Any]:
         """
-        References `serialize_instance` functions from relevant classes for each secondary table that is referenced
-        within the instance. This function should be implemented by each route's Handler class.
+        References `serialize_instance` functions from relevant classes for each 
+        secondary table that is referenced within the instance. This function should be 
+        implemented by each route's Handler class.
 
         This is Step 6.3 of managing the query.
 
         Args:
-            instance (models.Base): A SQLAlchemy model instance to serialize.
-            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+            instance (models.Base): 
+                A SQLAlchemy model instance to serialize.
+            record (dict[str, typing.Any]): 
+                A dictionary representation of the primary instance object.
 
         Returns:
-            record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
+            record (dict[str, typing.Any]): 
+                A dictionary representation of the primary instance object.
 
         Raises:
-            NotImplementedError: If the route's Handler class does not implement this method.
+            NotImplementedError: 
+                If the route's Handler class does not implement this method.
         """
         raise NotImplementedError("Subclasses should implement this method.")
 
@@ -301,7 +334,8 @@ class BaseHandler:
     @staticmethod
     def convert_parameter_value(value: str) -> int | str:
         """
-        Attempts to return the value as an integer, if possible. If not, returns the value as a string.
+        Attempts to return the value as an integer, if possible. If not, returns the 
+        value as a string.
 
         Args:
             value (str): The value to convert.
@@ -317,14 +351,17 @@ class BaseHandler:
     @classmethod
     def get_parameters(cls, arguments) -> dict[str, list[str | int]]:
         """
-        Converts flask route arguments to a dictionary with keys as parameter names and values as lists of parameter
-        values. Values will be converted from strings to integers, if possible.
+        Converts flask route arguments to a dictionary with keys as parameter names 
+        and values as lists of parameter values. Values will be converted from strings 
+        to integers, if possible.
 
         Args:
-            arguments (ImmutableMultiDict): The arguments from the flask route.
+            arguments (ImmutableMultiDict): 
+                The arguments from the flask route.
 
         Returns:
-            dictionary (dict[str, list[str | int]]): A dictionary with parameter names as keys and values as lists.
+            dictionary (dict[str, list[str | int]]): 
+                A dictionary with parameter names as keys and values as lists.
         """
         dictionary = {}
         for key, value in arguments.multi_items():
@@ -340,8 +377,10 @@ class BaseHandler:
         Removes keys from the provided dictionary.
 
         Args:
-            keys (list[str]): A list of keys to remove from the dictionary.
-            record (dict[str, typing.Any]): The dictionary from which to remove the keys.
+            keys (list[str]): 
+                A list of keys to remove from the dictionary.
+            record (dict[str, typing.Any]): 
+                The dictionary from which to remove the keys.
         """
         for key in keys:
             record.pop(key, None)
@@ -352,8 +391,10 @@ class BaseHandler:
         Reorders the keys in a dictionary based on a given list of keys.
 
         Args:
-            dictionary (dict): The original dictionary to reorder.
-            key_order (list[str]): A list of keys specifying the desired order.
+            dictionary (dict): 
+                The original dictionary to reorder.
+            key_order (list[str]): 
+                A list of keys specifying the desired order.
 
         Returns:
             dict: A new dictionary with keys reordered.
