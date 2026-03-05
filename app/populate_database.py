@@ -1,14 +1,13 @@
 import argparse
 import datetime
 import json
-import pandas
-import sqlalchemy
 import typing
 
-from sqlalchemy.orm import sessionmaker
+import pandas
+import sqlalchemy
 
-from app.main import create_app
 from app import models
+from app.main import create_app
 
 
 class Process:
@@ -34,7 +33,8 @@ class Process:
     @staticmethod
     def get_extension(list_of_extensions: list, name: str):
         """
-        Subsets `list_of_extensions` to retrieve the extension whose name matches `name`.
+        Subsets `list_of_extensions` to retrieve the extension whose name 
+        matches `name`.
 
         Args:
             - list_of_extensions (list): A list of dictionaries representing extensions.
@@ -85,7 +85,7 @@ class SQL:
             agent = models.Agents(
                 id=record.get("id"),
                 type=record.get("type"),
-                agent_type=record.get("agentType"),
+                agentType=record.get("agentType"),
                 name=record.get("name"),
                 description=record.get("description"),
                 last_updated=last_updated_date,
@@ -191,25 +191,38 @@ class SQL:
     @classmethod
     def add_documents(cls, records, session):
         for record in records:
+            first_publication_date = record.get("first_publication_date", None)
+            first_publication_date = Process.parse_date(first_publication_date)
+            
+            publication_date = record.get("publication_date", None)
+            publication_date = Process.parse_date(publication_date)
+
+            url_instances = cls.get_list_instances(
+                record=record,
+                key="urls",
+                session=session,
+                model=models.URLs,
+            )
+
             document = models.Documents(
                 id=record.get("id"),
                 type=record.get("type"),
-                subtype=record.get("subtype"),
+                documentType=record.get("documentType"),
                 name=record.get("name"),
-                #  aliases=record.get('aliases', None),
-                citation=record.get("citation", None),
+                title=record.get("title", None),
+                aliases=record.get('aliases', None),
+                description=record.get("description"),
+                urls=url_instances,
+                doi=record.get("doi", None),
+                pmid=record.get("pmid", None),
+                agent_id=record.get("agent_id", None),
                 company=record.get("company", None),
                 drug_name_brand=record.get("drug_name_brand", None),
                 drug_name_generic=record.get("drug_name_generic", None),
-                first_published=Process.parse_date(record.get("first_published", None)),
-                access_date=Process.parse_date(record.get("access_date", None)),
-                agent_id=record.get("agent_id", None),
-                publication_date=Process.parse_date(
-                    record.get("publication_date", None)
-                ),
-                url=record.get("url", None),
-                url_drug=record.get("url_drug", None),
-                application_number=record.get("application_number", None),
+                first_publication_date=first_publication_date,
+                identification_number=record.get("identification_number", None),
+                publication_date=publication_date,
+                status=record.get("status", None),
             )
             session.add(document)
 
@@ -336,7 +349,13 @@ class SQL:
         for record in records:
             # mapping_ids = record.get('mappings', [])
             # if mapping_ids:
-            #    mapping_instances = models.Mappings.query.filter(models.Mappings.id.in_(mapping_ids)).all()
+            #    mapping_instances = (
+            #       models
+            #       .Mappings
+            #       .query
+            #       .filter(models.Mappings.id.in_(mapping_ids))
+            #       .all()
+            #    )
             # else:
             #    mapping_instances = []
 
@@ -432,7 +451,10 @@ class SQL:
     def add_therapy_groups(cls, records, session):
         for record in records:
             therapy_instances = cls.get_list_instances(
-                record=record, key="therapies", session=session, model=models.Therapies
+                record=record, 
+                key="therapies", 
+                session=session, 
+                model=models.Therapies,
             )
 
             therapy_group = models.TherapyGroups(
@@ -441,6 +463,15 @@ class SQL:
                 therapies=therapy_instances,
             )
             session.add(therapy_group)
+    
+    @classmethod
+    def add_urls(cls, records, session):
+        for record in records:
+            url = models.URLs(
+                id=record.get("id"),
+                url=record.get("url"),
+            )
+            session.add(url)
 
     @staticmethod
     def get_list_instances(
@@ -451,7 +482,12 @@ class SQL:
     ):
         id_values = record.get(key, [])
         if id_values:
-            instances = session.query(model).filter(model.id.in_(id_values)).all()
+            instances = (
+                session
+                .query(model)
+                .filter(model.id.in_(id_values))
+                .all()
+            )
         else:
             instances = []
         return instances
@@ -717,6 +753,10 @@ def main(referenced_dictionary, config_path="config.ini"):
         SQL.add_agents(records=agents, session=session)
         session.commit()
 
+        urls = Process.load_json(f"{root}/urls.json")
+        SQL.add_urls(records=urls, session=session)
+        session.commit()
+
         codings = Process.load_json(f"{root}/codings.json")
         SQL.add_codings(records=codings, session=session)
         session.commit()
@@ -798,7 +838,10 @@ if __name__ == "__main__":
         help="Directory for referenced moalmanac db json files",
     )
     arg_parser.add_argument(
-        "--config", "-c", default="config.ini", help="Path to config file"
+        "--config", 
+        "-c", 
+        default="config.ini", 
+        help="Path to config file",
     )
     args = arg_parser.parse_args()
 

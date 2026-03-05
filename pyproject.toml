@@ -1,0 +1,26 @@
+[tool.docformatter]
+blank = true
+close-quotes-on-newline = true
+make-summary-multi-line = true
+recursive = true
+wrap-summaries = 88
+wrap-descriptions = 88
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+ignore = ["E501"]
+select = [
+  "E",
+  "F",
+  "I",
+  "W",
+  "COM",
+  "UP",
+]
