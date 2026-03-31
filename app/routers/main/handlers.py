@@ -226,7 +226,7 @@ class BaseHandler:
         result = []
         for instance in instances:
             serialized_instance = cls.serialize_single_instance(
-                instance=instance, **kwargs
+                instance=instance, **kwargs,
             )
             result.append(serialized_instance)
         return result
@@ -416,7 +416,7 @@ class About(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record["last_updated"] = cls.convert_date_to_iso(
-            value=serialized_record["last_updated"]
+            value=serialized_record["last_updated"],
         )
 
         keys_to_remove = ["id"]
@@ -425,7 +425,7 @@ class About(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.About, record: dict[str, typing.Any]
+        cls, instance: models.About, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table.
@@ -512,7 +512,7 @@ class Agents(BaseHandler):
         elif base_table == models.Documents:
             if models.Agents not in joined_tables:
                 statement = statement.join(
-                    models.Agents, models.Agents.id == models.Documents.agent_id
+                    models.Agents, models.Agents.id == models.Documents.agent_id,
                 )
                 joined_tables.add(models.Agents)
             conditions = []
@@ -529,7 +529,7 @@ class Agents(BaseHandler):
         elif base_table == models.Indications:
             if documents_via_indications is None:
                 raise ValueError(
-                    "base_table specified as Indications to Agents.perform_joins without providing documents_via_indications alias."
+                    "base_table specified as Indications to Agents.perform_joins without providing documents_via_indications alias.",
                 )
 
             statement = statement.join(
@@ -554,7 +554,7 @@ class Agents(BaseHandler):
                 and models.Agents not in joined_tables
             ):
                 statement = statement.join(
-                    models.Agents, models.Agents.id == models.Contributions.agent_id
+                    models.Agents, models.Agents.id == models.Contributions.agent_id,
                 )
                 joined_tables.add(models.Agents)
 
@@ -586,13 +586,13 @@ class Agents(BaseHandler):
 
             if not path_conditions:
                 raise ValueError(
-                    "base_table specified as Statements to Agents.perform_joins but no supported join path was available. Either documents_via_statements was not passed to source agents via documents via statements, or Contributors was not joined for agents via contributions."
+                    "base_table specified as Statements to Agents.perform_joins but no supported join path was available. Either documents_via_statements was not passed to source agents via documents via statements, or Contributors was not joined for agents via contributions.",
                 )
 
         elif base_table == models.Contributions:
             if models.Agents not in joined_tables:
                 statement = statement.join(
-                    models.Agents, models.Agents.id == models.Contributions.agent_id
+                    models.Agents, models.Agents.id == models.Contributions.agent_id,
                 )
                 joined_tables.add(models.Agents)
 
@@ -608,7 +608,7 @@ class Agents(BaseHandler):
 
             else:
                 raise ValueError(
-                    f"Unsupported base table for Agents.perform_joins: {base_table}."
+                    f"Unsupported base table for Agents.perform_joins: {base_table}.",
                 )
 
         if len(path_conditions) == 1:
@@ -617,14 +617,14 @@ class Agents(BaseHandler):
             statement = statement.where(sqlalchemy.or_(*path_conditions))
         else:
             raise ValueError(
-                "No path conditions observed for Agents.perform_joins, this should not happen :("
+                "No path conditions observed for Agents.perform_joins, this should not happen :(",
             )
 
         return statement, joined_tables
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Agents
+        cls, instance: models.Agents,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Agents table.
 
@@ -701,7 +701,7 @@ class Agents(BaseHandler):
             list[dict[str, typing.Any]]:
                 An instance's extensions.
         """
-        last_updated = cls.convert_date_to_iso(value=instance.last_updated)
+        last_updated = cls.convert_date_to_iso(value=instance.last_updated) if instance.last_updated else None
         return [
             {
                 "name": "last_updated",
@@ -761,17 +761,17 @@ class Biomarkers(BaseHandler):
                 and b_p not in joined_tables
             ):
                 statement = statement.join(
-                    b_p, b_p.proposition_id == models.Propositions.id
+                    b_p, b_p.proposition_id == models.Propositions.id,
                 )
                 joined_tables.add(b_p)
 
                 statement = statement.join(
-                    models.Biomarkers, models.Biomarkers.id == b_p.biomarker_id
+                    models.Biomarkers, models.Biomarkers.id == b_p.biomarker_id,
                 )
                 joined_tables.add(models.Biomarkers)
             elif base_table != models.Biomarkers:
                 raise ValueError(
-                    f"Unsupported base table for Biomarkers.perform_joins: {base_table}."
+                    f"Unsupported base table for Biomarkers.perform_joins: {base_table}.",
                 )
 
             conditions = []
@@ -779,7 +779,7 @@ class Biomarkers(BaseHandler):
                 conditions.append(models.Biomarkers.name.in_(biomarker_values))
             if biomarker_type_values:
                 conditions.append(
-                    models.Biomarkers.biomarker_type.in_(biomarker_type_values)
+                    models.Biomarkers.biomarker_type.in_(biomarker_type_values),
                 )
             statement = statement.where(sqlalchemy.and_(*conditions))
 
@@ -794,7 +794,7 @@ class Biomarkers(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Biomarkers
+        cls, instance: models.Biomarkers,
     ) -> dict[str, typing.Any]:
         """Performs operations needed to serialize a single instance of the SQLAlchemy
         model. At minimum, it will serialize the primary instance and then any secondary
@@ -811,11 +811,11 @@ class Biomarkers(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
         serialized_record["type"] = "CategoricalVariant"
         serialized_record["extensions"] = cls.convert_fields_to_extensions(
-            record=serialized_record
+            record=serialized_record,
         )
 
         keys_to_remove = [
@@ -861,7 +861,7 @@ class Biomarkers(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Biomarkers, record: dict[str, typing.Any]
+        cls, instance: models.Biomarkers, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table that is referenced within the instance. Specifically, this
@@ -961,7 +961,7 @@ class Codings(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Codings
+        cls, instance: models.Codings,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Codings table.
 
@@ -980,19 +980,19 @@ class Codings(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
         serialized_record["iris"] = [serialized_record["iris"]]
 
         key_order = ["id", "code", "name", "system", "systemVersion", "iris"]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Codings, record: dict[str, typing.Any]
+        cls, instance: models.Codings, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table.
@@ -1060,17 +1060,17 @@ class Contributions(BaseHandler):
             c_s = models.AssociationContributionsAndStatements
             if base_table in [models.Statements] and c_s not in joined_tables:
                 statement = statement.join(
-                    c_s, c_s.statement_id == models.Statements.id
+                    c_s, c_s.statement_id == models.Statements.id,
                 )
                 joined_tables.add(c_s)
 
                 statement = statement.join(
-                    models.Contributions, models.Contributions.id == c_s.contribution_id
+                    models.Contributions, models.Contributions.id == c_s.contribution_id,
                 )
                 joined_tables.add(models.Contributions)
             elif base_table != models.Contributions:
                 raise ValueError(
-                    f"Unsupported base table for Contributions.perform_joins: {base_table}."
+                    f"Unsupported base table for Contributions.perform_joins: {base_table}.",
                 )
 
             conditions = []
@@ -1089,7 +1089,7 @@ class Contributions(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Contributions
+        cls, instance: models.Contributions,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Contributions table.
 
@@ -1106,7 +1106,7 @@ class Contributions(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
         serialized_record["date"] = cls.convert_date_to_iso(value=instance.date)
 
@@ -1115,13 +1115,13 @@ class Contributions(BaseHandler):
 
         key_order = ["id", "type", "agent", "description", "date"]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Contributions, record: dict[str, typing.Any]
+        cls, instance: models.Contributions, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table. Specifically, this function extends the base class
@@ -1187,7 +1187,7 @@ class Diseases(BaseHandler):
                 joined_tables.add(models.Diseases)
             elif base_table != models.Diseases:
                 raise ValueError(
-                    f"Unsupported base table for Diseases.perform_joins: {base_table}."
+                    f"Unsupported base table for Diseases.perform_joins: {base_table}.",
                 )
 
             conditions = [models.Diseases.name.in_(disease_values)]
@@ -1197,7 +1197,7 @@ class Diseases(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Diseases
+        cls, instance: models.Diseases,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Diseases table.
 
@@ -1213,11 +1213,11 @@ class Diseases(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
         serialized_record["conceptType"] = serialized_record["concept_type"]
         serialized_record["extensions"] = cls.convert_fields_to_extensions(
-            instance=instance
+            instance=instance,
         )
 
         keys_to_remove = ["concept_type", "primary_coding_id", "solid_tumor"]
@@ -1225,13 +1225,13 @@ class Diseases(BaseHandler):
 
         key_order = ["id", "conceptType", "name", "primaryCoding", "mappings"]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Diseases, record: dict[str, typing.Any]
+        cls, instance: models.Diseases, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table. Specifically, this.
@@ -1250,7 +1250,7 @@ class Diseases(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record["primaryCoding"] = Codings.serialize_single_instance(
-            instance=instance.primary_coding
+            instance=instance.primary_coding,
         )
         record["mappings"] = Mappings.serialize_instances(instances=instance.mappings)
         return record
@@ -1273,7 +1273,7 @@ class Diseases(BaseHandler):
                 "name": "solid_tumor",
                 "value": instance.solid_tumor,
                 "description": "Boolean value for if this tumor type is categorized as a solid tumor.",
-            }
+            },
         ]
 
 
@@ -1330,7 +1330,7 @@ class Documents(BaseHandler):
                 if base_table == models.Statements:
                     d_s = models.AssociationDocumentsAndStatements
                     statement = statement.join(
-                        d_s, d_s.statement_id == models.Statements.id
+                        d_s, d_s.statement_id == models.Statements.id,
                     )
                     joined_tables.add(d_s)
 
@@ -1341,7 +1341,7 @@ class Documents(BaseHandler):
                     joined_tables.add(models.Documents)
                     if document_values:
                         conditions.append(
-                            documents_via_statements.id.in_(document_values)
+                            documents_via_statements.id.in_(document_values),
                         )
 
                     statement = statement.join(
@@ -1351,7 +1351,7 @@ class Documents(BaseHandler):
                     joined_tables.add(models.Documents)
                     if document_values:
                         conditions.append(
-                            documents_via_indications.id.in_(document_values)
+                            documents_via_indications.id.in_(document_values),
                         )
 
                 if base_table == models.Indications:
@@ -1362,7 +1362,7 @@ class Documents(BaseHandler):
                     joined_tables.add(models.Documents)
                     if document_values:
                         conditions.append(
-                            documents_via_indications.id.in_(document_values)
+                            documents_via_indications.id.in_(document_values),
                         )
 
                 if len(conditions) > 1:
@@ -1376,7 +1376,7 @@ class Documents(BaseHandler):
                     statement = statement.where(sqlalchemy.and_(combined_condition))
             elif base_table != models.Documents:
                 raise ValueError(
-                    f"Unsupported base table for Documents.perform_joins: {base_table}."
+                    f"Unsupported base table for Documents.perform_joins: {base_table}.",
                 )
 
             statement, joined_tables = Agents.perform_joins(
@@ -1392,7 +1392,7 @@ class Documents(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Documents
+        cls, instance: models.Documents,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Documents table.
 
@@ -1449,7 +1449,7 @@ class Documents(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Documents, record: dict[str, typing.Any]
+        cls, instance: models.Documents, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table. Specifically, this function extends the base class
@@ -1602,7 +1602,7 @@ class Genes(BaseHandler):
                 and b_g not in joined_tables
             ):
                 statement = statement.join(
-                    b_g, b_g.biomarker_id == models.Biomarkers.id
+                    b_g, b_g.biomarker_id == models.Biomarkers.id,
                 )
                 joined_tables.add(b_g)
 
@@ -1610,7 +1610,7 @@ class Genes(BaseHandler):
                 joined_tables.add(models.Genes)
             elif base_table != models.Genes:
                 raise ValueError(
-                    f"Unsupported base table for Genes.perform_joins: {base_table}."
+                    f"Unsupported base table for Genes.perform_joins: {base_table}.",
                 )
 
             conditions = [models.Genes.name.in_(gene_values)]
@@ -1636,10 +1636,10 @@ class Genes(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
         serialized_record["extensions"] = cls.convert_fields_to_extensions(
-            instance=instance
+            instance=instance,
         )
 
         keys_to_remove = ["primary_coding_id", "location", "location_sortable"]
@@ -1654,13 +1654,13 @@ class Genes(BaseHandler):
             "extensions",
         ]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Genes, record: dict[str, typing.Any]
+        cls, instance: models.Genes, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table. Specifically, this.
@@ -1679,7 +1679,7 @@ class Genes(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record["primaryCoding"] = Codings.serialize_single_instance(
-            instance=instance.primary_coding
+            instance=instance.primary_coding,
         )
         record["mappings"] = Mappings.serialize_instances(instances=instance.mappings)
         return record
@@ -1751,7 +1751,7 @@ class Indications(BaseHandler):
                 joined_tables.add(models.Indications)
             elif base_table != models.Indications:
                 raise ValueError(
-                    f"Unsupported base table for Indications.perform_joins: {base_table}."
+                    f"Unsupported base table for Indications.perform_joins: {base_table}.",
                 )
 
             conditions = []
@@ -1771,7 +1771,7 @@ class Indications(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Indications
+        cls, instance: models.Indications,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Indications table.
 
@@ -1788,7 +1788,7 @@ class Indications(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
         serialized_record["initial_approval_date"] = (
             cls.convert_date_to_iso(value=instance.initial_approval_date)
@@ -1828,7 +1828,7 @@ class Indications(BaseHandler):
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Indications, record: dict[str, typing.Any]
+        cls, instance: models.Indications, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table. Specifically, this.
@@ -1846,7 +1846,7 @@ class Indications(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record["document"] = Documents.serialize_single_instance(
-            instance=instance.document
+            instance=instance.document,
         )
         return record
 
@@ -1889,7 +1889,7 @@ class Mappings(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Mappings, pop_primary_coding=True
+        cls, instance: models.Mappings, pop_primary_coding=True,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Mappings table.
 
@@ -1918,7 +1918,7 @@ class Mappings(BaseHandler):
         else:
             key_order = ["id", "relation", "primaryCoding", "coding"]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
@@ -1947,7 +1947,7 @@ class Mappings(BaseHandler):
         """
         if serialize_primary_coding:
             record["primaryCoding"] = Codings.serialize_single_instance(
-                instance=instance.primary_coding
+                instance=instance.primary_coding,
             )
         record["coding"] = Codings.serialize_single_instance(instance=instance.coding)
         return record
@@ -1994,7 +1994,7 @@ class Propositions(BaseHandler):
             joined_tables.add(models.Propositions)
         elif base_table != models.Propositions:
             raise ValueError(
-                f"Unsupported base table for Propositions.perform_joins: {base_table}."
+                f"Unsupported base table for Propositions.perform_joins: {base_table}.",
             )
 
         proposition_values = parameters.get("proposition_id", None)
@@ -2025,7 +2025,7 @@ class Propositions(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Propositions
+        cls, instance: models.Propositions,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Propositions table.
 
@@ -2041,7 +2041,7 @@ class Propositions(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
 
         keys_to_remove = [
@@ -2062,13 +2062,13 @@ class Propositions(BaseHandler):
             "objectTherapeutic",
         ]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Propositions, record: dict[str, typing.Any]
+        cls, instance: models.Propositions, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table. Specifically, this.
@@ -2088,14 +2088,14 @@ class Propositions(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record["biomarkers"] = Biomarkers.serialize_instances(
-            instances=instance.biomarkers
+            instances=instance.biomarkers,
         )
         record["subjectVariant"] = {}
         record["conditionQualifier"] = Diseases.serialize_single_instance(
-            instance=instance.condition_qualifier
+            instance=instance.condition_qualifier,
         )
         record["objectTherapeutic"] = cls.serialize_target_therapeutic(
-            therapy=instance.therapy, therapy_group=instance.therapy_group
+            therapy=instance.therapy, therapy_group=instance.therapy_group,
         )
         return record
 
@@ -2154,7 +2154,7 @@ class Searches(Propositions):
             )
             .filter(models.Statements.proposition_id.in_(proposition_ids))
             .group_by(models.Statements.proposition_id)
-            .all()
+            .all(),
         )
 
         by_direction_rows = (
@@ -2170,7 +2170,7 @@ class Searches(Propositions):
         by_direction: dict[int, list[dict[str, typing.Any]]] = {}
         for prop_id, direction, count in by_direction_rows:
             by_direction.setdefault(prop_id, []).append(
-                {"direction": direction, "count": int(count)}
+                {"direction": direction, "count": int(count)},
             )
 
         by_document_rows = (
@@ -2187,7 +2187,7 @@ class Searches(Propositions):
         by_document: dict[int, list[dict[str, typing.Any]]] = {}
         for prop_id, document_id, count in by_document_rows:
             by_document.setdefault(prop_id, []).append(
-                {"id": document_id, "count": int(count)}
+                {"id": document_id, "count": int(count)},
             )
 
         by_agent_rows = (
@@ -2205,7 +2205,7 @@ class Searches(Propositions):
         by_agent: dict[int, list[dict[str, typing.Any]]] = {}
         for prop_id, agent_id, count in by_agent_rows:
             by_agent.setdefault(prop_id, []).append(
-                {"id": agent_id, "count": int(count)}
+                {"id": agent_id, "count": int(count)},
             )
 
         by_strength_rows = (
@@ -2221,7 +2221,7 @@ class Searches(Propositions):
         by_strength: dict[int, list[dict[str, typing.Any]]] = {}
         for prop_id, strength_id, count in by_strength_rows:
             by_strength.setdefault(prop_id, []).append(
-                {"id": strength_id, "count": int(count)}
+                {"id": strength_id, "count": int(count)},
             )
 
         aggregates: dict[int, dict[str, typing.Any]] = {}
@@ -2238,7 +2238,7 @@ class Searches(Propositions):
 
     @staticmethod
     def dereference_aggregate_counts(
-        session: sqlalchemy.orm.Session, aggregates: dict[int, dict[str, typing.Any]]
+        session: sqlalchemy.orm.Session, aggregates: dict[int, dict[str, typing.Any]],
     ) -> None:
         """Dereferences ids within aggregates dictionary from /search endpoint.
 
@@ -2270,7 +2270,7 @@ class Searches(Propositions):
             )
             for agent in agent_instances:
                 agent_lookup[agent.id] = Agents.serialize_single_instance(
-                    instance=agent
+                    instance=agent,
                 )
 
         strength_lookup: dict[int, dict[str, typing.Any]] = {}
@@ -2282,7 +2282,7 @@ class Searches(Propositions):
             )
             for strength in strength_instances:
                 strength_lookup[strength.id] = Strengths.serialize_single_instance(
-                    instance=strength
+                    instance=strength,
                 )
 
         for agg in aggregates.values():
@@ -2309,7 +2309,7 @@ class Searches(Propositions):
         parameters: dict[str, typing.Any] | None,
     ):
         query = session.query(models.Statements).filter(
-            models.Statements.proposition_id.in_(proposition_ids)
+            models.Statements.proposition_id.in_(proposition_ids),
         )
 
         document_ids = (parameters or {}).get("document")
@@ -2331,14 +2331,14 @@ class Searches(Propositions):
                 indication_ids = [indication_ids]
             else:
                 query = query.filter(
-                    models.Statements.indication_id.in_(indication_ids)
+                    models.Statements.indication_id.in_(indication_ids),
                 )
 
         if agent_ids:
             if isinstance(agent_ids, str):
                 agent_ids = [agent_ids]
             query = query.join(models.Documents.agent).filter(
-                models.Agents.id.in_(agent_ids)
+                models.Agents.id.in_(agent_ids),
             )
 
         return query
@@ -2443,7 +2443,7 @@ class Statements(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Statements
+        cls, instance: models.Statements,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Statements table.
 
@@ -2459,7 +2459,7 @@ class Statements(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
 
         keys_to_remove = ["indication_id", "proposition_id", "strength_id"]
@@ -2477,13 +2477,13 @@ class Statements(BaseHandler):
             "strength",
         ]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Statements, record: dict[str, typing.Any]
+        cls, instance: models.Statements, record: dict[str, typing.Any],
     ):
         """References `serialize_instance` functions from relevant classes for each
         secondary table. Specifically, this.
@@ -2505,19 +2505,19 @@ class Statements(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record["contributions"] = Contributions.serialize_instances(
-            instances=instance.contributions
+            instances=instance.contributions,
         )
         record["indication"] = Indications.serialize_single_instance(
-            instance=instance.indication
+            instance=instance.indication,
         )
         record["reportedIn"] = Documents.serialize_instances(
-            instances=instance.documents
+            instances=instance.documents,
         )
         record["proposition"] = Propositions.serialize_single_instance(
-            instance=instance.proposition
+            instance=instance.proposition,
         )
         record["strengths"] = Strengths.serialize_single_instance(
-            instance=instance.strength
+            instance=instance.strength,
         )
         return record
 
@@ -2569,7 +2569,7 @@ class Strengths(BaseHandler):
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Strengths
+        cls, instance: models.Strengths,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Strengths table.
 
@@ -2585,7 +2585,7 @@ class Strengths(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
         serialized_record["conceptType"] = serialized_record["concept_type"]
 
@@ -2594,13 +2594,13 @@ class Strengths(BaseHandler):
 
         key_order = ["id", "conceptType", "name", "primaryCoding", "mappings"]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
     @classmethod
     def serialize_secondary_instances(
-        cls, instance: models.Strengths, record: dict[str, typing.Any]
+        cls, instance: models.Strengths, record: dict[str, typing.Any],
     ) -> dict[str, typing.Any]:
         """References `serialize_instance` functions from relevant classes for each
         secondary table. Specifically, this.
@@ -2619,7 +2619,7 @@ class Strengths(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record["primaryCoding"] = Codings.serialize_single_instance(
-            instance=instance.primary_coding
+            instance=instance.primary_coding,
         )
         record["mappings"] = []
         # record['mappings'] = Mappings.serialize_instances(instances=instance.mappings)
@@ -2697,29 +2697,29 @@ class Therapies(BaseHandler):
                 joined_tables.add(models.Therapies)
             elif base_table != models.Therapies:
                 raise ValueError(
-                    f"Unsupported base table for Biomarkers.perform_joins: {base_table}."
+                    f"Unsupported base table for Biomarkers.perform_joins: {base_table}.",
                 )
 
             conditions = []
             if therapy_values:
                 condition_direct = therapies_direct.name.in_(therapy_values)
                 condition_indirect = therapies_indirect.name.in_(therapy_values)
-                conditions.append((condition_direct | condition_indirect))
+                conditions.append(condition_direct | condition_indirect)
             if therapy_type_values:
                 condition_direct = therapies_direct.therapy_type.in_(
-                    therapy_type_values
+                    therapy_type_values,
                 )
                 condition_indirect = therapies_indirect.therapy_type.in_(
-                    therapy_type_values
+                    therapy_type_values,
                 )
-                conditions.append((condition_direct | condition_indirect))
+                conditions.append(condition_direct | condition_indirect)
             statement = statement.where(sqlalchemy.and_(*conditions))
 
         return statement, joined_tables
 
     @classmethod
     def serialize_single_instance(
-        cls, instance: models.Therapies
+        cls, instance: models.Therapies,
     ) -> dict[str, typing.Any]:
         """Serializes a single instance of the Therapies table.
 
@@ -2735,11 +2735,11 @@ class Therapies(BaseHandler):
         """
         serialized_record = cls.serialize_primary_instance(instance=instance)
         serialized_record = cls.serialize_secondary_instances(
-            instance=instance, record=serialized_record
+            instance=instance, record=serialized_record,
         )
         serialized_record["conceptType"] = serialized_record["concept_type"]
         serialized_record["extensions"] = cls.convert_fields_to_extensions(
-            instance=instance
+            instance=instance,
         )
 
         keys_to_remove = [
@@ -2760,7 +2760,7 @@ class Therapies(BaseHandler):
             "extensions",
         ]
         serialized_record = cls.reorder_dictionary(
-            dictionary=serialized_record, key_order=key_order
+            dictionary=serialized_record, key_order=key_order,
         )
         return serialized_record
 
@@ -2787,7 +2787,7 @@ class Therapies(BaseHandler):
             record (dict[str, typing.Any]): A dictionary representation of the primary instance object.
         """
         record["primaryCoding"] = Codings.serialize_single_instance(
-            instance=instance.primary_coding
+            instance=instance.primary_coding,
         )
         record["mappings"] = Mappings.serialize_instances(instances=instance.mappings)
         return record
