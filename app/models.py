@@ -68,7 +68,7 @@ class Agents(Base):
     last_updated: sqlalchemy.orm.Mapped[datetime.date | None] = (
         sqlalchemy.orm.mapped_column(
             sqlalchemy.Date,
-            nullable=True
+            nullable=True,
         )
     )
     url = sqlalchemy.Column(
@@ -444,7 +444,7 @@ class Documents(Base):
         nullable=True,
     )
     aliases = sqlalchemy.Column(
-        sqlalchemy.JSON, 
+        sqlalchemy.JSON,
         nullable=True,
         default=list,
     )
@@ -480,7 +480,7 @@ class Documents(Base):
     first_publication_date: sqlalchemy.orm.Mapped[datetime.date | None] = (
         sqlalchemy.orm.mapped_column(
             sqlalchemy.Date,
-            nullable=True
+            nullable=True,
         )
     )
     identification_number = sqlalchemy.Column(
@@ -490,12 +490,12 @@ class Documents(Base):
     publication_date: sqlalchemy.orm.Mapped[datetime.date] = (
         sqlalchemy.orm.mapped_column(
             sqlalchemy.Date,
-            nullable=False
+            nullable=False,
         )
     )
     status = sqlalchemy.Column(
         sqlalchemy.String,
-        nullable=True
+        nullable=True,
     )
 
     # Relationships
@@ -764,7 +764,8 @@ class Statements(Base):
         back_populates="statements",
     )
     proposition = sqlalchemy.orm.Relationship(
-        "Propositions", back_populates="statements"
+        "Propositions",
+        back_populates="statements",
     )
     strength = sqlalchemy.orm.Relationship(
         "Strengths",
@@ -891,6 +892,7 @@ class Therapies(Base):
         "Mappings",
         secondary="_association_mappings_and_therapies",
         back_populates="therapies",
+        order_by="Mappings.id",
     )
     primary_coding = sqlalchemy.orm.Relationship(
         "Codings",
@@ -975,7 +977,7 @@ class URLs(Base):
     documents = sqlalchemy.orm.Relationship(
         "Documents",
         secondary="_association_documents_and_urls",
-        back_populates="urls"
+        back_populates="urls",
     )
 
 
@@ -1006,7 +1008,9 @@ class AssociationBiomarkersAndPropositions(Base):
         primary_key=True,
     )
     biomarker_id = sqlalchemy.Column(
-        sqlalchemy.Integer, sqlalchemy.ForeignKey("biomarkers.id"), nullable=False
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey("biomarkers.id"),
+        nullable=False,
     )
     proposition_id = sqlalchemy.Column(
         sqlalchemy.Integer,
