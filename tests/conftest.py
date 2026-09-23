@@ -1,20 +1,24 @@
 import json
 import pathlib
+import typing
 
+import fastapi.testclient
 import pytest
 import sqlalchemy.orm
 from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 
 from app import database, populate_database
+from app.main import create_app
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 MOALMANAC_DB_ROOT = REPO_ROOT / "moalmanac-db"
 REFERENCED_ROOT = MOALMANAC_DB_ROOT / "referenced"
+DEREFERENCED_ROOT = MOALMANAC_DB_ROOT / "dereferenced"
 SCHEMA_ROOT = MOALMANAC_DB_ROOT / "schemas"
 
 
-def load_json(path: pathlib.Path) -> object:
+def load_json(path: pathlib.Path) -> dict[str, typing.Any]:
     """
     Loads JSON data from a file path.
 
@@ -22,7 +26,7 @@ def load_json(path: pathlib.Path) -> object:
         path (pathlib.Path): The path to the JSON file.
 
     Returns:
-        object: The deserialized JSON content.
+        dict[str, typing.Any]: The deserialized JSON object.
     """
     return json.loads(path.read_text())
 
@@ -81,3 +85,68 @@ def session(config_path: str) -> sqlalchemy.orm.Session:
     with session_factory() as session:
         yield session
     engine.dispose()
+
+
+@pytest.fixture(scope="session")
+def app(config_path: str) -> fastapi.FastAPI:
+    """
+    Builds the FastAPI application against the test database.
+
+    Args:
+        config_path (str): The path to the test config file.
+
+    Returns:
+        fastapi.FastAPI: The application, with its dereferenced cache built.
+    """
+    return create_app(config_path=config_path)
+
+
+@pytest.fixture(scope="session")
+def client(app: fastapi.FastAPI) -> fastapi.testclient.TestClient:
+    """
+    A test client for the application.
+
+    Args:
+        app (fastapi.FastAPI): The application under test.
+
+    Returns:
+        fastapi.testclient.TestClient: A client that issues requests against `app`
+        in-process, with no network involved.
+    """
+    return fastapi.testclient.TestClient(app)
+
+
+def load_dereferenced(entity: str) -> dict[str, dict]:
+    """
+    Loads every record for one entity from moalmanac-db/dereferenced, keyed by id.
+
+    Args:
+        entity (str): The entity's directory name under moalmanac-db/dereferenced.
+
+    Returns:
+        dict[str, dict]: The entity's records, keyed by `id`, in the same order
+        `app.dereferenced.build_cache` returns them in (filesystem glob order is
+        irrelevant; callers sort or key-compare rather than relying on this order).
+    """
+    records = {}
+    for path in sorted((DEREFERENCED_ROOT / entity).glob("*.json")):
+        record = load_json(path)
+        records[record["id"]] = record
+    return records
+
+
+def extension_value(record: dict, name: str) -> typing.Any:
+    """
+    Looks up one named value in a dereferenced record's `extensions` list.
+
+    Args:
+        record (dict): A dereferenced record with an `extensions` list.
+        name (str): The extension's `name`.
+
+    Raises:
+        StopIteration: If no extension with that name is present.
+
+    Returns:
+        typing.Any: The matching extension's `value`.
+    """
+    return next(e["value"] for e in record["extensions"] if e["name"] == name)

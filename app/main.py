@@ -3,7 +3,7 @@ import os
 
 import fastapi
 
-from app import database
+from app import database, dereferenced
 from app.routers.main import router as main_router
 
 
@@ -26,7 +26,8 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
     Creates and configures the FastAPI application instance.
 
     Initializes the database connection from the provided config file, attaches the
-    session factory to application state, and registers the main router.
+    session factory and the dereferenced record cache to application state, and
+    registers the main router.
 
     The database is not created here. It must already exist and match the current
     schema; run `python -m app.populate_database` first. This keeps a stale or
@@ -86,8 +87,11 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
         )
 
     _, session_factory = database.init_db(config_path=config_path)
+    with session_factory() as session:
+        cache = dereferenced.build_cache(session=session)
 
     app.state.session_factory = session_factory
+    app.state.dereferenced = cache
 
     app.include_router(main_router)
     return app
