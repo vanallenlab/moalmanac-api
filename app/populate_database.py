@@ -13,12 +13,34 @@ from app.main import create_app
 class Process:
     @staticmethod
     def load_json(file):
+        """
+        Loads JSON data from a file path.
+
+        Args:
+            file (str): The path to the JSON file.
+
+        Returns:
+            typing.Any: The deserialized JSON content.
+        """
         with open(file) as fp:
             data = json.load(fp)
         return data
 
     @staticmethod
     def parse_date(date_string, date_string_format="%Y-%m-%d"):
+        """
+        Parses a date string into a datetime.date object.
+
+        Returns None if the input is not a string or cannot be parsed using the
+        provided format.
+
+        Args:
+            date_string (str): The date string to parse.
+            date_string_format (str): The expected date format (default: "%Y-%m-%d").
+
+        Returns:
+            datetime.date or None: The parsed date, or None if parsing fails.
+        """
         if isinstance(date_string, str):
             try:
                 date_object = datetime.datetime.strptime(
@@ -54,6 +76,13 @@ class Process:
 class SQL:
     @staticmethod
     def add_about(record, session):
+        """
+        Inserts an About row into the database from a single record.
+
+        Args:
+            record (dict): A dictionary containing the About fields.
+            session (sqlalchemy.orm.Session): The database session to add the record to.
+        """
         about = models.About(
             id=0,
             github=record.get("github"),
@@ -67,6 +96,14 @@ class SQL:
 
     @classmethod
     def add_agents(cls, records, session):
+        """
+        Inserts Agents records into the database, extracting `last_updated` and
+        `url` values from extensions.
+
+        Args:
+            records (list[dict]): A list of agent records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             extensions = record.get("extensions", [])
             last_updated_extension = Process.get_extension(
@@ -95,6 +132,14 @@ class SQL:
 
     @classmethod
     def add_biomarkers(cls, records, session):
+        """
+        Inserts Biomarkers records into the database, mapping extension fields onto
+        the model and resolving related Genes by id.
+
+        Args:
+            records (list[dict]): A list of biomarker records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             moalmanac_representation = {}
             for item in record.get("extensions"):
@@ -147,6 +192,13 @@ class SQL:
 
     @classmethod
     def add_codings(cls, records, session):
+        """
+        Inserts Codings records into the database.
+
+        Args:
+            records (list[dict]): A list of coding records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             coding = models.Codings(
                 id=record.get("id"),
@@ -160,6 +212,13 @@ class SQL:
 
     @classmethod
     def add_contributions(cls, records, session):
+        """
+        Inserts Contributions records into the database.
+
+        Args:
+            records (list[dict]): A list of contribution records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             contribution = models.Contributions(
                 id=record.get("id"),
@@ -172,6 +231,14 @@ class SQL:
 
     @classmethod
     def add_diseases(cls, records, session):
+        """
+        Inserts Diseases records into the database, resolving related Mappings and
+        extracting `solid_tumor` from extensions.
+
+        Args:
+            records (list[dict]): A list of disease records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             mapping_instances = cls.get_list_instances(
                 record=record, key="mappings", session=session, model=models.Mappings
@@ -190,6 +257,14 @@ class SQL:
 
     @classmethod
     def add_documents(cls, records, session):
+        """
+        Inserts Documents records into the database, parsing publication dates and
+        resolving related URLs.
+
+        Args:
+            records (list[dict]): A list of document records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             first_publication_date = record.get("first_publication_date", None)
             first_publication_date = Process.parse_date(first_publication_date)
@@ -228,6 +303,14 @@ class SQL:
 
     @classmethod
     def add_genes(cls, records, session):
+        """
+        Inserts Genes records into the database, resolving related Mappings and
+        extracting `location` and `location_sortable` from extensions.
+
+        Args:
+            records (list[dict]): A list of gene records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             mapping_instances = cls.get_list_instances(
                 record=record, key="mappings", session=session, model=models.Mappings
@@ -247,6 +330,14 @@ class SQL:
 
     @classmethod
     def add_indications(cls, records, session):
+        """
+        Inserts Indications records into the database, parsing the various
+        approval and reimbursement date fields.
+
+        Args:
+            records (list[dict]): A list of indication records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             reimbursement_date = record.get("reimbursement_date", None)
             if reimbursement_date:
@@ -288,6 +379,13 @@ class SQL:
 
     @classmethod
     def add_mappings(cls, records, session):
+        """
+        Inserts Mappings records into the database.
+
+        Args:
+            records (list[dict]): A list of mapping records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             mapping = models.Mappings(
                 id=record.get("id"),
@@ -299,6 +397,14 @@ class SQL:
 
     @classmethod
     def add_propositions(cls, records, session):
+        """
+        Inserts Propositions records into the database, resolving related
+        Biomarkers.
+
+        Args:
+            records (list[dict]): A list of proposition records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             biomarker_instances = cls.get_list_instances(
                 record=record,
@@ -320,6 +426,14 @@ class SQL:
 
     @classmethod
     def add_statements(cls, records, session):
+        """
+        Inserts Statements records into the database, resolving related
+        Contributions and Documents.
+
+        Args:
+            records (list[dict]): A list of statement records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             contribution_instances = cls.get_list_instances(
                 record=record,
@@ -346,6 +460,13 @@ class SQL:
 
     @classmethod
     def add_strengths(cls, records, session):
+        """
+        Inserts Strengths records into the database.
+
+        Args:
+            records (list[dict]): A list of strength records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             # mapping_ids = record.get('mappings', [])
             # if mapping_ids:
@@ -370,6 +491,13 @@ class SQL:
 
     @classmethod
     def add_terms(cls, records, session):
+        """
+        Inserts Terms records into the database.
+
+        Args:
+            records (list[dict]): A list of term records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             term = models.Terms(
                 id=record.get("id"),
@@ -382,6 +510,13 @@ class SQL:
 
     @classmethod
     def add_term_counts(cls, records, session):
+        """
+        Inserts TermCounts records into the database.
+
+        Args:
+            records (list[dict]): A list of term count records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             count = models.TermCounts(
                 id=record.get("id"),
@@ -393,6 +528,14 @@ class SQL:
 
     @classmethod
     def add_therapies(cls, records, session):
+        """
+        Inserts Therapies records into the database, resolving related Mappings,
+        and creating or reusing TherapyStrategies based on extension values.
+
+        Args:
+            records (list[dict]): A list of therapy records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             mapping_instances = cls.get_list_instances(
                 record=record, key="mappings", session=session, model=models.Mappings
@@ -449,6 +592,14 @@ class SQL:
 
     @classmethod
     def add_therapy_groups(cls, records, session):
+        """
+        Inserts TherapyGroups records into the database, resolving related
+        Therapies.
+
+        Args:
+            records (list[dict]): A list of therapy group records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             therapy_instances = cls.get_list_instances(
                 record=record, 
@@ -466,6 +617,13 @@ class SQL:
     
     @classmethod
     def add_urls(cls, records, session):
+        """
+        Inserts URLs records into the database.
+
+        Args:
+            records (list[dict]): A list of URL records to insert.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
         for record in records:
             url = models.URLs(
                 id=record.get("id"),
@@ -480,6 +638,19 @@ class SQL:
         session: sqlalchemy.orm.Session,
         model: typing.Type[models.Base],
     ):
+        """
+        Retrieves SQLAlchemy model instances whose ids appear in `record[key]`.
+
+        Args:
+            record (dict): A record containing a list of ids under `key`.
+            key (str): The key in `record` whose value is a list of ids.
+            session (sqlalchemy.orm.Session): The database session to query against.
+            model (typing.Type[models.Base]): The SQLAlchemy model class to query.
+
+        Returns:
+            list: A list of model instances whose ids are in the referenced list, or
+            an empty list if no ids are provided.
+        """
         id_values = record.get(key, [])
         if id_values:
             instances = (
@@ -496,6 +667,17 @@ class SQL:
 class Summary:
     @staticmethod
     def count_terms(records):
+        """
+        Computes total and associated term counts grouped by table.
+
+        Args:
+            records (list[dict]): Term records, each containing a `table` and an
+                `associated` boolean.
+
+        Returns:
+            list[dict]: A list of dictionaries with `table`, `count_associated`,
+            and `count_total` keys for each table.
+        """
         counts = []
         records = pandas.DataFrame(records)
         for label, group in records.groupby("table"):
@@ -512,6 +694,17 @@ class Summary:
 
     @classmethod
     def list_terms(cls, session: sqlalchemy.orm.Session) -> list:
+        """
+        Lists every record across the supported tables and flags whether each is
+        associated with at least one Statement, via the appropriate join path.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            list: A list of dictionaries describing each record with `id`, `table`,
+            `record_id`, `record_name`, and `associated` keys.
+        """
         # Total and associated counts for each table
         functions = [
             cls.agents,
@@ -543,6 +736,16 @@ class Summary:
 
     @staticmethod
     def agents(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Agents associated with at least one Statement (via Documents)
+        and the total set of Agents in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Agents instances.
+        """
         associated = (
             session.query(models.Agents)
             .join(models.Documents, models.Documents.agent_id == models.Agents.id)
@@ -563,6 +766,16 @@ class Summary:
 
     @staticmethod
     def biomarkers(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Biomarkers associated with at least one Statement (via
+        Propositions) and the total set of Biomarkers in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Biomarkers instances.
+        """
         associated = (
             session.query(models.Biomarkers)
             .join(
@@ -586,6 +799,16 @@ class Summary:
 
     @staticmethod
     def diseases(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Diseases associated with at least one Statement (via
+        Propositions) and the total set of Diseases in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Diseases instances.
+        """
         associated = (
             session.query(models.Diseases)
             .join(
@@ -603,6 +826,16 @@ class Summary:
 
     @staticmethod
     def documents(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Documents associated with at least one Statement and the total
+        set of Documents in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Documents instances.
+        """
         associated = (
             session.query(models.Documents)
             .join(
@@ -622,6 +855,16 @@ class Summary:
 
     @staticmethod
     def genes(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Genes associated with at least one Statement (via Biomarkers
+        and Propositions) and the total set of Genes in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Genes instances.
+        """
         associated = (
             session.query(models.Genes)
             .join(
@@ -654,6 +897,16 @@ class Summary:
 
     @staticmethod
     def indications(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Indications associated with at least one Statement and the
+        total set of Indications in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Indications instances.
+        """
         associated = (
             session.query(models.Indications)
             .join(
@@ -667,6 +920,16 @@ class Summary:
 
     @staticmethod
     def propositions(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Propositions associated with at least one Statement and the
+        total set of Propositions in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Propositions instances.
+        """
         associated = (
             session.query(models.Propositions)
             .join(
@@ -680,12 +943,32 @@ class Summary:
 
     @staticmethod
     def statements(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Statements considered associated and the total set of
+        Statements in the database. Every Statement is treated as associated.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Statements instances.
+        """
         associated = session.query(models.Statements).all()
         total = session.query(models.Statements).all()
         return associated, total
 
     @staticmethod
     def strengths(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Strengths associated with at least one Statement and the total
+        set of Strengths in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists of Strengths instances.
+        """
         associated = (
             session.query(models.Strengths)
             .join(
@@ -698,6 +981,18 @@ class Summary:
 
     @staticmethod
     def therapies(session: sqlalchemy.orm.Session) -> tuple:
+        """
+        Returns the Therapies associated with at least one Statement, joined either
+        directly via Proposition.therapy_id or indirectly via TherapyGroups, and
+        the total set of Therapies in the database.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple: A pair of (associated, total) lists. `associated` contains rows
+            of therapy ids; `total` contains rows of all Therapy ids.
+        """
         therapies_via_propositions = (
             session.query(models.Therapies.id.label("therapy_id"))
             .join(
@@ -740,6 +1035,21 @@ class Summary:
 
 
 def main(referenced_dictionary, config_path="config.ini"):
+    """
+    Loads the moalmanac-db referenced JSON files into the SQLite database.
+
+    For each entity, the matching JSON is read and inserted via the SQL helper
+    methods. Term inventory and counts are computed and persisted at the end. On
+    error, the session is rolled back; in all cases, the session is closed.
+
+    Args:
+        referenced_dictionary (str): The path to the directory containing the
+            referenced moalmanac-db JSON files.
+        config_path (str): The path to the application configuration file (default: "config.ini").
+
+    Returns:
+        str: The literal string "Success!" once the run finishes.
+    """
     app = create_app(config_path=config_path)
     session = app.state.session_factory()
     try:

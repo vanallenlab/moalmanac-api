@@ -8,10 +8,32 @@ from app.routers.main import router as main_router
 
 class PrettyJSONResponse(fastapi.responses.JSONResponse):
     def render(self, content: object) -> bytes:
+        """
+        Serializes the given content to indented JSON bytes for the HTTP response.
+
+        Args:
+            content (object): The content to serialize as JSON.
+
+        Returns:
+            bytes: The UTF-8 encoded, indented JSON representation of content.
+        """
         return json.dumps(content, indent=2, ensure_ascii=False).encode("utf-8")
 
 
 def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
+    """
+    Creates and configures the FastAPI application instance.
+
+    Initializes the database connection from the provided config file, creates the
+    schema, attaches the session factory to application state, and registers the
+    main router.
+
+    Args:
+        config_path (str): The path to the application configuration file (default: "config.ini").
+
+    Returns:
+        fastapi.FastAPI: The configured FastAPI application instance.
+    """
     app = fastapi.FastAPI(
         contact={
             "name": "MOAlmanac API GitHub",

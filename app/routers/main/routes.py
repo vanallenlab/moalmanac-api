@@ -15,7 +15,10 @@ router = fastapi.APIRouter()
 
 def generate_datetime_now() -> datetime.datetime:
     """
-    Generates current datetime in UTC timezone.
+    Returns the current datetime in UTC.
+
+    Returns:
+        datetime.datetime: The current UTC datetime.
     """
     return datetime.datetime.now(datetime.timezone.utc)
 
@@ -23,7 +26,17 @@ def generate_datetime_now() -> datetime.datetime:
 def get_session_factory(
     request: fastapi.Request,
 ) -> sqlalchemy.orm.sessionmaker[sqlalchemy.orm.Session]:
-    """ """
+    """
+    Returns the SQLAlchemy session factory attached to the application state.
+
+    Args:
+        request (fastapi.Request): The current FastAPI request, used to access
+            application state.
+
+    Returns:
+        sqlalchemy.orm.sessionmaker[sqlalchemy.orm.Session]: The configured session
+        factory for the application.
+    """
     return typing.cast(
         sqlalchemy.orm.sessionmaker[sqlalchemy.orm.Session],
         request.app.state.session_factory,
@@ -36,7 +49,15 @@ def get_db(
     ] = fastapi.Depends(get_session_factory),
 ) -> typing.Generator[sqlalchemy.orm.Session, None, None]:
     """
-    Dependency that provides a database session.
+    FastAPI dependency that yields a database session.
+
+    Args:
+        session_factory (sqlalchemy.orm.sessionmaker[sqlalchemy.orm.Session]):
+            The session factory resolved via FastAPI dependency injection.
+
+    Returns:
+        typing.Generator[sqlalchemy.orm.Session, None, None]: A generator that
+        yields a single database session and closes it on exit.
     """
     yield from database.get_database(session=session_factory)
 
@@ -50,7 +71,24 @@ def create_response(
     status_code: int = 200,
     service: dict | None = None,
 ) -> dict:
-    """ """
+    """
+    Builds the standard API response envelope of meta, service, and data.
+
+    Computes the elapsed time from `received` until now, derives a status string
+    from the HTTP status code, and assigns a fresh trace id.
+
+    Args:
+        data (typing.Any): The payload to return under the `data` key.
+        message (str): A human-readable status message.
+        received (datetime.datetime | None): The time the request was received;
+            defaults to now in UTC.
+        request_url (str | None): The full URL of the originating request.
+        status_code (int): The HTTP status code (default: 200).
+        service (dict | None): Service metadata to attach under the `service` key.
+
+    Returns:
+        dict: A dictionary with `meta`, `service`, and `data` keys.
+    """
     if received is None:
         received = generate_datetime_now()
 
@@ -76,6 +114,15 @@ def create_response(
 
 
 def get_service_metadata(database: sqlalchemy.orm.Session) -> dict:
+    """
+    Retrieves the single About record from the database and serializes it.
+
+    Args:
+        database (sqlalchemy.orm.Session): The database session to query against.
+
+    Returns:
+        dict: The serialized About record.
+    """
     handler = handlers.About()
     statement = handler.construct_base_query(model=models.About)
     result = handler.execute_query(session=database, statement=statement)
@@ -89,6 +136,18 @@ _service_cache: dict[str, tuple[float, dict]] = {}
 def get_service_metadata_cached(
     database: sqlalchemy.orm.Session, ttl: int = 300
 ) -> dict:
+    """
+    Returns the About metadata using a process-local cache with a TTL.
+
+    On a miss or expiry, queries the database and refreshes the cached value.
+
+    Args:
+        database (sqlalchemy.orm.Session): The database session to query against.
+        ttl (int): The cache time-to-live in seconds (default: 300).
+
+    Returns:
+        dict: The serialized About record.
+    """
     now = time.time()
     hit = _service_cache.get("about")
     if hit and now - hit[0] < ttl:
