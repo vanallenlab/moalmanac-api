@@ -6,6 +6,23 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 
 
+def enable_foreign_keys(
+    dbapi_connection: typing.Any,
+    connection_record: typing.Any,
+) -> None:
+    """
+    Turns on SQLite foreign key enforcement for a new connection. SQLite leaves it
+    off by default, so this runs on every connect.
+
+    Args:
+        dbapi_connection (typing.Any): The DBAPI (sqlite3) connection.
+        connection_record (typing.Any): The pool's record for the connection (unused).
+    """
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+
 def get_database(
     session: sessionmaker[sqlalchemy.orm.Session],
 ) -> typing.Generator[sqlalchemy.orm.Session, None, None]:
@@ -65,6 +82,7 @@ def init_db(
         pool_pre_ping=True,
         future=True,
     )
+    sqlalchemy.event.listen(engine, "connect", enable_foreign_keys)
     session_factory = sessionmaker(
         bind=engine,
         autocommit=False,
@@ -83,7 +101,7 @@ def read_config_ini(path: str) -> configparser.ConfigParser:
         path (str): The path to the database configuration file.
 
     Returns:
-        config (configparser.ConfigParser): A ConfigParser object containing the 
+        config (configparser.ConfigParser): A ConfigParser object containing the
         configuration data.
 
     Raises:
