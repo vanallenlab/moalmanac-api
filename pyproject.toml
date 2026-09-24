@@ -6,6 +6,10 @@ recursive = true
 wrap-summaries = 88
 wrap-descriptions = 88
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 88
 

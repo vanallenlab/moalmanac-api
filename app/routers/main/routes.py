@@ -6,11 +6,28 @@ import uuid
 import fastapi
 import sqlalchemy
 
-from app import database, models
+from app import database, referenced
 
 from . import handlers
 
 router = fastapi.APIRouter()
+
+
+def equals_case_insensitive(
+    column: sqlalchemy.ColumnElement,
+    value: str,
+) -> sqlalchemy.ColumnElement:
+    """
+    Builds a condition matching `column` to `value`, ignoring case.
+
+    Args:
+        column (sqlalchemy.ColumnElement): The column to compare, e.g. `models.Genes.name`.
+        value (str): The value to match.
+
+    Returns:
+        sqlalchemy.ColumnElement: A `lower(column) = lower(value)` condition.
+    """
+    return sqlalchemy.func.lower(column) == sqlalchemy.func.lower(value)
 
 
 def generate_datetime_now() -> datetime.datetime:
@@ -64,7 +81,7 @@ def get_db(
 
 def create_response(
     *,
-    data,
+    data: typing.Any,
     message: str = "",
     received: datetime.datetime | None = None,
     request_url: str | None = None,
@@ -115,26 +132,23 @@ def create_response(
 
 def get_service_metadata(database: sqlalchemy.orm.Session) -> dict:
     """
-    Retrieves the single About record from the database and serializes it.
+    Retrieves the About record from the database.
 
     Args:
         database (sqlalchemy.orm.Session): The database session to query against.
 
     Returns:
-        dict: The serialized About record.
+        dict: The About record, matching moalmanac-db's referenced/about.json.
     """
-    handler = handlers.About()
-    statement = handler.construct_base_query(model=models.About)
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-    return serialized[0]
+    return referenced.load_about(session=database)
 
 
 _service_cache: dict[str, tuple[float, dict]] = {}
 
 
 def get_service_metadata_cached(
-    database: sqlalchemy.orm.Session, ttl: int = 300
+    database: sqlalchemy.orm.Session,
+    ttl: int = 300,
 ) -> dict:
     """
     Returns the About metadata using a process-local cache with a TTL.
@@ -146,7 +160,7 @@ def get_service_metadata_cached(
         ttl (int): The cache time-to-live in seconds (default: 300).
 
     Returns:
-        dict: The serialized About record.
+        dict: The About record.
     """
     now = time.time()
     hit = _service_cache.get("about")
@@ -156,6 +170,83 @@ def get_service_metadata_cached(
     value = get_service_metadata(database=database)
     _service_cache["about"] = (now, value)
     return value
+
+
+def combine_filters(
+    *conditions: sqlalchemy.ColumnElement | None,
+) -> sqlalchemy.ColumnElement | None:
+    """
+    Combines a route's exact-match conditions with `AND`, ignoring any that are None.
+
+    Args:
+        *conditions (sqlalchemy.ColumnElement | None): Conditions built from the
+            route's declared query parameters, or None for parameters not provided.
+
+    Returns:
+        sqlalchemy.ColumnElement | None: The combined condition, or None if no
+            condition was provided.
+    """
+    provided = [condition for condition in conditions if condition is not None]
+    if not provided:
+        return None
+    return sqlalchemy.and_(*provided)
+
+
+def list_entities(
+    *,
+    request: fastapi.Request,
+    database: sqlalchemy.orm.Session,
+    handler: type[handlers.BaseHandler],
+    received: datetime.datetime,
+    message_subject: str,
+    base_statement: sqlalchemy.Select | None = None,
+    primary_filter: sqlalchemy.ColumnElement | None = None,
+) -> dict:
+    """
+    Runs the common list-endpoint pipeline for one entity: filter, join, query,
+    and look up the matching records in the dereferenced cache.
+
+    Args:
+        request (fastapi.Request): The current request, used for query parameters,
+            the request URL, and the application's dereferenced cache.
+        database (sqlalchemy.orm.Session): The database session to query against.
+        handler (type[handlers.BaseHandler]): The entity's handler class.
+        received (datetime.datetime): When the request was received.
+        message_subject (str): The subject noun for the response message, e.g.
+            "Agents" or "Agent name BRAF".
+        base_statement (sqlalchemy.Select | None): An optional base statement to
+            use instead of `handler.construct_base_query()`.
+        primary_filter (sqlalchemy.ColumnElement | None): An optional exact-match
+            condition from the route's own declared query parameter (e.g.
+            `models.Agents.id == agent_id`).
+
+    Returns:
+        dict: The response envelope from `create_response`.
+    """
+    statement = (
+        base_statement if base_statement is not None else handler.construct_base_query()
+    )
+    if primary_filter is not None:
+        statement = statement.where(primary_filter)
+
+    parameters = handler.get_parameters(arguments=request.query_params)
+    statement, _joined_tables = handler.perform_joins(
+        statement=statement,
+        parameters=parameters,
+    )
+
+    ids = handler.execute_query(session=database, statement=statement)
+    serialized = handler.serialize(ids=ids, cache=request.app.state.dereferenced)
+
+    service = get_service_metadata_cached(database=database)
+    return create_response(
+        data=serialized,
+        message=f"{message_subject} retrieved successfully",
+        received=received,
+        request_url=str(request.url),
+        status_code=200,
+        service=service,
+    )
 
 
 @router.get("/about", tags=["Service Info"])
@@ -185,71 +276,95 @@ def get_agents(
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Agents table from database.
+    Retrieves Agents from the database. Filters by agent_name, agent_id, and
+    agent_type. agent_name is matched case-insensitively.
     """
-    received = generate_datetime_now()
-    handler = handlers.Agents()
-    statement = handler.construct_base_query(model=models.Agents)
-    if agent_name:
-        statement = statement.where(models.Agents.name == agent_name)
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, 
-        parameters=parameters,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Agents,
+        received=generate_datetime_now(),
+        message_subject=f"Agent name {agent_name}" if agent_name else "Agents",
+        primary_filter=(
+            equals_case_insensitive(handlers.Agents.model.name, agent_name) if agent_name else None
+        ),
     )
 
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message="Agents retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+@router.get("/alleles", tags=["Entities"])
+def get_alleles(
+    request: fastapi.Request,
+    allele_id: str = fastapi.Query(default=None),
+    database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
+):
+    """
+    Retrieves Alleles from the database.
+    """
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Alleles,
+        received=generate_datetime_now(),
+        message_subject=f"Allele id {allele_id}" if allele_id else "Alleles",
+        primary_filter=(handlers.Alleles.model.id == allele_id if allele_id else None),
     )
 
 
 @router.get("/biomarkers", tags=["Entities"])
 def get_biomarkers(
     request: fastapi.Request,
+    biomarker_id: str = fastapi.Query(default=None),
     biomarker_name: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Biomarkers table from database.
+    Retrieves Biomarkers from the database. Filters by biomarker_id,
+    biomarker_name, biomarker_type, and gene. biomarker_name is matched
+    case-insensitively.
     """
-    received = generate_datetime_now()
-    handler = handlers.Biomarkers()
-    statement = handler.construct_base_query(model=models.Biomarkers)
-    if biomarker_name:
-        statement = statement.where(models.Biomarkers.name == biomarker_name)
-        message_subject = f"Biomarker id {biomarker_name}"
+    if biomarker_id:
+        message_subject = f"Biomarker id {biomarker_id}"
+    elif biomarker_name:
+        message_subject = f"Biomarker name {biomarker_name}"
     else:
         message_subject = "Biomarkers"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, 
-        parameters=parameters,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Biomarkers,
+        received=generate_datetime_now(),
+        message_subject=message_subject,
+        primary_filter=combine_filters(
+            handlers.Biomarkers.model.id == biomarker_id if biomarker_id else None,
+            equals_case_insensitive(handlers.Biomarkers.model.name, biomarker_name) if biomarker_name else None,
+        ),
     )
 
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+@router.get("/biomarker_criteria", tags=["Entities"])
+def get_biomarker_criteria(
+    request: fastapi.Request,
+    biomarker_criterion_id: str = fastapi.Query(default=None),
+    database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
+):
+    """
+    Retrieves Biomarker Criteria from the database.
+    """
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.BiomarkerCriteria,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Biomarker criterion id {biomarker_criterion_id}"
+            if biomarker_criterion_id
+            else "Biomarker criteria"
+        ),
+        primary_filter=(
+            handlers.BiomarkerCriteria.model.id == biomarker_criterion_id
+            if biomarker_criterion_id
+            else None
+        ),
     )
 
 
@@ -260,36 +375,16 @@ def get_codings(
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Codings table from the database. Codings are representations of a 
-    concept from another website.
+    Retrieves Codings from the database. Codings are representations of a concept
+    from another website.
     """
-    received = generate_datetime_now()
-    handler = handlers.Codings()
-    statement = handler.construct_base_query(model=models.Codings)
-    if coding_id:
-        statement = statement.where(models.Codings.id == coding_id)
-        message_subject = f"Coding id {coding_id}"
-    else:
-        message_subject = "Codings"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, 
-        parameters=parameters,
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Codings,
+        received=generate_datetime_now(),
+        message_subject=f"Coding id {coding_id}" if coding_id else "Codings",
+        primary_filter=(handlers.Codings.model.id == coding_id if coding_id else None),
     )
 
 
@@ -300,73 +395,75 @@ def get_contributions(
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Contributions table from the database.
+    Retrieves Contributions from the database. Filters by contribution_id, agent,
+    and agent_id.
     """
-    received = generate_datetime_now()
-    handler = handlers.Contributions()
-    statement = handler.construct_base_query(model=models.Contributions)
-    if contribution_id:
-        statement = statement.where(models.Contributions.id == contribution_id)
-        message_subject = f"Contribution id {contribution_id}"
-    else:
-        message_subject = "Contributions"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, 
-        parameters=parameters,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Contributions,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Contribution id {contribution_id}" if contribution_id else "Contributions"
+        ),
+        primary_filter=(
+            handlers.Contributions.model.id == contribution_id
+            if contribution_id
+            else None
+        ),
     )
 
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+@router.get("/copy_changes", tags=["Entities"])
+def get_copy_changes(
+    request: fastapi.Request,
+    copy_change_id: str = fastapi.Query(default=None),
+    database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
+):
+    """
+    Retrieves Copy Changes from the database.
+    """
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.CopyChanges,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Copy change id {copy_change_id}" if copy_change_id else "Copy changes"
+        ),
+        primary_filter=(
+            handlers.CopyChanges.model.id == copy_change_id if copy_change_id else None
+        ),
     )
 
 
 @router.get("/diseases", tags=["Entities"])
 def get_diseases(
     request: fastapi.Request,
+    disease_id: str = fastapi.Query(default=None),
     disease_name: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Diseases table from the database.
+    Retrieves Diseases from the database. Filters by disease_id and disease_name.
+    disease_name is matched case-insensitively.
     """
-    received = generate_datetime_now()
-    handler = handlers.Diseases()
-    statement = handler.construct_base_query(model=models.Diseases)
-    if disease_name:
-        statement = statement.where(models.Diseases.name == disease_name)
+    if disease_id:
+        message_subject = f"Disease id {disease_id}"
+    elif disease_name:
         message_subject = f"Disease name {disease_name}"
     else:
         message_subject = "Diseases"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Diseases,
+        received=generate_datetime_now(),
+        message_subject=message_subject,
+        primary_filter=combine_filters(
+            handlers.Diseases.model.id == disease_id if disease_id else None,
+            equals_case_insensitive(handlers.Diseases.model.name, disease_name) if disease_name else None,
+        ),
     )
 
 
@@ -374,75 +471,84 @@ def get_diseases(
 def get_documents(
     request: fastapi.Request,
     document_id: str = fastapi.Query(default=None),
+    include_deprecated: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Documents table from the database.
+    Retrieves Documents from the database. Filters by document_id, agent, and
+    agent_id. Only Active documents are returned, unless include_deprecated=true,
+    which also returns Deprecated documents. Deprecated documents are always
+    returned when requested by document_id.
     """
-    received = generate_datetime_now()
-    handler = handlers.Documents()
-    statement = handler.construct_base_query(model=models.Documents)
-    if document_id:
-        statement = statement.where(models.Documents.id == document_id)
-        message_subject = f"Document id {document_id}"
-    else:
-        message_subject = "Documents"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Documents,
+        base_statement=handlers.Documents.construct_base_query(
+            include_deprecated=include_deprecated or bool(document_id),
+        ),
+        received=generate_datetime_now(),
+        message_subject=f"Document id {document_id}" if document_id else "Documents",
+        primary_filter=(
+            handlers.Documents.model.id == document_id if document_id else None
+        ),
     )
 
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
 
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+@router.get("/function_consequences", tags=["Entities"])
+def get_function_consequences(
+    request: fastapi.Request,
+    function_consequence_id: str = fastapi.Query(default=None),
+    database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
+):
+    """
+    Retrieves Function Consequences from the database.
+    """
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.FunctionConsequences,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Function consequence id {function_consequence_id}"
+            if function_consequence_id
+            else "Function consequences"
+        ),
+        primary_filter=(
+            handlers.FunctionConsequences.model.id == function_consequence_id
+            if function_consequence_id
+            else None
+        ),
     )
 
 
 @router.get("/genes", tags=["Entities"])
 def get_genes(
     request: fastapi.Request,
+    gene_id: str = fastapi.Query(default=None),
     gene_name: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Genes table from the database.
+    Retrieves Genes from the database. Filters by gene_id and gene_name.
+    gene_name is matched case-insensitively.
     """
-    received = generate_datetime_now()
-    handler = handlers.Genes()
-    statement = handler.construct_base_query(model=models.Genes)
-    if gene_name:
-        statement = statement.where(models.Genes.name == gene_name)
+    if gene_id:
+        message_subject = f"Gene id {gene_id}"
+    elif gene_name:
         message_subject = f"Gene name {gene_name}"
     else:
         message_subject = "Genes"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Genes,
+        received=generate_datetime_now(),
+        message_subject=message_subject,
+        primary_filter=combine_filters(
+            handlers.Genes.model.id == gene_id if gene_id else None,
+            equals_case_insensitive(handlers.Genes.model.name, gene_name) if gene_name else None,
+        ),
     )
 
 
@@ -450,37 +556,30 @@ def get_genes(
 def get_indications(
     request: fastapi.Request,
     indication_id: str = fastapi.Query(default=None),
+    include_deprecated: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Indications (Regulatory approvals) table from the database.
+    Retrieves Indications (regulatory approvals) from the database. Filters by
+    indication_id, document, agent, and agent_id. Only Approved and Accelerated
+    indications are returned, unless include_deprecated=true, which also returns
+    Superseded and Withdrawn indications. Superseded and Withdrawn indications
+    are always returned when requested by indication_id.
     """
-    received = generate_datetime_now()
-    handler = handlers.Indications()
-    statement = handler.construct_base_query(model=models.Indications)
-    if indication_id:
-        statement = statement.where(models.Indications.id == indication_id)
-        message_subject = f"Indication id {indication_id}"
-    else:
-        message_subject = "Indications"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Indications,
+        base_statement=handlers.Indications.construct_base_query(
+            include_deprecated=include_deprecated or bool(indication_id),
+        ),
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Indication id {indication_id}" if indication_id else "Indications"
+        ),
+        primary_filter=(
+            handlers.Indications.model.id == indication_id if indication_id else None
+        ),
     )
 
 
@@ -491,34 +590,17 @@ def get_mappings(
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Mappings table from the database. Mappings are relationships between two Codings.
+    Retrieves Mappings from the database. Mappings are relationships between two Codings.
     """
-    received = generate_datetime_now()
-    handler = handlers.Mappings()
-    statement = handler.construct_base_query(model=models.Mappings)
-    if mapping_id:
-        statement = statement.where(models.Mappings.id == mapping_id)
-        message_subject = f"Mapping id {mapping_id}"
-    else:
-        message_subject = "Mappings"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Mappings,
+        received=generate_datetime_now(),
+        message_subject=f"Mapping id {mapping_id}" if mapping_id else "Mappings",
+        primary_filter=(
+            handlers.Mappings.model.id == mapping_id if mapping_id else None
+        ),
     )
 
 
@@ -529,53 +611,44 @@ def get_propositions(
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves the Propositions table from the database.
+    Retrieves Propositions from the database. Filters by proposition_id,
+    biomarker, biomarker_type, gene, disease, therapy, and therapy_type.
     """
-    received = generate_datetime_now()
-    handler = handlers.Propositions()
-    statement = handler.construct_base_query(model=models.Propositions)
-    if proposition_id:
-        statement = statement.where(models.Propositions.id == proposition_id)
-        message_subject = f"Proposition id {proposition_id}"
-    else:
-        message_subject = "Propositions"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Propositions,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Proposition id {proposition_id}" if proposition_id else "Propositions"
+        ),
+        primary_filter=(
+            handlers.Propositions.model.id == proposition_id if proposition_id else None
+        ),
     )
 
 
 @router.get("/search", tags=["Search"])
 def get_search(
     request: fastapi.Request,
-    proposition_id: int | None = fastapi.Query(default=None),
+    proposition_id: str | None = fastapi.Query(default=None),
     include_empty: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Searches across Propositions table from the database.
-    Aggregate information will be displayed alongside each proposition.
+    Searches Propositions, with aggregated Statement information attached to each.
+    Which propositions are returned is filtered the same way as /propositions
+    (proposition_id, biomarker, biomarker_type, gene, disease, therapy,
+    therapy_type). document, indication, and agent_id instead narrow each
+    proposition's Statement aggregates, without changing which propositions are
+    returned; those aggregates only count Active statements. include_empty=true
+    also returns propositions with zero matching statements.
     """
     received = generate_datetime_now()
-    handler = handlers.Searches()
-    statement = handler.construct_base_query(model=models.Propositions)
+    handler = handlers.Searches
+    statement = handler.construct_base_query()
     if proposition_id:
-        statement = statement.where(models.Propositions.id == proposition_id)
+        statement = statement.where(handler.model.id == proposition_id)
         message_subject = (
             f"Search results by Proposition where proposition id {proposition_id}"
         )
@@ -583,27 +656,27 @@ def get_search(
         message_subject = "Search results by Proposition"
 
     parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, 
+    statement, _joined_tables = handler.perform_joins(
+        statement=statement,
         parameters=parameters,
     )
 
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(
-        instances=result, 
-        session=database, 
+    ids = handler.execute_query(session=database, statement=statement)
+    serialized = handler.serialize(
+        ids=ids,
+        cache=request.app.state.dereferenced,
+        session=database,
         parameters=parameters,
     )
     if not include_empty:
         serialized = [
             proposition
             for proposition in serialized
-            if (proposition.get("aggregates", {}).get("statement_count", 0) or 0) > 0
+            if proposition["aggregates"]["statement_count"] > 0
         ]
     suffix = "" if not include_empty else " (including zero-statement propositions)"
 
     service = get_service_metadata_cached(database=database)
-
     return create_response(
         data=serialized,
         message=f"{message_subject} retrieved successfully{suffix}",
@@ -614,44 +687,91 @@ def get_search(
     )
 
 
+@router.get("/sequence_locations", tags=["Entities"])
+def get_sequence_locations(
+    request: fastapi.Request,
+    sequence_location_id: str = fastapi.Query(default=None),
+    database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
+):
+    """
+    Retrieves Sequence Locations from the database.
+    """
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.SequenceLocations,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Sequence location id {sequence_location_id}"
+            if sequence_location_id
+            else "Sequence locations"
+        ),
+        primary_filter=(
+            handlers.SequenceLocations.model.id == sequence_location_id
+            if sequence_location_id
+            else None
+        ),
+    )
+
+
+@router.get("/sequence_references", tags=["Entities"])
+def get_sequence_references(
+    request: fastapi.Request,
+    sequence_reference_id: str = fastapi.Query(default=None),
+    database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
+):
+    """
+    Retrieves Sequence References from the database.
+    """
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.SequenceReferences,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Sequence reference id {sequence_reference_id}"
+            if sequence_reference_id
+            else "Sequence references"
+        ),
+        primary_filter=(
+            handlers.SequenceReferences.model.id == sequence_reference_id
+            if sequence_reference_id
+            else None
+        ),
+    )
+
+
 @router.get("/statements", tags=["Entities"])
 def get_statements(
     request: fastapi.Request,
     statement_id: str = fastapi.Query(default=None),
+    include_deprecated: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Gets the Statements table from the database. This endpoint essentially fetches the entire database, and will take
-    several seconds to complete.
+    Retrieves Statements from the database. This endpoint essentially fetches the
+    entire database, and will take several seconds to complete. Filters by
+    statement_id, proposition_id, biomarker, biomarker_type, gene, disease,
+    therapy, therapy_type, document, agent, agent_id, indication, and
+    contribution. Only Active statements are returned, unless
+    include_deprecated=true, which also returns Superseded and Deprecated
+    statements. Superseded and Deprecated statements are always returned when
+    requested by statement_id.
     """
-    received = generate_datetime_now()
-    handler = handlers.Statements()
-    statement = handler.construct_base_query(model=models.Statements)
-    if statement_id:
-        statement = statement.where(models.Statements.id == statement_id)
-        message_subject = f"Statement id {statement_id}"
-    else:
-        message_subject = "Statements"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-    # statement = handler.apply_joinedload(statement=statement)
-    # statement = handler.apply_filters(statement=statement, parameters=parameters)
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Statements,
+        base_statement=handlers.Statements.construct_base_query(
+            include_deprecated=include_deprecated or bool(statement_id),
+        ),
+        received=generate_datetime_now(),
+        message_subject=f"Statement id {statement_id}"
+        if statement_id
+        else "Statements",
+        primary_filter=(
+            handlers.Statements.model.id == statement_id if statement_id else None
+        ),
     )
 
 
@@ -662,108 +782,75 @@ def get_strengths(
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Gets the Strengths table from the database.
+    Retrieves Strengths from the database. Filters by strength_name, which is
+    matched case-insensitively.
     """
-    received = generate_datetime_now()
-    handler = handlers.Strengths()
-    statement = handler.construct_base_query(model=models.Strengths)
-    if strength_name:
-        statement = statement.where(models.Strengths.name == strength_name)
-        message_subject = f"Strength name {strength_name}"
-    else:
-        message_subject = "Strengths"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Strengths,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Strength name {strength_name}" if strength_name else "Strengths"
+        ),
+        primary_filter=(
+            equals_case_insensitive(handlers.Strengths.model.name, strength_name) if strength_name else None
+        ),
     )
 
 
 @router.get("/therapies", tags=["Entities"])
 def get_therapies(
     request: fastapi.Request,
+    therapy_id: str = fastapi.Query(default=None),
     therapy_name: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Get the Therapies table from the database.
+    Retrieves Therapies from the database. Filters by therapy_id, therapy_name,
+    and therapy_type. therapy_name is matched case-insensitively.
     """
-    received = generate_datetime_now()
-    handler = handlers.Therapies()
-    statement = handler.construct_base_query(model=models.Therapies)
-    if therapy_name:
-        statement = statement.where(models.Therapies.name == therapy_name)
+    if therapy_id:
+        message_subject = f"Therapy id {therapy_id}"
+    elif therapy_name:
         message_subject = f"Therapy name {therapy_name}"
     else:
         message_subject = "Therapies"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.Therapies,
+        received=generate_datetime_now(),
+        message_subject=message_subject,
+        primary_filter=combine_filters(
+            handlers.Therapies.model.id == therapy_id if therapy_id else None,
+            equals_case_insensitive(handlers.Therapies.model.name, therapy_name) if therapy_name else None,
+        ),
     )
 
 
-@router.get("/therapygroups", tags=["Entities"])
+@router.get("/therapy_groups", tags=["Entities"])
 def get_therapy_groups(
     request: fastapi.Request,
     therapy_group_id: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Gets the Therapy Groups table from the database.
+    Retrieves Therapy Groups from the database.
     """
-    received = generate_datetime_now()
-    handler = handlers.TherapyGroups()
-    statement = handler.construct_base_query(model=models.TherapyGroups)
-    if therapy_group_id:
-        statement = statement.where(models.TherapyGroups.id == therapy_group_id)
-        message_subject = f"Therapy group id {therapy_group_id}"
-    else:
-        message_subject = "Therapy groups"
-
-    parameters = handler.get_parameters(arguments=request.query_params)
-    statement, joined_tables = handler.perform_joins(
-        statement=statement, parameters=parameters
-    )
-
-    result = handler.execute_query(session=database, statement=statement)
-    serialized = handler.serialize_instances(instances=result)
-
-    service = get_service_metadata_cached(database=database)
-
-    return create_response(
-        data=serialized,
-        message=f"{message_subject} retrieved successfully",
-        received=received,
-        request_url=str(request.url),
-        status_code=200,
-        service=service,
+    return list_entities(
+        request=request,
+        database=database,
+        handler=handlers.TherapyGroups,
+        received=generate_datetime_now(),
+        message_subject=(
+            f"Therapy group id {therapy_group_id}"
+            if therapy_group_id
+            else "Therapy groups"
+        ),
+        primary_filter=(
+            handlers.TherapyGroups.model.id == therapy_group_id
+            if therapy_group_id
+            else None
+        ),
     )

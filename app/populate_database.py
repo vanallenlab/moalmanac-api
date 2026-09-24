@@ -1,18 +1,18 @@
 import argparse
-import datetime
 import json
+import os
 import typing
 
 import pandas
 import sqlalchemy
+import sqlalchemy.orm
 
-from app import models
-from app.main import create_app
+from app import database, models, referenced
 
 
 class Process:
     @staticmethod
-    def load_json(file):
+    def load_json(file: str) -> typing.Any:
         """
         Loads JSON data from a file path.
 
@@ -26,471 +26,66 @@ class Process:
             data = json.load(fp)
         return data
 
-    @staticmethod
-    def parse_date(date_string, date_string_format="%Y-%m-%d"):
-        """
-        Parses a date string into a datetime.date object.
-
-        Returns None if the input is not a string or cannot be parsed using the
-        provided format.
-
-        Args:
-            date_string (str): The date string to parse.
-            date_string_format (str): The expected date format (default: "%Y-%m-%d").
-
-        Returns:
-            datetime.date or None: The parsed date, or None if parsing fails.
-        """
-        if isinstance(date_string, str):
-            try:
-                date_object = datetime.datetime.strptime(
-                    date_string, date_string_format
-                )
-                return date_object.date()
-            except ValueError:
-                return None
-        else:
-            return None
-
-    @staticmethod
-    def get_extension(list_of_extensions: list, name: str):
-        """
-        Subsets `list_of_extensions` to retrieve the extension whose name 
-        matches `name`.
-
-        Args:
-            - list_of_extensions (list): A list of dictionaries representing extensions.
-            - name (str): The name of the extension to retrieve.
-
-        Returns:
-            - list: A list of extensions whose name value matches `name`.
-
-        """
-        return [
-            extension
-            for extension in list_of_extensions
-            if extension.get("name") == name
-        ]
-
 
 class SQL:
     @staticmethod
-    def add_about(record, session):
+    def add_about(record: dict, session: sqlalchemy.orm.Session) -> None:
         """
-        Inserts an About row into the database from a single record.
+        Inserts the About row into the database from referenced/about.json.
 
         Args:
-            record (dict): A dictionary containing the About fields.
+            record (dict): The about record.
             session (sqlalchemy.orm.Session): The database session to add the record to.
         """
-        about = models.About(
-            id=0,
-            github=record.get("github"),
-            name=record.get("name"),
-            license=record.get("license"),
-            release=record.get("release"),
-            url=record.get("url"),
-            last_updated=Process.parse_date(record.get("last_updated")),
+        session.execute(
+            sqlalchemy.insert(models.About.__table__),
+            [referenced.about_to_row(record)],
         )
-        session.add(about)
 
-    @classmethod
-    def add_agents(cls, records, session):
+    @staticmethod
+    def add_table(
+        name: str,
+        records: list[dict],
+        session: sqlalchemy.orm.Session,
+    ) -> None:
         """
-        Inserts Agents records into the database, extracting `last_updated` and
-        `url` values from extensions.
+        Inserts one referenced table's records, in file order, followed by the rows
+        of its association (and extension) tables. Column mapping comes from
+        app.referenced.TABLES.
 
         Args:
-            records (list[dict]): A list of agent records to insert.
+            name (str): The referenced table name, a key of referenced.TABLES.
+            records (list[dict]): The records from referenced/<name>.json.
+            session (sqlalchemy.orm.Session): The database session to add records to.
+        """
+        rows, children = referenced.records_to_rows(name=name, records=records)
+        model = referenced.TABLES[name].model
+        if rows:
+            session.execute(sqlalchemy.insert(model.__table__), rows)
+        for child_model, child_rows in children.items():
+            if child_rows:
+                session.execute(sqlalchemy.insert(child_model.__table__), child_rows)
+
+    @staticmethod
+    def add_term_counts(records: list[dict], session: sqlalchemy.orm.Session) -> None:
+        """
+        Inserts TermCounts records into the database.
+
+        Args:
+            records (list[dict]): A list of term count records to insert.
             session (sqlalchemy.orm.Session): The database session to add records to.
         """
         for record in records:
-            extensions = record.get("extensions", [])
-            last_updated_extension = Process.get_extension(
-                list_of_extensions=extensions,
-                name="last_updated",
-            )
-            last_updated_date = Process.parse_date(
-                last_updated_extension[0].get("value")
-                if last_updated_extension
-                else None
-            )
-            url_extension = Process.get_extension(
-                list_of_extensions=extensions,
-                name="url",
-            )
-            agent = models.Agents(
+            count = models.TermCounts(
                 id=record.get("id"),
-                type=record.get("type"),
-                agentType=record.get("agentType"),
-                name=record.get("name"),
-                description=record.get("description"),
-                last_updated=last_updated_date,
-                url=url_extension[0].get("value") if url_extension else None,
+                table=record.get("table"),
+                count_associated=record.get("count_associated"),
+                count_total=record.get("count_total"),
             )
-            session.add(agent)
+            session.add(count)
 
-    @classmethod
-    def add_biomarkers(cls, records, session):
-        """
-        Inserts Biomarkers records into the database, mapping extension fields onto
-        the model and resolving related Genes by id.
-
-        Args:
-            records (list[dict]): A list of biomarker records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            moalmanac_representation = {}
-            for item in record.get("extensions"):
-                moalmanac_representation[item.get("name")] = item.get("value")
-
-            gene_instances = cls.get_list_instances(
-                record=record, key="genes", session=session, model=models.Genes
-            )
-
-            biomarker = models.Biomarkers(
-                id=record.get("id"),
-                name=record.get("name"),
-                genes=gene_instances,
-                biomarker_type=moalmanac_representation.get("biomarker_type", None),
-                present=moalmanac_representation.get("_present", None),
-                marker=moalmanac_representation.get("marker", None),
-                unit=moalmanac_representation.get("unit", None),
-                equality=moalmanac_representation.get("equality", None),
-                value=moalmanac_representation.get("value", None),
-                chromosome=moalmanac_representation.get("chromosome", None),
-                start_position=moalmanac_representation.get("start_position", None),
-                end_position=moalmanac_representation.get("end_position", None),
-                reference_allele=moalmanac_representation.get("reference_allele", None),
-                alternate_allele=moalmanac_representation.get("alternate_allele", None),
-                cdna_change=moalmanac_representation.get("cdna_change", None),
-                protein_change=moalmanac_representation.get("protein_change", None),
-                variant_annotation=moalmanac_representation.get(
-                    "variant_annotation", None
-                ),
-                exon=moalmanac_representation.get("exon", None),
-                rsid=moalmanac_representation.get("rsid", None),
-                hgvsg=moalmanac_representation.get("hgvsg", None),
-                hgvsc=moalmanac_representation.get("hgvsc", None),
-                requires_oncogenic=moalmanac_representation.get(
-                    "requires_oncogenic", None
-                ),
-                requires_pathogenic=moalmanac_representation.get(
-                    "requires_pathogenic", None
-                ),
-                rearrangement_type=moalmanac_representation.get(
-                    "rearrangement_type", None
-                ),
-                locus=moalmanac_representation.get("locus", None),
-                direction=moalmanac_representation.get("direction", None),
-                cytoband=moalmanac_representation.get("cytoband", None),
-                arm=moalmanac_representation.get("arm", None),
-                status=moalmanac_representation.get("status", None),
-            )
-            session.add(biomarker)
-
-    @classmethod
-    def add_codings(cls, records, session):
-        """
-        Inserts Codings records into the database.
-
-        Args:
-            records (list[dict]): A list of coding records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            coding = models.Codings(
-                id=record.get("id"),
-                code=record.get("code"),
-                name=record.get("name"),
-                system=record.get("system"),
-                systemVersion=record.get("systemVersion"),
-                iris=record.get("iris")[0],  # This will be a list, eventually
-            )
-            session.add(coding)
-
-    @classmethod
-    def add_contributions(cls, records, session):
-        """
-        Inserts Contributions records into the database.
-
-        Args:
-            records (list[dict]): A list of contribution records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            contribution = models.Contributions(
-                id=record.get("id"),
-                type=record.get("type"),
-                agent_id=record.get("agent_id"),
-                description=record.get("description"),
-                date=Process.parse_date(record.get("date")),
-            )
-            session.add(contribution)
-
-    @classmethod
-    def add_diseases(cls, records, session):
-        """
-        Inserts Diseases records into the database, resolving related Mappings and
-        extracting `solid_tumor` from extensions.
-
-        Args:
-            records (list[dict]): A list of disease records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            mapping_instances = cls.get_list_instances(
-                record=record, key="mappings", session=session, model=models.Mappings
-            )
-            extensions = record.get("extensions", [])
-
-            disease = models.Diseases(
-                id=record.get("id"),
-                concept_type=record.get("conceptType"),
-                name=record.get("name"),
-                primary_coding_id=record.get("primary_coding_id"),
-                mappings=mapping_instances,
-                solid_tumor=extensions[0].get("value") if extensions else None,
-            )
-            session.add(disease)
-
-    @classmethod
-    def add_documents(cls, records, session):
-        """
-        Inserts Documents records into the database, parsing publication dates and
-        resolving related URLs.
-
-        Args:
-            records (list[dict]): A list of document records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            first_publication_date = record.get("first_publication_date", None)
-            first_publication_date = Process.parse_date(first_publication_date)
-            
-            publication_date = record.get("publication_date", None)
-            publication_date = Process.parse_date(publication_date)
-
-            url_instances = cls.get_list_instances(
-                record=record,
-                key="urls",
-                session=session,
-                model=models.URLs,
-            )
-
-            document = models.Documents(
-                id=record.get("id"),
-                type=record.get("type"),
-                documentType=record.get("documentType"),
-                name=record.get("name"),
-                title=record.get("title", None),
-                aliases=record.get('aliases', None),
-                description=record.get("description"),
-                urls=url_instances,
-                doi=record.get("doi", None),
-                pmid=record.get("pmid", None),
-                agent_id=record.get("agent_id", None),
-                company=record.get("company", None),
-                drug_name_brand=record.get("drug_name_brand", None),
-                drug_name_generic=record.get("drug_name_generic", None),
-                first_publication_date=first_publication_date,
-                identification_number=record.get("identification_number", None),
-                publication_date=publication_date,
-                status=record.get("status", None),
-            )
-            session.add(document)
-
-    @classmethod
-    def add_genes(cls, records, session):
-        """
-        Inserts Genes records into the database, resolving related Mappings and
-        extracting `location` and `location_sortable` from extensions.
-
-        Args:
-            records (list[dict]): A list of gene records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            mapping_instances = cls.get_list_instances(
-                record=record, key="mappings", session=session, model=models.Mappings
-            )
-            extensions = record.get("extensions", [])
-
-            gene = models.Genes(
-                id=record.get("id"),
-                concept_type=record.get("conceptType"),
-                name=record.get("name"),
-                primary_coding_id=record.get("primary_coding_id"),
-                mappings=mapping_instances,
-                location=extensions[0].get("value") if extensions else None,
-                location_sortable=extensions[1].get("value") if extensions else None,
-            )
-            session.add(gene)
-
-    @classmethod
-    def add_indications(cls, records, session):
-        """
-        Inserts Indications records into the database, parsing the various
-        approval and reimbursement date fields.
-
-        Args:
-            records (list[dict]): A list of indication records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            reimbursement_date = record.get("reimbursement_date", None)
-            if reimbursement_date:
-                reimbursement_date = Process.parse_date(reimbursement_date)
-
-            initial_approval_date = record.get("initial_approval_date", None)
-            if initial_approval_date:
-                initial_approval_date = Process.parse_date(initial_approval_date)
-
-            date_regular_approval = record.get("date_regular_approval", None)
-            if date_regular_approval:
-                date_regular_approval = Process.parse_date(date_regular_approval)
-
-            date_accelerated_approval = record.get("date_accelerated_approval", None)
-            if date_accelerated_approval:
-                date_accelerated_approval = Process.parse_date(
-                    date_accelerated_approval
-                )
-
-            indication = models.Indications(
-                id=record.get("id"),
-                document_id=record.get("document_id"),
-                indication=record.get("indication"),
-                icd10=record.get("icd10"),
-                regimen_code=record.get("regimen_code"),
-                reimbursement_category=record.get("reimbursement_category"),
-                reimbursement_date=reimbursement_date,
-                reimbursement_details=record.get("reimbursement_details"),
-                description=record.get("description", None),
-                initial_approval_date=initial_approval_date,
-                initial_approval_url=record.get("initial_approval_url", None),
-                raw_biomarkers=record.get("raw_biomarkers", None),
-                raw_therapeutics=record.get("raw_therapeutics", None),
-                raw_cancer_type=record.get("raw_cancer_type", None),
-                date_regular_approval=date_regular_approval,
-                date_accelerated_approval=date_accelerated_approval,
-            )
-            session.add(indication)
-
-    @classmethod
-    def add_mappings(cls, records, session):
-        """
-        Inserts Mappings records into the database.
-
-        Args:
-            records (list[dict]): A list of mapping records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            mapping = models.Mappings(
-                id=record.get("id"),
-                primary_coding_id=record.get("primary_coding_id"),
-                coding_id=record.get("coding_id"),
-                relation=record.get("relation"),
-            )
-            session.add(mapping)
-
-    @classmethod
-    def add_propositions(cls, records, session):
-        """
-        Inserts Propositions records into the database, resolving related
-        Biomarkers.
-
-        Args:
-            records (list[dict]): A list of proposition records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            biomarker_instances = cls.get_list_instances(
-                record=record,
-                key="biomarkers",
-                session=session,
-                model=models.Biomarkers,
-            )
-
-            proposition = models.Propositions(
-                id=record.get("id"),
-                type=record.get("type"),
-                predicate=record.get("predicate"),
-                biomarkers=biomarker_instances,
-                condition_qualifier_id=record.get("conditionQualifier_id"),
-                therapy_id=record.get("therapy_id"),
-                therapy_group_id=record.get("therapy_group_id"),
-            )
-            session.add(proposition)
-
-    @classmethod
-    def add_statements(cls, records, session):
-        """
-        Inserts Statements records into the database, resolving related
-        Contributions and Documents.
-
-        Args:
-            records (list[dict]): A list of statement records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            contribution_instances = cls.get_list_instances(
-                record=record,
-                key="contributions",
-                session=session,
-                model=models.Contributions,
-            )
-            document_instances = cls.get_list_instances(
-                record=record, key="reportedIn", session=session, model=models.Documents
-            )
-
-            statement = models.Statements(
-                id=record["id"],
-                type=record.get("type"),
-                description=record.get("description"),
-                contributions=contribution_instances,
-                documents=document_instances,
-                proposition_id=record.get("proposition_id"),
-                direction=record.get("direction"),
-                strength_id=record.get("strength_id"),
-                indication_id=record.get("indication_id"),
-            )
-            session.add(statement)
-
-    @classmethod
-    def add_strengths(cls, records, session):
-        """
-        Inserts Strengths records into the database.
-
-        Args:
-            records (list[dict]): A list of strength records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            # mapping_ids = record.get('mappings', [])
-            # if mapping_ids:
-            #    mapping_instances = (
-            #       models
-            #       .Mappings
-            #       .query
-            #       .filter(models.Mappings.id.in_(mapping_ids))
-            #       .all()
-            #    )
-            # else:
-            #    mapping_instances = []
-
-            strength = models.Strengths(
-                id=record.get("id"),
-                concept_type=record.get("conceptType"),
-                name=record.get("name"),
-                primary_coding_id=record.get("primary_coding_id"),
-                #    mappings=mapping_instances
-            )
-            session.add(strength)
-
-    @classmethod
-    def add_terms(cls, records, session):
+    @staticmethod
+    def add_terms(records: list[dict], session: sqlalchemy.orm.Session) -> None:
         """
         Inserts Terms records into the database.
 
@@ -508,165 +103,52 @@ class SQL:
             )
             session.add(term)
 
-    @classmethod
-    def add_term_counts(cls, records, session):
-        """
-        Inserts TermCounts records into the database.
-
-        Args:
-            records (list[dict]): A list of term count records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            count = models.TermCounts(
-                id=record.get("id"),
-                table=record.get("table"),
-                count_associated=record.get("count_associated"),
-                count_total=record.get("count_total"),
-            )
-            session.add(count)
-
-    @classmethod
-    def add_therapies(cls, records, session):
-        """
-        Inserts Therapies records into the database, resolving related Mappings,
-        and creating or reusing TherapyStrategies based on extension values.
-
-        Args:
-            records (list[dict]): A list of therapy records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            mapping_instances = cls.get_list_instances(
-                record=record, key="mappings", session=session, model=models.Mappings
-            )
-            extensions = record.get("extensions", [])
-            if extensions:
-                therapy_strategy_extension = Process.get_extension(
-                    list_of_extensions=extensions, name="therapy_strategy"
-                )
-                therapy_strategy_instances = []
-                therapy_strategy_values = therapy_strategy_extension[0].get("value")
-                therapy_strategy_description = therapy_strategy_extension[0].get(
-                    "description"
-                )
-                for strategy in therapy_strategy_values:
-                    existing_strategy = (
-                        session.query(models.TherapyStrategies)
-                        .filter(models.TherapyStrategies.name == strategy)
-                        .first()
-                    )
-                    if existing_strategy:
-                        therapy_strategy_instance = existing_strategy
-                    else:
-                        therapy_strategy_instance = models.TherapyStrategies(
-                            name=strategy
-                        )
-                        session.add(therapy_strategy_instance)
-                        session.flush()
-                    therapy_strategy_instances.append(therapy_strategy_instance)
-
-                therapy_type_extension = Process.get_extension(
-                    list_of_extensions=extensions, name="therapy_type"
-                )
-                therapy_type = therapy_type_extension[0].get("value")
-                therapy_type_description = therapy_type_extension[0].get("description")
-            else:
-                therapy_strategy_instances = []
-                therapy_strategy_description = None
-                therapy_type = None
-                therapy_type_description = None
-
-            therapy = models.Therapies(
-                id=record.get("id"),
-                concept_type=record.get("conceptType"),
-                name=record.get("name"),
-                primary_coding_id=record.get("primary_coding_id"),
-                mappings=mapping_instances,
-                therapy_strategy=therapy_strategy_instances,
-                therapy_strategy_description=therapy_strategy_description,
-                therapy_type=therapy_type,
-                therapy_type_description=therapy_type_description,
-            )
-            session.add(therapy)
-
-    @classmethod
-    def add_therapy_groups(cls, records, session):
-        """
-        Inserts TherapyGroups records into the database, resolving related
-        Therapies.
-
-        Args:
-            records (list[dict]): A list of therapy group records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            therapy_instances = cls.get_list_instances(
-                record=record, 
-                key="therapies", 
-                session=session, 
-                model=models.Therapies,
-            )
-
-            therapy_group = models.TherapyGroups(
-                id=record.get("id"),
-                membership_operator=record.get("membershipOperator"),
-                therapies=therapy_instances,
-            )
-            session.add(therapy_group)
-    
-    @classmethod
-    def add_urls(cls, records, session):
-        """
-        Inserts URLs records into the database.
-
-        Args:
-            records (list[dict]): A list of URL records to insert.
-            session (sqlalchemy.orm.Session): The database session to add records to.
-        """
-        for record in records:
-            url = models.URLs(
-                id=record.get("id"),
-                url=record.get("url"),
-            )
-            session.add(url)
-
-    @staticmethod
-    def get_list_instances(
-        record: dict,
-        key: str,
-        session: sqlalchemy.orm.Session,
-        model: typing.Type[models.Base],
-    ):
-        """
-        Retrieves SQLAlchemy model instances whose ids appear in `record[key]`.
-
-        Args:
-            record (dict): A record containing a list of ids under `key`.
-            key (str): The key in `record` whose value is a list of ids.
-            session (sqlalchemy.orm.Session): The database session to query against.
-            model (typing.Type[models.Base]): The SQLAlchemy model class to query.
-
-        Returns:
-            list: A list of model instances whose ids are in the referenced list, or
-            an empty list if no ids are provided.
-        """
-        id_values = record.get(key, [])
-        if id_values:
-            instances = (
-                session
-                .query(model)
-                .filter(model.id.in_(id_values))
-                .all()
-            )
-        else:
-            instances = []
-        return instances
-
 
 class Summary:
     @staticmethod
-    def count_terms(records):
+    def agents(session: sqlalchemy.orm.Session) -> tuple[set, list]:
+        """
+        Returns the ids of Agents associated with at least one Statement (via the
+        Documents the Statement is reported in) and the total set of Agents.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple[set, list]: The associated ids and all Agents instances.
+        """
+        associated = session.scalars(
+            sqlalchemy.select(models.Agents.id)
+            .join(models.Documents, models.Documents.agent_id == models.Agents.id)
+            .join(
+                models.AssociationDocumentsAndStatements,
+                models.AssociationDocumentsAndStatements.document_id
+                == models.Documents.id,
+            ),
+        ).all()
+        total = session.scalars(sqlalchemy.select(models.Agents)).all()
+        return set(associated), total
+
+    @classmethod
+    def biomarkers(cls, session: sqlalchemy.orm.Session) -> tuple[set, list]:
+        """
+        Returns the ids of Biomarkers associated with at least one Statement (via
+        Biomarker Criteria and Propositions) and the total set of Biomarkers.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple[set, list]: The associated ids and all Biomarkers instances.
+        """
+        associated = session.scalars(
+            cls.join_biomarkers_to_statements(sqlalchemy.select(models.Biomarkers.id)),
+        ).all()
+        total = session.scalars(sqlalchemy.select(models.Biomarkers)).all()
+        return set(associated), total
+
+    @staticmethod
+    def count_terms(records: list[dict]) -> list[dict]:
         """
         Computes total and associated term counts grouped by table.
 
@@ -688,12 +170,127 @@ class Summary:
                     "table": label,
                     "count_associated": count_associated,
                     "count_total": count_total,
-                }
+                },
             )
         return counts
 
+    @staticmethod
+    def diseases(session: sqlalchemy.orm.Session) -> tuple[set, list]:
+        """
+        Returns the ids of Diseases associated with at least one Statement (via
+        Propositions) and the total set of Diseases.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple[set, list]: The associated ids and all Diseases instances.
+        """
+        associated = session.scalars(
+            sqlalchemy.select(models.Diseases.id)
+            .join(
+                models.Propositions,
+                models.Propositions.conditionQualifier_id == models.Diseases.id,
+            )
+            .join(
+                models.Statements,
+                models.Statements.proposition_id == models.Propositions.id,
+            ),
+        ).all()
+        total = session.scalars(sqlalchemy.select(models.Diseases)).all()
+        return set(associated), total
+
+    @staticmethod
+    def documents(session: sqlalchemy.orm.Session) -> tuple[set, list]:
+        """
+        Returns the ids of Documents associated with at least one Statement and the
+        total set of Documents.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple[set, list]: The associated ids and all Documents instances.
+        """
+        associated = session.scalars(
+            sqlalchemy.select(models.AssociationDocumentsAndStatements.document_id),
+        ).all()
+        total = session.scalars(sqlalchemy.select(models.Documents)).all()
+        return set(associated), total
+
     @classmethod
-    def list_terms(cls, session: sqlalchemy.orm.Session) -> list:
+    def genes(cls, session: sqlalchemy.orm.Session) -> tuple[set, list]:
+        """
+        Returns the ids of Genes associated with at least one Statement (via
+        Biomarkers, Biomarker Criteria, and Propositions) and the total set of Genes.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple[set, list]: The associated ids and all Genes instances.
+        """
+        statement = sqlalchemy.select(
+            models.AssociationBiomarkersAndGenes.gene_id,
+        ).join(
+            models.Biomarkers,
+            models.Biomarkers.id == models.AssociationBiomarkersAndGenes.biomarker_id,
+        )
+        associated = session.scalars(cls.join_biomarkers_to_statements(statement)).all()
+        total = session.scalars(sqlalchemy.select(models.Genes)).all()
+        return set(associated), total
+
+    @staticmethod
+    def indications(session: sqlalchemy.orm.Session) -> tuple[set, list]:
+        """
+        Returns the ids of Indications associated with at least one Statement and
+        the total set of Indications.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+
+        Returns:
+            tuple[set, list]: The associated ids and all Indications instances.
+        """
+        associated = session.scalars(
+            sqlalchemy.select(models.Statements.indication_id),
+        ).all()
+        total = session.scalars(sqlalchemy.select(models.Indications)).all()
+        return set(associated), total
+
+    @staticmethod
+    def join_biomarkers_to_statements(
+        statement: sqlalchemy.Select,
+    ) -> sqlalchemy.Select:
+        """
+        Joins a statement that already includes Biomarkers through Biomarker
+        Criteria and Propositions to Statements.
+
+        Args:
+            statement (sqlalchemy.Select): A select that includes models.Biomarkers.
+
+        Returns:
+            sqlalchemy.Select: The statement joined to models.Statements.
+        """
+        return (
+            statement.join(
+                models.BiomarkerCriteria,
+                models.BiomarkerCriteria.subject_id == models.Biomarkers.id,
+            )
+            .join(
+                models.AssociationBiomarkerCriteriaAndPropositions,
+                models.AssociationBiomarkerCriteriaAndPropositions.biomarker_criterion_id
+                == models.BiomarkerCriteria.id,
+            )
+            .join(
+                models.Statements,
+                models.Statements.proposition_id
+                == models.AssociationBiomarkerCriteriaAndPropositions.proposition_id,
+            )
+        )
+
+    @classmethod
+    def list_terms(cls, session: sqlalchemy.orm.Session) -> list[dict]:
         """
         Lists every record across the supported tables and flags whether each is
         associated with at least one Statement, via the appropriate join path.
@@ -702,10 +299,9 @@ class Summary:
             session (sqlalchemy.orm.Session): The database session to query against.
 
         Returns:
-            list: A list of dictionaries describing each record with `id`, `table`,
-            `record_id`, `record_name`, and `associated` keys.
+            list[dict]: A list of dictionaries describing each record with `id`,
+            `table`, `record_id`, `record_name`, and `associated` keys.
         """
-        # Total and associated counts for each table
         functions = [
             cls.agents,
             cls.biomarkers,
@@ -723,401 +319,144 @@ class Summary:
         for function in functions:
             associated, total = function(session=session)
             for record in total:
-                result = {
-                    "id": count,
-                    "table": function.__name__,
-                    "record_id": record.id,
-                    "record_name": getattr(record, "name", None),
-                    "associated": True if record in associated else False,
-                }
-                results.append(result)
+                results.append(
+                    {
+                        "id": count,
+                        "table": function.__name__,
+                        "record_id": record.id,
+                        "record_name": getattr(record, "name", None),
+                        "associated": record.id in associated,
+                    },
+                )
                 count += 1
         return results
 
     @staticmethod
-    def agents(session: sqlalchemy.orm.Session) -> tuple:
+    def propositions(session: sqlalchemy.orm.Session) -> tuple[set, list]:
         """
-        Returns the Agents associated with at least one Statement (via Documents)
-        and the total set of Agents in the database.
+        Returns the ids of Propositions associated with at least one Statement and
+        the total set of Propositions.
 
         Args:
             session (sqlalchemy.orm.Session): The database session to query against.
 
         Returns:
-            tuple: A pair of (associated, total) lists of Agents instances.
+            tuple[set, list]: The associated ids and all Propositions instances.
         """
-        associated = (
-            session.query(models.Agents)
-            .join(models.Documents, models.Documents.agent_id == models.Agents.id)
-            .join(
-                models.AssociationDocumentsAndStatements,
-                models.AssociationDocumentsAndStatements.document_id
-                == models.Documents.id,
-            )
-            .join(
-                models.Statements,
-                models.Statements.id
-                == models.AssociationDocumentsAndStatements.statement_id,
-            )
-            .all()
-        )
-        total = session.query(models.Agents).all()
-        return associated, total
+        associated = session.scalars(
+            sqlalchemy.select(models.Statements.proposition_id),
+        ).all()
+        total = session.scalars(sqlalchemy.select(models.Propositions)).all()
+        return set(associated), total
 
     @staticmethod
-    def biomarkers(session: sqlalchemy.orm.Session) -> tuple:
+    def statements(session: sqlalchemy.orm.Session) -> tuple[set, list]:
         """
-        Returns the Biomarkers associated with at least one Statement (via
-        Propositions) and the total set of Biomarkers in the database.
+        Returns the ids of Statements considered associated and the total set of
+        Statements. Every Statement is treated as associated.
 
         Args:
             session (sqlalchemy.orm.Session): The database session to query against.
 
         Returns:
-            tuple: A pair of (associated, total) lists of Biomarkers instances.
+            tuple[set, list]: The associated ids and all Statements instances.
         """
-        associated = (
-            session.query(models.Biomarkers)
-            .join(
-                models.AssociationBiomarkersAndPropositions,
-                models.Biomarkers.id
-                == models.AssociationBiomarkersAndPropositions.biomarker_id,
-            )
-            .join(
-                models.Propositions,
-                models.Propositions.id
-                == models.AssociationBiomarkersAndPropositions.proposition_id,
-            )
-            .join(
-                models.Statements,
-                models.Statements.proposition_id == models.Propositions.id,
-            )
-            .all()
-        )
-        total = session.query(models.Biomarkers).all()
-        return associated, total
+        total = session.scalars(sqlalchemy.select(models.Statements)).all()
+        return {statement.id for statement in total}, total
 
     @staticmethod
-    def diseases(session: sqlalchemy.orm.Session) -> tuple:
+    def strengths(session: sqlalchemy.orm.Session) -> tuple[set, list]:
         """
-        Returns the Diseases associated with at least one Statement (via
-        Propositions) and the total set of Diseases in the database.
+        Returns the ids of Strengths associated with at least one Statement and the
+        total set of Strengths.
 
         Args:
             session (sqlalchemy.orm.Session): The database session to query against.
 
         Returns:
-            tuple: A pair of (associated, total) lists of Diseases instances.
+            tuple[set, list]: The associated ids and all Strengths instances.
         """
-        associated = (
-            session.query(models.Diseases)
-            .join(
-                models.Propositions,
-                models.Diseases.id == models.Propositions.condition_qualifier_id,
-            )
-            .join(
-                models.Statements,
-                models.Statements.proposition_id == models.Propositions.id,
-            )
-            .all()
-        )
-        total = session.query(models.Diseases).all()
-        return associated, total
+        associated = session.scalars(
+            sqlalchemy.select(models.Statements.strength_id),
+        ).all()
+        total = session.scalars(sqlalchemy.select(models.Strengths)).all()
+        return set(associated), total
 
     @staticmethod
-    def documents(session: sqlalchemy.orm.Session) -> tuple:
+    def therapies(session: sqlalchemy.orm.Session) -> tuple[set, list]:
         """
-        Returns the Documents associated with at least one Statement and the total
-        set of Documents in the database.
+        Returns the ids of Therapies associated with at least one Statement, joined
+        either directly via Propositions.therapy_id or indirectly via TherapyGroups,
+        and the total set of Therapies.
 
         Args:
             session (sqlalchemy.orm.Session): The database session to query against.
 
         Returns:
-            tuple: A pair of (associated, total) lists of Documents instances.
+            tuple[set, list]: The associated ids and all Therapies instances.
         """
-        associated = (
-            session.query(models.Documents)
-            .join(
-                models.AssociationDocumentsAndStatements,
-                models.Documents.id
-                == models.AssociationDocumentsAndStatements.document_id,
-            )
-            .join(
-                models.Statements,
-                models.Statements.id
-                == models.AssociationDocumentsAndStatements.statement_id,
-            )
-            .all()
-        )
-        total = session.query(models.Documents).all()
-        return associated, total
-
-    @staticmethod
-    def genes(session: sqlalchemy.orm.Session) -> tuple:
-        """
-        Returns the Genes associated with at least one Statement (via Biomarkers
-        and Propositions) and the total set of Genes in the database.
-
-        Args:
-            session (sqlalchemy.orm.Session): The database session to query against.
-
-        Returns:
-            tuple: A pair of (associated, total) lists of Genes instances.
-        """
-        associated = (
-            session.query(models.Genes)
-            .join(
-                models.AssociationBiomarkersAndGenes,
-                models.AssociationBiomarkersAndGenes.gene_id == models.Genes.id,
-            )
-            .join(
-                models.Biomarkers,
-                models.Biomarkers.id
-                == models.AssociationBiomarkersAndGenes.biomarker_id,
-            )
-            .join(
-                models.AssociationBiomarkersAndPropositions,
-                models.AssociationBiomarkersAndPropositions.biomarker_id
-                == models.Biomarkers.id,
-            )
-            .join(
-                models.Propositions,
-                models.Propositions.id
-                == models.AssociationBiomarkersAndPropositions.proposition_id,
-            )
-            .join(
-                models.Statements,
-                models.Statements.proposition_id == models.Propositions.id,
-            )
-            .all()
-        )
-        total = session.query(models.Genes).all()
-        return associated, total
-
-    @staticmethod
-    def indications(session: sqlalchemy.orm.Session) -> tuple:
-        """
-        Returns the Indications associated with at least one Statement and the
-        total set of Indications in the database.
-
-        Args:
-            session (sqlalchemy.orm.Session): The database session to query against.
-
-        Returns:
-            tuple: A pair of (associated, total) lists of Indications instances.
-        """
-        associated = (
-            session.query(models.Indications)
-            .join(
-                models.Statements,
-                models.Statements.indication_id == models.Indications.id,
-            )
-            .all()
-        )
-        total = session.query(models.Indications).all()
-        return associated, total
-
-    @staticmethod
-    def propositions(session: sqlalchemy.orm.Session) -> tuple:
-        """
-        Returns the Propositions associated with at least one Statement and the
-        total set of Propositions in the database.
-
-        Args:
-            session (sqlalchemy.orm.Session): The database session to query against.
-
-        Returns:
-            tuple: A pair of (associated, total) lists of Propositions instances.
-        """
-        associated = (
-            session.query(models.Propositions)
-            .join(
-                models.Statements,
-                models.Statements.proposition_id == models.Propositions.id,
-            )
-            .all()
-        )
-        total = session.query(models.Propositions).all()
-        return associated, total
-
-    @staticmethod
-    def statements(session: sqlalchemy.orm.Session) -> tuple:
-        """
-        Returns the Statements considered associated and the total set of
-        Statements in the database. Every Statement is treated as associated.
-
-        Args:
-            session (sqlalchemy.orm.Session): The database session to query against.
-
-        Returns:
-            tuple: A pair of (associated, total) lists of Statements instances.
-        """
-        associated = session.query(models.Statements).all()
-        total = session.query(models.Statements).all()
-        return associated, total
-
-    @staticmethod
-    def strengths(session: sqlalchemy.orm.Session) -> tuple:
-        """
-        Returns the Strengths associated with at least one Statement and the total
-        set of Strengths in the database.
-
-        Args:
-            session (sqlalchemy.orm.Session): The database session to query against.
-
-        Returns:
-            tuple: A pair of (associated, total) lists of Strengths instances.
-        """
-        associated = (
-            session.query(models.Strengths)
-            .join(
-                models.Statements, models.Statements.strength_id == models.Strengths.id
-            )
-            .all()
-        )
-        total = session.query(models.Strengths).all()
-        return associated, total
-
-    @staticmethod
-    def therapies(session: sqlalchemy.orm.Session) -> tuple:
-        """
-        Returns the Therapies associated with at least one Statement, joined either
-        directly via Proposition.therapy_id or indirectly via TherapyGroups, and
-        the total set of Therapies in the database.
-
-        Args:
-            session (sqlalchemy.orm.Session): The database session to query against.
-
-        Returns:
-            tuple: A pair of (associated, total) lists. `associated` contains rows
-            of therapy ids; `total` contains rows of all Therapy ids.
-        """
-        therapies_via_propositions = (
-            session.query(models.Therapies.id.label("therapy_id"))
-            .join(
-                models.Propositions,
-                models.Propositions.therapy_id == models.Therapies.id,
-            )
-            .join(
-                models.Statements,
-                models.Statements.proposition_id == models.Propositions.id,
-            )
+        therapies_via_propositions = sqlalchemy.select(
+            models.Propositions.therapy_id,
+        ).join(
+            models.Statements,
+            models.Statements.proposition_id == models.Propositions.id,
         )
         therapies_via_therapy_groups = (
-            session.query(models.Therapies.id.label("therapy_id"))
-            .join(
-                models.AssociationTherapyAndTherapyGroup,
-                models.AssociationTherapyAndTherapyGroup.therapy_id
-                == models.Therapies.id,
-            )
-            .join(
-                models.TherapyGroups,
-                models.TherapyGroups.id
-                == models.AssociationTherapyAndTherapyGroup.therapy_group_id,
-            )
+            sqlalchemy.select(models.AssociationTherapiesAndTherapyGroups.therapy_id)
             .join(
                 models.Propositions,
-                models.Propositions.therapy_group_id == models.TherapyGroups.id,
+                models.Propositions.therapy_group_id
+                == models.AssociationTherapiesAndTherapyGroups.therapy_group_id,
             )
             .join(
                 models.Statements,
                 models.Statements.proposition_id == models.Propositions.id,
             )
         )
-
-        union = sqlalchemy.union_all(
-            therapies_via_propositions, therapies_via_therapy_groups
-        ).alias("union")
-        associated = session.query(union.c.therapy_id).all()
-        total = session.query(models.Therapies.id).all()
-        return associated, total
+        associated = session.scalars(
+            sqlalchemy.union(therapies_via_propositions, therapies_via_therapy_groups),
+        ).all()
+        total = session.scalars(sqlalchemy.select(models.Therapies)).all()
+        return set(associated), total
 
 
-def main(referenced_dictionary, config_path="config.ini"):
+def main(referenced_directory: str, config_path: str = "config.ini") -> None:
     """
-    Loads the moalmanac-db referenced JSON files into the SQLite database.
+    Loads the moalmanac-db referenced JSON files into the SQLite database named in
+    the config file.
 
-    For each entity, the matching JSON is read and inserted via the SQL helper
-    methods. Term inventory and counts are computed and persisted at the end. On
-    error, the session is rolled back; in all cases, the session is closed.
+    Tables are loaded in the order of app.referenced.TABLES, which satisfies foreign
+    keys (enforced on every connection). Term inventory and counts are computed and
+    persisted at the end. On error, the session is rolled back and the error is
+    re-raised.
 
     Args:
-        referenced_dictionary (str): The path to the directory containing the
+        referenced_directory (str): The path to the directory containing the
             referenced moalmanac-db JSON files.
         config_path (str): The path to the application configuration file (default: "config.ini").
 
-    Returns:
-        str: The literal string "Success!" once the run finishes.
+    Raises:
+        FileExistsError: If the database file already exists.
     """
-    app = create_app(config_path=config_path)
-    session = app.state.session_factory()
-    try:
-        root = f"{referenced_dictionary}"
+    config = database.read_config_ini(path=config_path)
+    database_path = config["database"]["path"]
+    if os.path.exists(database_path):
+        raise FileExistsError(
+            f"{database_path} already exists; remove it before populating.",
+        )
 
-        about = Process.load_json(f"{root}/about.json")
+    engine, session_factory = database.init_db(config_path=config_path)
+    models.Base.metadata.create_all(bind=engine)
+    session = session_factory()
+    try:
+        about = Process.load_json(f"{referenced_directory}/about.json")
         SQL.add_about(record=about, session=session)
         session.commit()
 
-        agents = Process.load_json(f"{root}/agents.json")
-        SQL.add_agents(records=agents, session=session)
-        session.commit()
-
-        urls = Process.load_json(f"{root}/urls.json")
-        SQL.add_urls(records=urls, session=session)
-        session.commit()
-
-        codings = Process.load_json(f"{root}/codings.json")
-        SQL.add_codings(records=codings, session=session)
-        session.commit()
-
-        mappings = Process.load_json(f"{root}/mappings.json")
-        SQL.add_mappings(records=mappings, session=session)
-        session.commit()
-
-        genes = Process.load_json(f"{root}/genes.json")
-        SQL.add_genes(records=genes, session=session)
-        session.commit()
-
-        biomarkers = Process.load_json(f"{root}/biomarkers.json")
-        SQL.add_biomarkers(records=biomarkers, session=session)
-        session.commit()
-
-        diseases = Process.load_json(f"{root}/diseases.json")
-        SQL.add_diseases(records=diseases, session=session)
-        session.commit()
-
-        therapies = Process.load_json(f"{root}/therapies.json")
-        SQL.add_therapies(records=therapies, session=session)
-        session.commit()
-
-        therapy_groups = Process.load_json(f"{root}/therapy_groups.json")
-        SQL.add_therapy_groups(records=therapy_groups, session=session)
-        session.commit()
-
-        contributions = Process.load_json(f"{root}/contributions.json")
-        SQL.add_contributions(records=contributions, session=session)
-        session.commit()
-
-        documents = Process.load_json(f"{root}/documents.json")
-        SQL.add_documents(records=documents, session=session)
-        session.commit()
-
-        indications = Process.load_json(f"{root}/indications.json")
-        SQL.add_indications(records=indications, session=session)
-        session.commit()
-
-        propositions = Process.load_json(f"{root}/propositions.json")
-        SQL.add_propositions(records=propositions, session=session)
-        session.commit()
-
-        strengths = Process.load_json(f"{root}/strengths.json")
-        SQL.add_strengths(records=strengths, session=session)
-        session.commit()
-
-        statements = Process.load_json(f"{root}/statements.json")
-        SQL.add_statements(records=statements, session=session)
-        session.commit()
+        for name in referenced.TABLES:
+            records = Process.load_json(f"{referenced_directory}/{name}.json")
+            SQL.add_table(name=name, records=records, session=session)
+            session.commit()
 
         terms = Summary.list_terms(session=session)
         SQL.add_terms(records=terms, session=session)
@@ -1126,14 +465,12 @@ def main(referenced_dictionary, config_path="config.ini"):
         terms_count = Summary.count_terms(records=terms)
         SQL.add_term_counts(records=terms_count, session=session)
         session.commit()
-        print(terms_count)
-
-    except Exception as e:
-        print(f"Error occurred: {e}")
+    except Exception:
         session.rollback()
+        raise
     finally:
         session.close()
-        return "Success!"
+        engine.dispose()
 
 
 if __name__ == "__main__":
@@ -1148,11 +485,11 @@ if __name__ == "__main__":
         help="Directory for referenced moalmanac db json files",
     )
     arg_parser.add_argument(
-        "--config", 
-        "-c", 
-        default="config.ini", 
+        "--config",
+        "-c",
+        default="config.ini",
         help="Path to config file",
     )
     args = arg_parser.parse_args()
 
-    main(referenced_dictionary=args.input)
+    main(referenced_directory=args.input, config_path=args.config)
