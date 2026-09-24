@@ -428,20 +428,27 @@ class Diseases(BaseHandler):
 
 
 class Documents(BaseHandler):
-    """Handler for the Documents entity. Only Active documents are returned."""
+    """Handler for the Documents entity. Only Active documents are returned by default."""
 
     entity = "documents"
     model = models.Documents
 
     @classmethod
-    def construct_base_query(cls) -> sqlalchemy.Select:
+    def construct_base_query(cls, include_deprecated: bool = False) -> sqlalchemy.Select:
         """
-        Builds the base statement selecting Documents ids, excluding Deprecated documents.
+        Builds the base statement selecting Documents ids, excluding Deprecated
+        documents unless `include_deprecated` is true.
+
+        Args:
+            include_deprecated (bool): If true, also select Deprecated documents.
 
         Returns:
-            sqlalchemy.Select: A statement selecting the ids of Active documents.
+            sqlalchemy.Select: A statement selecting the ids of Active documents, or of all documents if `include_deprecated`.
         """
-        return super().construct_base_query().where(cls.model.status == "Active")
+        statement = super().construct_base_query()
+        if include_deprecated:
+            return statement
+        return statement.where(cls.model.status == "Active")
 
     @staticmethod
     def perform_joins(
@@ -577,25 +584,24 @@ class Genes(BaseHandler):
 
 
 class Indications(BaseHandler):
-    """Handler for the Indications entity. Only Approved and Accelerated indications are returned."""
+    """Handler for the Indications entity. Only Approved and Accelerated indications are returned by default."""
 
     entity = "indications"
     model = models.Indications
 
     @classmethod
-    def construct_base_query(cls, include_inactive: bool = False) -> sqlalchemy.Select:
+    def construct_base_query(cls, include_deprecated: bool = False) -> sqlalchemy.Select:
         """
-        Builds the base statement selecting Indications ids, excluding Superseded
-        and Withdrawn indications unless `include_inactive` is true.
+        Builds the base statement selecting Indications ids, excluding Superseded and Withdrawn indications unless `include_deprecated` is true.
 
         Args:
-            include_inactive (bool): If true, also select Superseded and Withdrawn indications.
+            include_deprecated (bool): If true, also select Superseded and Withdrawn indications.
 
         Returns:
-            sqlalchemy.Select: A statement selecting the ids of Approved and Accelerated indications, or of all indications if `include_inactive`.
+            sqlalchemy.Select: A statement selecting the ids of Approved and Accelerated indications, or of all indications if `include_deprecated`.
         """
         statement = super().construct_base_query()
-        if include_inactive:
+        if include_deprecated:
             return statement
         return statement.where(cls.model.status.in_(("Approved", "Accelerated")))
 
@@ -958,21 +964,27 @@ class SequenceReferences(BaseHandler):
 
 
 class Statements(BaseHandler):
-    """Handler for the Statements entity. Only Active statements are returned."""
+    """Handler for the Statements entity. Only Active statements are returned by default."""
 
     entity = "statements"
     model = models.Statements
 
     @classmethod
-    def construct_base_query(cls) -> sqlalchemy.Select:
+    def construct_base_query(cls, include_deprecated: bool = False) -> sqlalchemy.Select:
         """
         Builds the base statement selecting Statements ids, excluding Superseded
-        and Deprecated statements.
+        and Deprecated statements unless `include_deprecated` is true.
+
+        Args:
+            include_deprecated (bool): If true, also select Superseded and Deprecated statements.
 
         Returns:
-            sqlalchemy.Select: A statement selecting the ids of Active statements.
+            sqlalchemy.Select: A statement selecting the ids of Active statements, or of all statements if `include_deprecated`.
         """
-        return super().construct_base_query().where(cls.model.status == "Active")
+        statement = super().construct_base_query()
+        if include_deprecated:
+            return statement
+        return statement.where(cls.model.status == "Active")
 
     @staticmethod
     def perform_joins(

@@ -452,16 +452,21 @@ def get_diseases(
 def get_documents(
     request: fastapi.Request,
     document_id: str = fastapi.Query(default=None),
+    include_deprecated: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
     Retrieves Documents from the database. Filters by document_id, agent, and
-    agent_id. Only Active documents are returned.
+    agent_id. Only Active documents are returned, unless include_deprecated=true,
+    which also returns Deprecated documents.
     """
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Documents,
+        base_statement=handlers.Documents.construct_base_query(
+            include_deprecated=include_deprecated,
+        ),
         received=generate_datetime_now(),
         message_subject=f"Document id {document_id}" if document_id else "Documents",
         primary_filter=(
@@ -530,13 +535,13 @@ def get_genes(
 def get_indications(
     request: fastapi.Request,
     indication_id: str = fastapi.Query(default=None),
-    include_inactive: bool = fastapi.Query(default=False),
+    include_deprecated: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
     Retrieves Indications (regulatory approvals) from the database. Filters by
     indication_id, document, agent, and agent_id. Only Approved and Accelerated
-    indications are returned, unless include_inactive=true, which also returns
+    indications are returned, unless include_deprecated=true, which also returns
     Superseded and Withdrawn indications.
     """
     return list_entities(
@@ -544,7 +549,7 @@ def get_indications(
         database=database,
         handler=handlers.Indications,
         base_statement=handlers.Indications.construct_base_query(
-            include_inactive=include_inactive,
+            include_deprecated=include_deprecated,
         ),
         received=generate_datetime_now(),
         message_subject=(
@@ -718,6 +723,7 @@ def get_sequence_references(
 def get_statements(
     request: fastapi.Request,
     statement_id: str = fastapi.Query(default=None),
+    include_deprecated: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -725,12 +731,17 @@ def get_statements(
     entire database, and will take several seconds to complete. Filters by
     statement_id, proposition_id, biomarker, biomarker_type, gene, disease,
     therapy, therapy_type, document, agent, agent_id, indication, and
-    contribution. Only Active statements are returned.
+    contribution. Only Active statements are returned, unless
+    include_deprecated=true, which also returns Superseded and Deprecated
+    statements.
     """
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Statements,
+        base_statement=handlers.Statements.construct_base_query(
+            include_deprecated=include_deprecated,
+        ),
         received=generate_datetime_now(),
         message_subject=f"Statement id {statement_id}"
         if statement_id

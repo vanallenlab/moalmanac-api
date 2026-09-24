@@ -282,31 +282,48 @@ def test_id_parameter_returns_single_record(
     assert response.json()["data"] == []
 
 
-def test_indications_include_inactive_returns_withdrawn(
+@pytest.mark.parametrize(
+    "path, id_param, deprecated_statuses",
+    [
+        ("/documents", "document_id", {"Deprecated"}),
+        ("/indications", "indication_id", {"Superseded", "Withdrawn"}),
+        ("/statements", "statement_id", {"Superseded", "Deprecated"}),
+    ],
+)
+def test_include_deprecated_returns_deprecated_records(
+    path: str,
+    id_param: str,
+    deprecated_statuses: set[str],
     client: fastapi.testclient.TestClient,
 ):
     """
-    Ensures Superseded and Withdrawn indications are excluded by default and
-    returned when include_inactive=true, including when requested by id.
+    Ensures deprecated records (e.g. Deprecated documents, Superseded and
+    Withdrawn indications, Superseded and Deprecated statements) are excluded by
+    default and returned when include_deprecated=true, including when requested
+    by id.
     """
-    default = client.get("/indications").json()["data"]
+    default = client.get(path).json()["data"]
     everything = client.get(
-        "/indications", params={"include_inactive": "true"},
+        path, params={"include_deprecated": "true"},
     ).json()["data"]
     assert len(everything) > len(default)
+    assert not any(
+        extension_value(record, "status") in deprecated_statuses
+        for record in default
+    )
 
-    inactive = [
+    deprecated = [
         record
         for record in everything
-        if extension_value(record, "status") in {"Superseded", "Withdrawn"}
+        if extension_value(record, "status") in deprecated_statuses
     ]
-    assert inactive
-    inactive_id = inactive[0]["id"]
+    assert deprecated
+    deprecated_id = deprecated[0]["id"]
 
-    response = client.get("/indications", params={"indication_id": inactive_id})
+    response = client.get(path, params={id_param: deprecated_id})
     assert response.json()["data"] == []
     response = client.get(
-        "/indications",
-        params={"indication_id": inactive_id, "include_inactive": "true"},
+        path,
+        params={id_param: deprecated_id, "include_deprecated": "true"},
     )
-    assert [record["id"] for record in response.json()["data"]] == [inactive_id]
+    assert [record["id"] for record in response.json()["data"]] == [deprecated_id]
