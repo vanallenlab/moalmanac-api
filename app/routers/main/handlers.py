@@ -583,20 +583,21 @@ class Indications(BaseHandler):
     model = models.Indications
 
     @classmethod
-    def construct_base_query(cls) -> sqlalchemy.Select:
+    def construct_base_query(cls, include_inactive: bool = False) -> sqlalchemy.Select:
         """
         Builds the base statement selecting Indications ids, excluding Superseded
-        and Withdrawn indications.
+        and Withdrawn indications unless `include_inactive` is true.
+
+        Args:
+            include_inactive (bool): If true, also select Superseded and Withdrawn indications.
 
         Returns:
-            sqlalchemy.Select: A statement selecting the ids of Approved and
-            Accelerated indications.
+            sqlalchemy.Select: A statement selecting the ids of Approved and Accelerated indications, or of all indications if `include_inactive`.
         """
-        return (
-            super()
-            .construct_base_query()
-            .where(cls.model.status.in_(("Approved", "Accelerated")))
-        )
+        statement = super().construct_base_query()
+        if include_inactive:
+            return statement
+        return statement.where(cls.model.status.in_(("Approved", "Accelerated")))
 
     @staticmethod
     def perform_joins(

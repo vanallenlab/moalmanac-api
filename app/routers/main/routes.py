@@ -155,6 +155,26 @@ def get_service_metadata_cached(
     return value
 
 
+def combine_filters(
+    *conditions: sqlalchemy.ColumnElement | None,
+) -> sqlalchemy.ColumnElement | None:
+    """
+    Combines a route's exact-match conditions with `AND`, ignoring any that are None.
+
+    Args:
+        *conditions (sqlalchemy.ColumnElement | None): Conditions built from the
+            route's declared query parameters, or None for parameters not provided.
+
+    Returns:
+        sqlalchemy.ColumnElement | None: The combined condition, or None if no
+            condition was provided.
+    """
+    provided = [condition for condition in conditions if condition is not None]
+    if not provided:
+        return None
+    return sqlalchemy.and_(*provided)
+
+
 def list_entities(
     *,
     request: fastapi.Request,
@@ -162,6 +182,7 @@ def list_entities(
     handler: type[handlers.BaseHandler],
     received: datetime.datetime,
     message_subject: str,
+    base_statement: sqlalchemy.Select | None = None,
     primary_filter: sqlalchemy.ColumnElement | None = None,
 ) -> dict:
     """
@@ -176,6 +197,8 @@ def list_entities(
         received (datetime.datetime): When the request was received.
         message_subject (str): The subject noun for the response message, e.g.
             "Agents" or "Agent name BRAF".
+        base_statement (sqlalchemy.Select | None): An optional base statement to
+            use instead of `handler.construct_base_query()`.
         primary_filter (sqlalchemy.ColumnElement | None): An optional exact-match
             condition from the route's own declared query parameter (e.g.
             `models.Agents.id == agent_id`).
@@ -183,7 +206,9 @@ def list_entities(
     Returns:
         dict: The response envelope from `create_response`.
     """
-    statement = handler.construct_base_query()
+    statement = (
+        base_statement if base_statement is not None else handler.construct_base_query()
+    )
     if primary_filter is not None:
         statement = statement.where(primary_filter)
 
@@ -271,23 +296,29 @@ def get_alleles(
 @router.get("/biomarkers", tags=["Entities"])
 def get_biomarkers(
     request: fastapi.Request,
+    biomarker_id: str = fastapi.Query(default=None),
     biomarker_name: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Biomarkers from the database. Filters by biomarker_name,
-    biomarker_type, and gene.
+    Retrieves Biomarkers from the database. Filters by biomarker_id,
+    biomarker_name, biomarker_type, and gene.
     """
+    if biomarker_id:
+        message_subject = f"Biomarker id {biomarker_id}"
+    elif biomarker_name:
+        message_subject = f"Biomarker name {biomarker_name}"
+    else:
+        message_subject = "Biomarkers"
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Biomarkers,
         received=generate_datetime_now(),
-        message_subject=(
-            f"Biomarker name {biomarker_name}" if biomarker_name else "Biomarkers"
-        ),
-        primary_filter=(
-            handlers.Biomarkers.model.name == biomarker_name if biomarker_name else None
+        message_subject=message_subject,
+        primary_filter=combine_filters(
+            handlers.Biomarkers.model.id == biomarker_id if biomarker_id else None,
+            handlers.Biomarkers.model.name == biomarker_name if biomarker_name else None,
         ),
     )
 
@@ -391,20 +422,28 @@ def get_copy_changes(
 @router.get("/diseases", tags=["Entities"])
 def get_diseases(
     request: fastapi.Request,
+    disease_id: str = fastapi.Query(default=None),
     disease_name: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Diseases from the database.
+    Retrieves Diseases from the database. Filters by disease_id and disease_name.
     """
+    if disease_id:
+        message_subject = f"Disease id {disease_id}"
+    elif disease_name:
+        message_subject = f"Disease name {disease_name}"
+    else:
+        message_subject = "Diseases"
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Diseases,
         received=generate_datetime_now(),
-        message_subject=f"Disease name {disease_name}" if disease_name else "Diseases",
-        primary_filter=(
-            handlers.Diseases.model.name == disease_name if disease_name else None
+        message_subject=message_subject,
+        primary_filter=combine_filters(
+            handlers.Diseases.model.id == disease_id if disease_id else None,
+            handlers.Diseases.model.name == disease_name if disease_name else None,
         ),
     )
 
@@ -461,19 +500,29 @@ def get_function_consequences(
 @router.get("/genes", tags=["Entities"])
 def get_genes(
     request: fastapi.Request,
+    gene_id: str = fastapi.Query(default=None),
     gene_name: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Genes from the database.
+    Retrieves Genes from the database. Filters by gene_id and gene_name.
     """
+    if gene_id:
+        message_subject = f"Gene id {gene_id}"
+    elif gene_name:
+        message_subject = f"Gene name {gene_name}"
+    else:
+        message_subject = "Genes"
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Genes,
         received=generate_datetime_now(),
-        message_subject=f"Gene name {gene_name}" if gene_name else "Genes",
-        primary_filter=(handlers.Genes.model.name == gene_name if gene_name else None),
+        message_subject=message_subject,
+        primary_filter=combine_filters(
+            handlers.Genes.model.id == gene_id if gene_id else None,
+            handlers.Genes.model.name == gene_name if gene_name else None,
+        ),
     )
 
 
@@ -481,17 +530,22 @@ def get_genes(
 def get_indications(
     request: fastapi.Request,
     indication_id: str = fastapi.Query(default=None),
+    include_inactive: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
     Retrieves Indications (regulatory approvals) from the database. Filters by
     indication_id, document, agent, and agent_id. Only Approved and Accelerated
-    indications are returned.
+    indications are returned, unless include_inactive=true, which also returns
+    Superseded and Withdrawn indications.
     """
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Indications,
+        base_statement=handlers.Indications.construct_base_query(
+            include_inactive=include_inactive,
+        ),
         received=generate_datetime_now(),
         message_subject=(
             f"Indication id {indication_id}" if indication_id else "Indications"
@@ -713,21 +767,29 @@ def get_strengths(
 @router.get("/therapies", tags=["Entities"])
 def get_therapies(
     request: fastapi.Request,
+    therapy_id: str = fastapi.Query(default=None),
     therapy_name: str = fastapi.Query(default=None),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Therapies from the database. Filters by therapy_name and
-    therapy_type.
+    Retrieves Therapies from the database. Filters by therapy_id, therapy_name,
+    and therapy_type.
     """
+    if therapy_id:
+        message_subject = f"Therapy id {therapy_id}"
+    elif therapy_name:
+        message_subject = f"Therapy name {therapy_name}"
+    else:
+        message_subject = "Therapies"
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Therapies,
         received=generate_datetime_now(),
-        message_subject=f"Therapy name {therapy_name}" if therapy_name else "Therapies",
-        primary_filter=(
-            handlers.Therapies.model.name == therapy_name if therapy_name else None
+        message_subject=message_subject,
+        primary_filter=combine_filters(
+            handlers.Therapies.model.id == therapy_id if therapy_id else None,
+            handlers.Therapies.model.name == therapy_name if therapy_name else None,
         ),
     )
 

@@ -251,3 +251,62 @@ def test_search_by_document_narrows_aggregates_not_selection(
         for record in filtered
         for by_document in record["aggregates"]["by_document"]
     )
+
+
+@pytest.mark.parametrize(
+    "path, id_param, record_id",
+    [
+        ("/biomarkers", "biomarker_id", "bmkr:12"),
+        ("/diseases", "disease_id", "dis:oncotree:ALL"),
+        ("/genes", "gene_id", "gene:hgnc:76"),
+        ("/therapies", "therapy_id", "tx:ncit:C62528"),
+    ],
+)
+def test_id_parameter_returns_single_record(
+    path: str,
+    id_param: str,
+    record_id: str,
+    client: fastapi.testclient.TestClient,
+):
+    """
+    Ensures each entity's `<entity>_id` parameter returns exactly the matching
+    record, and an unknown id returns no records.
+    """
+    response = client.get(path, params={id_param: record_id})
+    assert response.status_code == 200
+    records = response.json()["data"]
+    assert [record["id"] for record in records] == [record_id]
+
+    response = client.get(path, params={id_param: "not-an-id"})
+    assert response.status_code == 200
+    assert response.json()["data"] == []
+
+
+def test_indications_include_inactive_returns_withdrawn(
+    client: fastapi.testclient.TestClient,
+):
+    """
+    Ensures Superseded and Withdrawn indications are excluded by default and
+    returned when include_inactive=true, including when requested by id.
+    """
+    default = client.get("/indications").json()["data"]
+    everything = client.get(
+        "/indications", params={"include_inactive": "true"},
+    ).json()["data"]
+    assert len(everything) > len(default)
+
+    inactive = [
+        record
+        for record in everything
+        if extension_value(record, "status") in {"Superseded", "Withdrawn"}
+    ]
+    assert inactive
+    inactive_id = inactive[0]["id"]
+
+    response = client.get("/indications", params={"indication_id": inactive_id})
+    assert response.json()["data"] == []
+    response = client.get(
+        "/indications",
+        params={"indication_id": inactive_id, "include_inactive": "true"},
+    )
+    assert [record["id"] for record in response.json()["data"]] == [inactive_id]
