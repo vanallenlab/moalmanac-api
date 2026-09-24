@@ -283,6 +283,33 @@ def test_id_parameter_returns_single_record(
 
 
 @pytest.mark.parametrize(
+    "path, name_param, name, record_id",
+    [
+        ("/agents", "agent_name", "Food and Drug Administration", "agent:org:fda"),
+        ("/biomarkers", "biomarker_name", "BCR::ABL1", "bmkr:12"),
+        ("/diseases", "disease_name", "Acute Lymphoid Leukemia", "dis:oncotree:ALL"),
+        ("/genes", "gene_name", "BRAF", "gene:hgnc:1097"),
+        ("/strengths", "strength_name", "Approval", "str:ncit:C25425"),
+        ("/therapies", "therapy_name", "Imatinib", "tx:ncit:C62035"),
+    ],
+)
+def test_name_parameter_is_case_insensitive(
+    path: str,
+    name_param: str,
+    name: str,
+    record_id: str,
+    client: fastapi.testclient.TestClient,
+):
+    """
+    Ensures each entity's `<entity>_name` parameter matches regardless of case.
+    """
+    for variant in (name, name.lower(), name.upper()):
+        response = client.get(path, params={name_param: variant})
+        assert response.status_code == 200
+        assert [record["id"] for record in response.json()["data"]] == [record_id]
+
+
+@pytest.mark.parametrize(
     "path, id_param, deprecated_statuses",
     [
         ("/documents", "document_id", {"Deprecated"}),
@@ -299,8 +326,8 @@ def test_include_deprecated_returns_deprecated_records(
     """
     Ensures deprecated records (e.g. Deprecated documents, Superseded and
     Withdrawn indications, Superseded and Deprecated statements) are excluded by
-    default and returned when include_deprecated=true, including when requested
-    by id.
+    default and returned when include_deprecated=true, and are always returned
+    when requested by id.
     """
     default = client.get(path).json()["data"]
     everything = client.get(
@@ -320,10 +347,9 @@ def test_include_deprecated_returns_deprecated_records(
     assert deprecated
     deprecated_id = deprecated[0]["id"]
 
-    response = client.get(path, params={id_param: deprecated_id})
-    assert response.json()["data"] == []
-    response = client.get(
-        path,
-        params={id_param: deprecated_id, "include_deprecated": "true"},
-    )
-    assert [record["id"] for record in response.json()["data"]] == [deprecated_id]
+    for params in (
+        {id_param: deprecated_id},
+        {id_param: deprecated_id, "include_deprecated": "true"},
+    ):
+        response = client.get(path, params=params)
+        assert [record["id"] for record in response.json()["data"]] == [deprecated_id]

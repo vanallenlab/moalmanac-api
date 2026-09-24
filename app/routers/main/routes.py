@@ -13,6 +13,23 @@ from . import handlers
 router = fastapi.APIRouter()
 
 
+def equals_case_insensitive(
+    column: sqlalchemy.ColumnElement,
+    value: str,
+) -> sqlalchemy.ColumnElement:
+    """
+    Builds a condition matching `column` to `value`, ignoring case.
+
+    Args:
+        column (sqlalchemy.ColumnElement): The column to compare, e.g. `models.Genes.name`.
+        value (str): The value to match.
+
+    Returns:
+        sqlalchemy.ColumnElement: A `lower(column) = lower(value)` condition.
+    """
+    return sqlalchemy.func.lower(column) == sqlalchemy.func.lower(value)
+
+
 def generate_datetime_now() -> datetime.datetime:
     """
     Returns the current datetime in UTC.
@@ -260,7 +277,7 @@ def get_agents(
 ):
     """
     Retrieves Agents from the database. Filters by agent_name, agent_id, and
-    agent_type.
+    agent_type. agent_name is matched case-insensitively.
     """
     return list_entities(
         request=request,
@@ -269,7 +286,7 @@ def get_agents(
         received=generate_datetime_now(),
         message_subject=f"Agent name {agent_name}" if agent_name else "Agents",
         primary_filter=(
-            handlers.Agents.model.name == agent_name if agent_name else None
+            equals_case_insensitive(handlers.Agents.model.name, agent_name) if agent_name else None
         ),
     )
 
@@ -302,7 +319,8 @@ def get_biomarkers(
 ):
     """
     Retrieves Biomarkers from the database. Filters by biomarker_id,
-    biomarker_name, biomarker_type, and gene.
+    biomarker_name, biomarker_type, and gene. biomarker_name is matched
+    case-insensitively.
     """
     if biomarker_id:
         message_subject = f"Biomarker id {biomarker_id}"
@@ -318,7 +336,7 @@ def get_biomarkers(
         message_subject=message_subject,
         primary_filter=combine_filters(
             handlers.Biomarkers.model.id == biomarker_id if biomarker_id else None,
-            handlers.Biomarkers.model.name == biomarker_name if biomarker_name else None,
+            equals_case_insensitive(handlers.Biomarkers.model.name, biomarker_name) if biomarker_name else None,
         ),
     )
 
@@ -428,6 +446,7 @@ def get_diseases(
 ):
     """
     Retrieves Diseases from the database. Filters by disease_id and disease_name.
+    disease_name is matched case-insensitively.
     """
     if disease_id:
         message_subject = f"Disease id {disease_id}"
@@ -443,7 +462,7 @@ def get_diseases(
         message_subject=message_subject,
         primary_filter=combine_filters(
             handlers.Diseases.model.id == disease_id if disease_id else None,
-            handlers.Diseases.model.name == disease_name if disease_name else None,
+            equals_case_insensitive(handlers.Diseases.model.name, disease_name) if disease_name else None,
         ),
     )
 
@@ -458,14 +477,15 @@ def get_documents(
     """
     Retrieves Documents from the database. Filters by document_id, agent, and
     agent_id. Only Active documents are returned, unless include_deprecated=true,
-    which also returns Deprecated documents.
+    which also returns Deprecated documents. Deprecated documents are always
+    returned when requested by document_id.
     """
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Documents,
         base_statement=handlers.Documents.construct_base_query(
-            include_deprecated=include_deprecated,
+            include_deprecated=include_deprecated or bool(document_id),
         ),
         received=generate_datetime_now(),
         message_subject=f"Document id {document_id}" if document_id else "Documents",
@@ -511,6 +531,7 @@ def get_genes(
 ):
     """
     Retrieves Genes from the database. Filters by gene_id and gene_name.
+    gene_name is matched case-insensitively.
     """
     if gene_id:
         message_subject = f"Gene id {gene_id}"
@@ -526,7 +547,7 @@ def get_genes(
         message_subject=message_subject,
         primary_filter=combine_filters(
             handlers.Genes.model.id == gene_id if gene_id else None,
-            handlers.Genes.model.name == gene_name if gene_name else None,
+            equals_case_insensitive(handlers.Genes.model.name, gene_name) if gene_name else None,
         ),
     )
 
@@ -542,14 +563,15 @@ def get_indications(
     Retrieves Indications (regulatory approvals) from the database. Filters by
     indication_id, document, agent, and agent_id. Only Approved and Accelerated
     indications are returned, unless include_deprecated=true, which also returns
-    Superseded and Withdrawn indications.
+    Superseded and Withdrawn indications. Superseded and Withdrawn indications
+    are always returned when requested by indication_id.
     """
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Indications,
         base_statement=handlers.Indications.construct_base_query(
-            include_deprecated=include_deprecated,
+            include_deprecated=include_deprecated or bool(indication_id),
         ),
         received=generate_datetime_now(),
         message_subject=(
@@ -733,14 +755,15 @@ def get_statements(
     therapy, therapy_type, document, agent, agent_id, indication, and
     contribution. Only Active statements are returned, unless
     include_deprecated=true, which also returns Superseded and Deprecated
-    statements.
+    statements. Superseded and Deprecated statements are always returned when
+    requested by statement_id.
     """
     return list_entities(
         request=request,
         database=database,
         handler=handlers.Statements,
         base_statement=handlers.Statements.construct_base_query(
-            include_deprecated=include_deprecated,
+            include_deprecated=include_deprecated or bool(statement_id),
         ),
         received=generate_datetime_now(),
         message_subject=f"Statement id {statement_id}"
@@ -759,7 +782,8 @@ def get_strengths(
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
-    Retrieves Strengths from the database.
+    Retrieves Strengths from the database. Filters by strength_name, which is
+    matched case-insensitively.
     """
     return list_entities(
         request=request,
@@ -770,7 +794,7 @@ def get_strengths(
             f"Strength name {strength_name}" if strength_name else "Strengths"
         ),
         primary_filter=(
-            handlers.Strengths.model.name == strength_name if strength_name else None
+            equals_case_insensitive(handlers.Strengths.model.name, strength_name) if strength_name else None
         ),
     )
 
@@ -784,7 +808,7 @@ def get_therapies(
 ):
     """
     Retrieves Therapies from the database. Filters by therapy_id, therapy_name,
-    and therapy_type.
+    and therapy_type. therapy_name is matched case-insensitively.
     """
     if therapy_id:
         message_subject = f"Therapy id {therapy_id}"
@@ -800,7 +824,7 @@ def get_therapies(
         message_subject=message_subject,
         primary_filter=combine_filters(
             handlers.Therapies.model.id == therapy_id if therapy_id else None,
-            handlers.Therapies.model.name == therapy_name if therapy_name else None,
+            equals_case_insensitive(handlers.Therapies.model.name, therapy_name) if therapy_name else None,
         ),
     )
 
