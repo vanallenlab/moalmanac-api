@@ -19,12 +19,15 @@ Create the account and the conda install once per VM:
 
 ```bash
 sudo useradd --system --create-home --home-dir /srv/moalmanac --shell /bin/bash moalmanac
-sudo -iu moalmanac bash -c '
+sudo -u moalmanac -H bash -c '
+  cd /srv/moalmanac
   curl -L -o Miniforge3-Linux-x86_64.sh https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
   bash Miniforge3-Linux-x86_64.sh -b -p /srv/moalmanac/miniforge3 && rm Miniforge3-Linux-x86_64.sh
   /srv/moalmanac/miniforge3/bin/conda init bash
 '
 ```
+
+Use `sudo -u moalmanac -H bash -c '...'` for multi-line commands like this one. `sudo -iu moalmanac` is for an interactive shell; given a multi-line command, it joins the lines into one and bash rejects it.
 
 ## Installation
 
