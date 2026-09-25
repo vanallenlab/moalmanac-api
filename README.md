@@ -84,13 +84,13 @@ The API is hosted on the same VM as every [moalmanac-browser](https://github.com
 This repository uses [Gunicorn](https://gunicorn.org) with Uvicorn workers to serve the FastAPI application for production. The service is configured using a [systemd unit file, service/moalmanac-api.service](service/moalmanac-api.service), which sets environment variables from [.env.production](.env.production) via the `EnvironmentFile` variable:
 
 ```ini
-EnvironmentFile=/home/breardon/moalmanac-api/.env.production
+EnvironmentFile=/srv/moalmanac/moalmanac-api/.env.production
 ```
 
 Gunicorn is launched using the provided `ExecStart` command:
 
 ```ini
-/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers ${GUNICORN_WORKERS} --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000 app.main:app
+/srv/moalmanac/miniforge3/envs/moalmanac-api/bin/gunicorn --workers ${GUNICORN_WORKERS} --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000 app.main:app
 ```
 
 Systemd and Gunicorn manage launching the application for production using the [service/moalmanac-api.service](service/moalmanac-api.service) file, so there is no need to run `python run.py` for production use.

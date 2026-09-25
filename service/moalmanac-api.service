@@ -3,12 +3,12 @@ Description=Gunicorn instance to serve moalmanac-api
 After=network.target
 
 [Service]
-User=breardon
+User=moalmanac
 Group=www-data
-WorkingDirectory=/home/breardon/moalmanac-api
-EnvironmentFile=/home/breardon/moalmanac-api/.env.production
-Environment="PATH=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin"
-ExecStart=/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers ${GUNICORN_WORKERS} --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000 app.main:app
+WorkingDirectory=/srv/moalmanac/moalmanac-api
+EnvironmentFile=/srv/moalmanac/moalmanac-api/.env.production
+Environment="PATH=/srv/moalmanac/miniforge3/envs/moalmanac-api/bin"
+ExecStart=/srv/moalmanac/miniforge3/envs/moalmanac-api/bin/gunicorn --workers ${GUNICORN_WORKERS} --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000 app.main:app
 
 [Install]
 WantedBy=multi-user.target
