@@ -66,7 +66,7 @@ rm data/moalmanac.sqlite3; python -m app.populate_database -i moalmanac-db/refer
 
 ### Environment configuration
 
-Flask configuration variables are managed using environment files:
+Configuration variables are managed using environment files:
 
 - [.env](.env) - used for local development
 - [.env.production](.env.production) - used for production, loaded with systemd
@@ -79,7 +79,9 @@ python run.py
 
 ### Production deployment
 
-This repository uses [Gunicorn](https://gunicorn.org) to serve the Flask application for production. The service is configured using a [systemd unit file, service/moalmanac-api.service](service/moalmanac-api.service), which sets environment variables from [.env.production](.env.production) via the `EnvironmentFile` variable:
+The API is hosted on the same VM as every [moalmanac-browser](https://github.com/vanallenlab/moalmanac-browser) instance, behind one nginx. Gunicorn listens on `127.0.0.1:8000`, which nginx proxies to for `api.moalmanac.org` and which browser instances use directly. See [service/README.md](service/README.md) for set up.
+
+This repository uses [Gunicorn](https://gunicorn.org) with Uvicorn workers to serve the FastAPI application for production. The service is configured using a [systemd unit file, service/moalmanac-api.service](service/moalmanac-api.service), which sets environment variables from [.env.production](.env.production) via the `EnvironmentFile` variable:
 
 ```ini
 EnvironmentFile=/home/breardon/moalmanac-api/.env.production
@@ -88,7 +90,7 @@ EnvironmentFile=/home/breardon/moalmanac-api/.env.production
 Gunicorn is launched using the provided `ExecStart` command:
 
 ```ini
-/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers 5 --bind unix:moalmanac-api.sock -m 007 run:app
+/home/breardon/mambaforge-pypy3/envs/moalmanac-api/bin/gunicorn --workers ${GUNICORN_WORKERS} --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000 app.main:app
 ```
 
 Systemd and Gunicorn manage launching the application for production using the [service/moalmanac-api.service](service/moalmanac-api.service) file, so there is no need to run `python run.py` for production use.
