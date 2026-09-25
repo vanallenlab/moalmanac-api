@@ -10,12 +10,14 @@ sudo ufw disable
 # conda create virtual env, make sure that conda is installed correctly
 # activate venv and install requirements into it
 
+# The API listens on 127.0.0.1:8000, where it is used by nginx and by moalmanac-browser instances on the same VM
 sudo cp moalmanac-api.service /etc/systemd/system/moalmanac-api.service
-sudo systemctl start moalmanac-api
-sudo systemctl enable moalmanac-api
+sudo systemctl daemon-reload
+sudo systemctl enable --now moalmanac-api
 
-sudo cp moalmanac-api /etc/nginx/sites-available/
-sudo ln -s /etc/nginx/sites-available/moalmanac-api /etc/nginx/sites-enabled
-sudo systemctl restart nginx
+sudo cp moalmanac-api /etc/nginx/sites-available/moalmanac-api
+sudo ln -sf /etc/nginx/sites-available/moalmanac-api /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl restart nginx
 
 sudo chmod 755 /home/breardon
