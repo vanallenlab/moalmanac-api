@@ -50,7 +50,7 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
         default_response_class=PrettyJSONResponse,
         description=(
             "The Molecular Oncology Almanac (MOAlmanac) is a paired knowledgebase and clinical interpretation "
-            "algorithm for precision cancer medicine. Visit [our website](https://dev.moalmanac.org) for more "
+            "algorithm for precision cancer medicine. Visit [our website](https://moalmanac.org) for more "
             "information."
         ),
         docs_url="/",
