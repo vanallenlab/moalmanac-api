@@ -353,3 +353,36 @@ def test_include_deprecated_returns_deprecated_records(
     ):
         response = client.get(path, params=params)
         assert [record["id"] for record in response.json()["data"]] == [deprecated_id]
+
+
+def test_contributions_include_records_lists_contributed_records(
+    client: fastapi.testclient.TestClient,
+):
+    """
+    Ensures include_records=true adds a `records` extension to each contribution,
+    listing the indications and statements it was made to, and that the default
+    response has no such extension.
+    """
+    params = {"agent_id": "agent:user:vanallenlab"}
+    default = client.get("/contributions", params=params).json()["data"]
+    assert default
+    assert not any(
+        extension["name"] == "records"
+        for contribution in default
+        for extension in contribution.get("extensions") or []
+    )
+
+    response = client.get(
+        "/contributions", params={**params, "include_records": "true"},
+    )
+    assert response.status_code == 200
+    contributions = response.json()["data"]
+    assert [c["id"] for c in contributions] == [c["id"] for c in default]
+    records = [
+        record
+        for contribution in contributions
+        for record in extension_value(contribution, "records")
+    ]
+    assert records
+    assert {record["type"] for record in records} <= {"Indication", "Statement"}
+    assert all(record["id"] for record in records)

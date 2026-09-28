@@ -315,6 +315,56 @@ class Contributions(BaseHandler):
     model = models.Contributions
 
     @staticmethod
+    def get_records(
+        session: sqlalchemy.orm.Session,
+        contribution_ids: set[str],
+        cache: dereferenced.Cache,
+    ) -> dict[str, list[dict]]:
+        """
+        Looks up the indications and statements each contribution was made to.
+
+        Records of every status are included, including deprecated ones.
+
+        Args:
+            session (sqlalchemy.orm.Session): The database session to query against.
+            contribution_ids (set[str]): The contribution ids to look up.
+            cache (dereferenced.Cache): The application's dereferenced cache
+                (`request.app.state.dereferenced`).
+
+        Returns:
+            dict[str, list[dict]]: `{contribution_id: [{id, type, name, description}, ...]}`,
+                with indications before statements and each group in association order.
+                Contributions without records are absent.
+        """
+        associations = [
+            (models.AssociationContributionsAndIndications, "indication_id", "indications"),
+            (models.AssociationContributionsAndStatements, "statement_id", "statements"),
+        ]
+        records: dict[str, list[dict]] = {}
+        for association, record_column, entity in associations:
+            statement = (
+                sqlalchemy.select(
+                    association.contribution_id,
+                    getattr(association, record_column),
+                )
+                .where(association.contribution_id.in_(contribution_ids))
+                .order_by(association.id)
+            )
+            for contribution_id, record_id in session.execute(statement).all():
+                record = cache[entity].get(record_id)
+                if record is None:
+                    continue
+                records.setdefault(contribution_id, []).append(
+                    {
+                        "id": record["id"],
+                        "type": record.get("type"),
+                        "name": record.get("name"),
+                        "description": record.get("description"),
+                    },
+                )
+        return records
+
+    @staticmethod
     def perform_joins(
         statement: sqlalchemy.Select,
         parameters: Parameters,

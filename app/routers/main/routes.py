@@ -392,13 +392,16 @@ def get_codings(
 def get_contributions(
     request: fastapi.Request,
     contribution_id: str = fastapi.Query(default=None),
+    include_records: bool = fastapi.Query(default=False),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
     Retrieves Contributions from the database. Filters by contribution_id, agent,
-    and agent_id.
+    and agent_id. When include_records=true, each contribution gains a `records`
+    extension listing the indications and statements it was made to, as
+    {id, type, name, description}.
     """
-    return list_entities(
+    response = list_entities(
         request=request,
         database=database,
         handler=handlers.Contributions,
@@ -412,6 +415,28 @@ def get_contributions(
             else None
         ),
     )
+    if include_records:
+        records = handlers.Contributions.get_records(
+            session=database,
+            contribution_ids={contribution["id"] for contribution in response["data"]},
+            cache=request.app.state.dereferenced,
+        )
+        # Copy each contribution rather than mutating the shared, read-only dereferenced cache.
+        response["data"] = [
+            {
+                **contribution,
+                "extensions": [
+                    *(contribution.get("extensions") or []),
+                    {
+                        "name": "records",
+                        "value": records.get(contribution["id"], []),
+                        "description": "Records this contribution was made to.",
+                    },
+                ],
+            }
+            for contribution in response["data"]
+        ]
+    return response
 
 
 @router.get("/copy_changes", tags=["Entities"])
