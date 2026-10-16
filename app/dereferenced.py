@@ -33,6 +33,8 @@ _MOALMANAC_DB_ROOT = (
 if str(_MOALMANAC_DB_ROOT) not in sys.path:
     sys.path.insert(0, str(_MOALMANAC_DB_ROOT))
 
+# This repository's own utils/ has no __init__.py, so moalmanac-db's utils package,
+# which does, is always the one imported here.
 from utils import dereference  # noqa: E402 (needs moalmanac-db on sys.path first)
 
 # Every table `dereference.Database` needs to resolve foreign keys, keyed by the

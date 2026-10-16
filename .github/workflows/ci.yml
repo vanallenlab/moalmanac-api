@@ -31,10 +31,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Lint
-        run: ruff check app scripts tests run.py
+        run: ruff check app utils tests run.py
 
       - name: Check docs/openapi.json is up to date
-        run: python scripts/export_openapi.py --check
+        run: python utils/export_openapi.py --check
 
   tests:
     name: Tests

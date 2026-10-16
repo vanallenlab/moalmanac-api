@@ -30,7 +30,7 @@ cd - || exit
 
 # Regenerate the OpenAPI schema, whose response schemas and examples come from
 # moalmanac-db, so it is committed together with the submodule update
-"$PYTHON" scripts/export_openapi.py || {
+"$PYTHON" utils/export_openapi.py || {
   echo "Failed to export docs/openapi.json; nothing was committed. $SUBMODULE_PATH is"
   echo "checked out at the new commit but not staged. Fix the error and rerun."
   exit 1

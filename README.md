@@ -7,7 +7,7 @@ API for the [moalmanac-db](https://github.com/vanallenlab/moalmanac-db) and [moa
 This repository can be downloaded through GitHub by either using the website or terminal. To download on the website, navigate to the top of this page, click the green `Clone or download` button, and select `Download ZIP` to download this repository in a compressed format. To install using GitHub on terminal, type:
 
 ```bash
-git clone https://github.com/vanallenlab/moalmanac-api.git --recursive-submodules
+git clone https://github.com/vanallenlab/moalmanac-api.git --recurse-submodules
 cd moalmanac-api
 ```
 
@@ -20,14 +20,16 @@ git submodule update --init --recursive
 To update moalmanac-db to the latest commit, use [update_submodule_to_commit.sh](update_submodule_to_commit.sh):
 
 ```bash
-bash update_submodule_to_commit
+bash update_submodule_to_commit.sh
 ```
 
 Alternatively, to update moalmanac-db to a specific commit:
 
 ```bash
-bash update_submodule_to_commit <commit hash>
+bash update_submodule_to_commit.sh <commit hash>
 ```
+
+The script also regenerates [docs/openapi.json](docs/openapi.json) (see [OpenAPI schema](#openapi-schema)) and commits it together with the submodule update, so run it with this repository's Python environment activated, or point `PYTHON` at it (e.g. `PYTHON=/path/to/python bash update_submodule_to_commit.sh`). It refuses to run while `app/` has uncommitted changes, so the committed schema matches the committed code, and it commits nothing if regenerating the schema fails.
 
 ### Python dependencies
 
@@ -94,6 +96,36 @@ Gunicorn is launched using the provided `ExecStart` command:
 ```
 
 Systemd and Gunicorn manage launching the application for production using the [service/moalmanac-api.service](service/moalmanac-api.service) file, so there is no need to run `python run.py` for production use.
+
+## Development
+
+### OpenAPI schema
+
+The API's interactive documentation is served at [https://api.moalmanac.org](https://api.moalmanac.org). A copy of its OpenAPI schema is committed at [docs/openapi.json](docs/openapi.json), which the [documentation site](https://docs.moalmanac.org) renders. Response schemas and examples in it are built from moalmanac-db's JSON Schemas and records (see [app/schemas.py](app/schemas.py)).
+
+Regenerate it whenever [app/routers/main/routes.py](./app/routers/main/routes.py) changes (routes, their parameters, or docstrings) or moalmanac-db is updated, and commit it with the change:
+
+```bash
+python utils/export_openapi.py
+```
+
+[update_submodule_to_commit.sh](update_submodule_to_commit.sh) does this automatically when updating moalmanac-db.
+
+### Continuous integration
+
+[GitHub Actions](.github/workflows/ci.yml) runs on every pull request and every push to `main`:
+
+- `ruff check app utils tests run.py`
+- `python utils/export_openapi.py --check`, which fails if [docs/openapi.json](docs/openapi.json) is out of date
+- `python -m pytest`
+
+To run the same checks locally before pushing:
+
+```bash
+ruff check app utils tests run.py
+python utils/export_openapi.py --check
+python -m pytest
+```
 
 ## Citation
 
