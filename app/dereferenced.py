@@ -33,7 +33,7 @@ _MOALMANAC_DB_ROOT = (
 if str(_MOALMANAC_DB_ROOT) not in sys.path:
     sys.path.insert(0, str(_MOALMANAC_DB_ROOT))
 
-from utils import dereference
+from utils import dereference  # noqa: E402 (needs moalmanac-db on sys.path first)
 
 # Every table `dereference.Database` needs to resolve foreign keys, keyed by the
 # same names as app.referenced.TABLES. `urls` has no entry in _CONCEPT_DIRS (it is
