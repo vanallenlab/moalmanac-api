@@ -17,86 +17,86 @@ router = fastapi.APIRouter()
 # repeated (e.g. `?gene=BRAF&gene=KRAS`) to match any of the given values; values
 # are matched exactly and case-sensitively.
 AgentFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Agent name, matched exactly. Repeat to match any of several.",
+        description="Agent name, matched exactly. Repeatable; matches any of the given values (OR).",
         examples=[["Van Allen lab"]],
     ),
 ]
 AgentIdFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Agent id. Repeat to match any of several.",
+        description="Agent id. Repeatable; matches any of the given values (OR).",
         examples=[["agent:user:vanallenlab"]],
     ),
 ]
 AgentTypeFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Agent type. Repeat to match any of several.",
+        description="Agent type. Repeatable; matches any of the given values (OR).",
         examples=[["organization"]],
     ),
 ]
 BiomarkerFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Biomarker name, matched exactly. Repeat to match any of several.",
+        description="Biomarker name, matched exactly. Repeatable; matches any of the given values (OR).",
         examples=[["BRAF p.V600E"]],
     ),
 ]
 BiomarkerTypeFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Biomarker type. Repeat to match any of several.",
+        description="Biomarker type. Repeatable; matches any of the given values (OR).",
         examples=[["Somatic variant"]],
     ),
 ]
 ContributionFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Contribution id. Repeat to match any of several.",
+        description="Contribution id. Repeatable; matches any of the given values (OR).",
         examples=[["ctrb:vanallenlab:2024-10-30:0"]],
     ),
 ]
 DiseaseFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Disease name, matched exactly. Repeat to match any of several.",
+        description="Disease name, matched exactly. Repeatable; matches any of the given values (OR).",
         examples=[["Melanoma"]],
     ),
 ]
 DocumentFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Document id. Repeat to match any of several.",
+        description="Document id. Repeatable; matches any of the given values (OR).",
         examples=[["doc:fda:verzenio"]],
     ),
 ]
 GeneFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Gene symbol, matched exactly. Repeat to match any of several.",
+        description="Gene symbol, matched exactly. Repeatable; matches any of the given values (OR).",
         examples=[["BRAF"]],
     ),
 ]
 IndicationFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Indication id. Repeat to match any of several.",
+        description="Indication id. Repeatable; matches any of the given values (OR).",
         examples=[["ind:fda:verzenio:0"]],
     ),
 ]
 TherapyFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Therapy name, matched exactly. Repeat to match any of several.",
+        description="Therapy name, matched exactly. Repeatable; matches any of the given values (OR).",
         examples=[["Dabrafenib"]],
     ),
 ]
 TherapyTypeFilter = typing.Annotated[
-    list[str],
+    list[str] | None,
     fastapi.Query(
-        description="Therapy type. Repeat to match any of several.",
+        description="Therapy type. Repeatable; matches any of the given values (OR).",
         examples=[["Targeted therapy"]],
     ),
 ]
@@ -169,7 +169,7 @@ def generate_datetime_now() -> datetime.datetime:
     Returns:
         datetime.datetime: The current UTC datetime.
     """
-    return datetime.datetime.now(datetime.timezone.utc)
+    return datetime.datetime.now(datetime.UTC)
 
 
 def get_session_factory(
@@ -404,7 +404,7 @@ def get_about(
 @router.get("/agents", summary="List agents", tags=["Entities"])
 def get_agents(
     request: fastapi.Request,
-    agent_name: str = name_query("agent", "Van Allen lab"),
+    agent_name: str | None = name_query("agent", "Van Allen lab"),
     agent: AgentFilter = None,
     agent_id: AgentIdFilter = None,
     agent_type: AgentTypeFilter = None,
@@ -431,7 +431,7 @@ def get_agents(
 @router.get("/alleles", summary="List alleles", tags=["Entities"])
 def get_alleles(
     request: fastapi.Request,
-    allele_id: str = id_query("allele"),
+    allele_id: str | None = id_query("allele"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -450,8 +450,8 @@ def get_alleles(
 @router.get("/biomarkers", summary="List biomarkers", tags=["Entities"])
 def get_biomarkers(
     request: fastapi.Request,
-    biomarker_id: str = id_query("biomarker"),
-    biomarker_name: str = name_query("biomarker", "BRAF p.V600E"),
+    biomarker_id: str | None = id_query("biomarker"),
+    biomarker_name: str | None = name_query("biomarker", "BRAF p.V600E"),
     biomarker: BiomarkerFilter = None,
     biomarker_type: BiomarkerTypeFilter = None,
     gene: GeneFilter = None,
@@ -486,7 +486,7 @@ def get_biomarkers(
 @router.get("/biomarker_criteria", summary="List biomarker criteria", tags=["Entities"])
 def get_biomarker_criteria(
     request: fastapi.Request,
-    biomarker_criterion_id: str = id_query("biomarker criterion"),
+    biomarker_criterion_id: str | None = id_query("biomarker criterion"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -513,7 +513,7 @@ def get_biomarker_criteria(
 @router.get("/codings", summary="List codings", tags=["Entities"])
 def get_codings(
     request: fastapi.Request,
-    coding_id: str = id_query("coding"),
+    coding_id: str | None = id_query("coding"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -533,7 +533,7 @@ def get_codings(
 @router.get("/contributions", summary="List contributions", tags=["Entities"])
 def get_contributions(
     request: fastapi.Request,
-    contribution_id: str = id_query("contribution"),
+    contribution_id: str | None = id_query("contribution"),
     include_records: bool = fastapi.Query(
         default=False,
         description="Add a `records` extension listing the indications and statements each contribution was made to.",
@@ -591,7 +591,7 @@ def get_contributions(
 @router.get("/copy_changes", summary="List copy changes", tags=["Entities"])
 def get_copy_changes(
     request: fastapi.Request,
-    copy_change_id: str = id_query("copy change"),
+    copy_change_id: str | None = id_query("copy change"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -614,8 +614,8 @@ def get_copy_changes(
 @router.get("/diseases", summary="List diseases", tags=["Entities"])
 def get_diseases(
     request: fastapi.Request,
-    disease_id: str = id_query("disease"),
-    disease_name: str = name_query("disease", "Melanoma"),
+    disease_id: str | None = id_query("disease"),
+    disease_name: str | None = name_query("disease", "Melanoma"),
     disease: DiseaseFilter = None,
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
@@ -647,7 +647,7 @@ def get_diseases(
 @router.get("/documents", summary="List documents", tags=["Entities"])
 def get_documents(
     request: fastapi.Request,
-    document_id: str = id_query("document"),
+    document_id: str | None = id_query("document"),
     include_deprecated: IncludeDeprecated = False,
     document: DocumentFilter = None,
     agent: AgentFilter = None,
@@ -682,7 +682,7 @@ def get_documents(
 )
 def get_function_consequences(
     request: fastapi.Request,
-    function_consequence_id: str = id_query("function consequence"),
+    function_consequence_id: str | None = id_query("function consequence"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -709,8 +709,8 @@ def get_function_consequences(
 @router.get("/genes", summary="List genes", tags=["Entities"])
 def get_genes(
     request: fastapi.Request,
-    gene_id: str = id_query("gene"),
-    gene_name: str = name_query("gene", "BRAF"),
+    gene_id: str | None = id_query("gene"),
+    gene_name: str | None = name_query("gene", "BRAF"),
     gene: GeneFilter = None,
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
@@ -742,7 +742,7 @@ def get_genes(
 @router.get("/indications", summary="List indications", tags=["Entities"])
 def get_indications(
     request: fastapi.Request,
-    indication_id: str = id_query("indication"),
+    indication_id: str | None = id_query("indication"),
     include_deprecated: IncludeDeprecated = False,
     indication: IndicationFilter = None,
     document: DocumentFilter = None,
@@ -777,7 +777,7 @@ def get_indications(
 @router.get("/mappings", summary="List mappings", tags=["Entities"])
 def get_mappings(
     request: fastapi.Request,
-    mapping_id: str = id_query("mapping"),
+    mapping_id: str | None = id_query("mapping"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -798,7 +798,7 @@ def get_mappings(
 @router.get("/propositions", summary="List propositions", tags=["Entities"])
 def get_propositions(
     request: fastapi.Request,
-    proposition_id: str = id_query("proposition"),
+    proposition_id: str | None = id_query("proposition"),
     biomarker: BiomarkerFilter = None,
     biomarker_type: BiomarkerTypeFilter = None,
     gene: GeneFilter = None,
@@ -832,7 +832,7 @@ def get_propositions(
 )
 def get_search(
     request: fastapi.Request,
-    proposition_id: str = id_query("proposition"),
+    proposition_id: str | None = id_query("proposition"),
     include_empty: bool = fastapi.Query(
         default=False,
         description="Also return propositions with zero matching statements.",
@@ -903,7 +903,7 @@ def get_search(
 @router.get("/sequence_locations", summary="List sequence locations", tags=["Entities"])
 def get_sequence_locations(
     request: fastapi.Request,
-    sequence_location_id: str = id_query("sequence location"),
+    sequence_location_id: str | None = id_query("sequence location"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -934,7 +934,7 @@ def get_sequence_locations(
 )
 def get_sequence_references(
     request: fastapi.Request,
-    sequence_reference_id: str = id_query("sequence reference"),
+    sequence_reference_id: str | None = id_query("sequence reference"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -961,11 +961,13 @@ def get_sequence_references(
 @router.get("/statements", summary="List statements", tags=["Entities"])
 def get_statements(
     request: fastapi.Request,
-    statement_id: str = id_query("statement"),
+    statement_id: str | None = id_query("statement"),
     include_deprecated: IncludeDeprecated = False,
     proposition_id: typing.Annotated[
-        list[str],
-        fastapi.Query(description="Proposition id. Repeat to match any of several."),
+        list[str] | None,
+        fastapi.Query(
+            description="Proposition id. Repeatable; matches any of the given values (OR).",
+        ),
     ] = None,
     biomarker: BiomarkerFilter = None,
     biomarker_type: BiomarkerTypeFilter = None,
@@ -1010,7 +1012,7 @@ def get_statements(
 @router.get("/strengths", summary="List strengths", tags=["Entities"])
 def get_strengths(
     request: fastapi.Request,
-    strength_name: str = name_query("strength"),
+    strength_name: str | None = name_query("strength"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
@@ -1036,8 +1038,8 @@ def get_strengths(
 @router.get("/therapies", summary="List therapies", tags=["Entities"])
 def get_therapies(
     request: fastapi.Request,
-    therapy_id: str = id_query("therapy"),
-    therapy_name: str = name_query("therapy", "Dabrafenib"),
+    therapy_id: str | None = id_query("therapy"),
+    therapy_name: str | None = name_query("therapy", "Dabrafenib"),
     therapy: TherapyFilter = None,
     therapy_type: TherapyTypeFilter = None,
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
@@ -1070,7 +1072,7 @@ def get_therapies(
 @router.get("/therapy_groups", summary="List therapy groups", tags=["Entities"])
 def get_therapy_groups(
     request: fastapi.Request,
-    therapy_group_id: str = id_query("therapy group"),
+    therapy_group_id: str | None = id_query("therapy group"),
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
 ):
     """
