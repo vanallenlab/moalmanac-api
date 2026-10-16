@@ -3,7 +3,7 @@ import os
 
 import fastapi
 
-from app import database, dereferenced
+from app import database, dereferenced, schemas
 from app.routers.main import router as main_router
 
 
@@ -135,13 +135,18 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
 
     def openapi() -> dict:
         """
-        Generates the OpenAPI schema once, without null branches on query parameters.
+        Generates the OpenAPI schema once, without null branches on query parameters
+        and with moalmanac-db's record schemas added as components.
 
         Returns:
             dict: The cached OpenAPI schema.
         """
         if app.openapi_schema is None:
-            strip_nullable_query_parameters(schema=fastapi.FastAPI.openapi(app))
+            schema = fastapi.FastAPI.openapi(app)
+            strip_nullable_query_parameters(schema=schema)
+            schema.setdefault("components", {}).setdefault("schemas", {}).update(
+                schemas.build_components(),
+            )
         return app.openapi_schema
 
     app.openapi = openapi

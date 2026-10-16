@@ -6,7 +6,7 @@ import uuid
 import fastapi
 import sqlalchemy
 
-from app import database, referenced
+from app import database, referenced, schemas
 
 from . import handlers
 
@@ -172,6 +172,19 @@ def generate_datetime_now() -> datetime.datetime:
     return datetime.datetime.now(datetime.UTC)
 
 
+def format_timestamp(value: datetime.datetime) -> str:
+    """
+    Formats a UTC datetime as an ISO 8601 string ending in `Z`.
+
+    Args:
+        value (datetime.datetime): A timezone-aware UTC datetime.
+
+    Returns:
+        str: The timestamp, e.g. "2026-10-16T14:03:12.123456Z".
+    """
+    return value.astimezone(datetime.UTC).isoformat().replace("+00:00", "Z")
+
+
 def get_session_factory(
     request: fastapi.Request,
 ) -> sqlalchemy.orm.sessionmaker[sqlalchemy.orm.Session]:
@@ -245,14 +258,14 @@ def create_response(
     elapsed = returned - received
 
     meta = {
-        "data_length": len(data) if hasattr(data, "__len__") else 1,
+        "data_length": len(data) if isinstance(data, list) else 1,
         "message": message,
         "request_url": request_url,
         "status": "success" if 200 <= status_code < 300 else "error",
         "status_code": status_code,
         "timestamp_elapsed": round(elapsed.total_seconds(), 6),
-        "timestamp_received": f"{received.isoformat()}Z" if received else None,
-        "timestamp_returned": f"{returned.isoformat()}Z",
+        "timestamp_received": format_timestamp(value=received),
+        "timestamp_returned": format_timestamp(value=returned),
         "trace_id": str(uuid.uuid4()),
     }
     return {
@@ -381,7 +394,16 @@ def list_entities(
     )
 
 
-@router.get("/about", summary="Service metadata", tags=["Service Info"])
+@router.get(
+    "/about",
+    summary="Service metadata",
+    tags=["Service Info"],
+    responses=schemas.object_response(
+        component="About",
+        path="/about",
+        subject="About metadata",
+    ),
+)
 def get_about(
     request: fastapi.Request,
     database: sqlalchemy.orm.Session = fastapi.Depends(get_db),
@@ -401,7 +423,16 @@ def get_about(
     )
 
 
-@router.get("/agents", summary="List agents", tags=["Entities"])
+@router.get(
+    "/agents",
+    summary="List agents",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Agent",
+        path="/agents",
+        subject="Agents",
+    ),
+)
 def get_agents(
     request: fastapi.Request,
     agent_name: str | None = name_query("agent", "Van Allen lab"),
@@ -428,7 +459,16 @@ def get_agents(
     )
 
 
-@router.get("/alleles", summary="List alleles", tags=["Entities"])
+@router.get(
+    "/alleles",
+    summary="List alleles",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Allele",
+        path="/alleles",
+        subject="Alleles",
+    ),
+)
 def get_alleles(
     request: fastapi.Request,
     allele_id: str | None = id_query("allele"),
@@ -447,7 +487,16 @@ def get_alleles(
     )
 
 
-@router.get("/biomarkers", summary="List biomarkers", tags=["Entities"])
+@router.get(
+    "/biomarkers",
+    summary="List biomarkers",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Biomarker",
+        path="/biomarkers",
+        subject="Biomarkers",
+    ),
+)
 def get_biomarkers(
     request: fastapi.Request,
     biomarker_id: str | None = id_query("biomarker"),
@@ -483,7 +532,16 @@ def get_biomarkers(
     )
 
 
-@router.get("/biomarker_criteria", summary="List biomarker criteria", tags=["Entities"])
+@router.get(
+    "/biomarker_criteria",
+    summary="List biomarker criteria",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="BiomarkerCriterion",
+        path="/biomarker_criteria",
+        subject="Biomarker criteria",
+    ),
+)
 def get_biomarker_criteria(
     request: fastapi.Request,
     biomarker_criterion_id: str | None = id_query("biomarker criterion"),
@@ -510,7 +568,16 @@ def get_biomarker_criteria(
     )
 
 
-@router.get("/codings", summary="List codings", tags=["Entities"])
+@router.get(
+    "/codings",
+    summary="List codings",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Coding",
+        path="/codings",
+        subject="Codings",
+    ),
+)
 def get_codings(
     request: fastapi.Request,
     coding_id: str | None = id_query("coding"),
@@ -530,7 +597,16 @@ def get_codings(
     )
 
 
-@router.get("/contributions", summary="List contributions", tags=["Entities"])
+@router.get(
+    "/contributions",
+    summary="List contributions",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="ContributionResult",
+        path="/contributions",
+        subject="Contributions",
+    ),
+)
 def get_contributions(
     request: fastapi.Request,
     contribution_id: str | None = id_query("contribution"),
@@ -588,7 +664,16 @@ def get_contributions(
     return response
 
 
-@router.get("/copy_changes", summary="List copy changes", tags=["Entities"])
+@router.get(
+    "/copy_changes",
+    summary="List copy changes",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="CopyChange",
+        path="/copy_changes",
+        subject="Copy changes",
+    ),
+)
 def get_copy_changes(
     request: fastapi.Request,
     copy_change_id: str | None = id_query("copy change"),
@@ -611,7 +696,16 @@ def get_copy_changes(
     )
 
 
-@router.get("/diseases", summary="List diseases", tags=["Entities"])
+@router.get(
+    "/diseases",
+    summary="List diseases",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Disease",
+        path="/diseases",
+        subject="Diseases",
+    ),
+)
 def get_diseases(
     request: fastapi.Request,
     disease_id: str | None = id_query("disease"),
@@ -644,7 +738,16 @@ def get_diseases(
     )
 
 
-@router.get("/documents", summary="List documents", tags=["Entities"])
+@router.get(
+    "/documents",
+    summary="List documents",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Document",
+        path="/documents",
+        subject="Documents",
+    ),
+)
 def get_documents(
     request: fastapi.Request,
     document_id: str | None = id_query("document"),
@@ -679,6 +782,11 @@ def get_documents(
     "/function_consequences",
     summary="List function consequences",
     tags=["Entities"],
+    responses=schemas.list_response(
+        component="FunctionConsequence",
+        path="/function_consequences",
+        subject="Function consequences",
+    ),
 )
 def get_function_consequences(
     request: fastapi.Request,
@@ -706,7 +814,16 @@ def get_function_consequences(
     )
 
 
-@router.get("/genes", summary="List genes", tags=["Entities"])
+@router.get(
+    "/genes",
+    summary="List genes",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Gene",
+        path="/genes",
+        subject="Genes",
+    ),
+)
 def get_genes(
     request: fastapi.Request,
     gene_id: str | None = id_query("gene"),
@@ -739,7 +856,16 @@ def get_genes(
     )
 
 
-@router.get("/indications", summary="List indications", tags=["Entities"])
+@router.get(
+    "/indications",
+    summary="List indications",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Indication",
+        path="/indications",
+        subject="Indications",
+    ),
+)
 def get_indications(
     request: fastapi.Request,
     indication_id: str | None = id_query("indication"),
@@ -774,7 +900,16 @@ def get_indications(
     )
 
 
-@router.get("/mappings", summary="List mappings", tags=["Entities"])
+@router.get(
+    "/mappings",
+    summary="List mappings",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Mapping",
+        path="/mappings",
+        subject="Mappings",
+    ),
+)
 def get_mappings(
     request: fastapi.Request,
     mapping_id: str | None = id_query("mapping"),
@@ -795,7 +930,16 @@ def get_mappings(
     )
 
 
-@router.get("/propositions", summary="List propositions", tags=["Entities"])
+@router.get(
+    "/propositions",
+    summary="List propositions",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Proposition",
+        path="/propositions",
+        subject="Propositions",
+    ),
+)
 def get_propositions(
     request: fastapi.Request,
     proposition_id: str | None = id_query("proposition"),
@@ -829,6 +973,11 @@ def get_propositions(
     "/search",
     summary="Search propositions with statement aggregates",
     tags=["Search"],
+    responses=schemas.list_response(
+        component="SearchResult",
+        path="/search",
+        subject="Search results by Proposition",
+    ),
 )
 def get_search(
     request: fastapi.Request,
@@ -900,7 +1049,16 @@ def get_search(
     )
 
 
-@router.get("/sequence_locations", summary="List sequence locations", tags=["Entities"])
+@router.get(
+    "/sequence_locations",
+    summary="List sequence locations",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="SequenceLocation",
+        path="/sequence_locations",
+        subject="Sequence locations",
+    ),
+)
 def get_sequence_locations(
     request: fastapi.Request,
     sequence_location_id: str | None = id_query("sequence location"),
@@ -931,6 +1089,11 @@ def get_sequence_locations(
     "/sequence_references",
     summary="List sequence references",
     tags=["Entities"],
+    responses=schemas.list_response(
+        component="SequenceReference",
+        path="/sequence_references",
+        subject="Sequence references",
+    ),
 )
 def get_sequence_references(
     request: fastapi.Request,
@@ -958,7 +1121,16 @@ def get_sequence_references(
     )
 
 
-@router.get("/statements", summary="List statements", tags=["Entities"])
+@router.get(
+    "/statements",
+    summary="List statements",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Statement",
+        path="/statements",
+        subject="Statements",
+    ),
+)
 def get_statements(
     request: fastapi.Request,
     statement_id: str | None = id_query("statement"),
@@ -1009,7 +1181,16 @@ def get_statements(
     )
 
 
-@router.get("/strengths", summary="List strengths", tags=["Entities"])
+@router.get(
+    "/strengths",
+    summary="List strengths",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Strength",
+        path="/strengths",
+        subject="Strengths",
+    ),
+)
 def get_strengths(
     request: fastapi.Request,
     strength_name: str | None = name_query("strength"),
@@ -1035,7 +1216,16 @@ def get_strengths(
     )
 
 
-@router.get("/therapies", summary="List therapies", tags=["Entities"])
+@router.get(
+    "/therapies",
+    summary="List therapies",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="Therapy",
+        path="/therapies",
+        subject="Therapies",
+    ),
+)
 def get_therapies(
     request: fastapi.Request,
     therapy_id: str | None = id_query("therapy"),
@@ -1069,7 +1259,16 @@ def get_therapies(
     )
 
 
-@router.get("/therapy_groups", summary="List therapy groups", tags=["Entities"])
+@router.get(
+    "/therapy_groups",
+    summary="List therapy groups",
+    tags=["Entities"],
+    responses=schemas.list_response(
+        component="TherapyGroup",
+        path="/therapy_groups",
+        subject="Therapy groups",
+    ),
+)
 def get_therapy_groups(
     request: fastapi.Request,
     therapy_group_id: str | None = id_query("therapy group"),
