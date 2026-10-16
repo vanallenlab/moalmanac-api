@@ -39,15 +39,6 @@ def main() -> int:
     )
     arguments = parser.parse_args()
 
-    # Run as `python -m utils.export_openapi`, this repository's utils/ is imported
-    # as `utils` and hides moalmanac-db's utils package, which the app imports.
-    if __package__:
-        print(
-            "Run this as `python utils/export_openapi.py`, not with `python -m`.",
-            file=sys.stderr,
-        )
-        return 2
-
     serialized = render_schema()
     current = OUTPUT_PATH.read_text() if OUTPUT_PATH.exists() else None
 

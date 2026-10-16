@@ -1,5 +1,5 @@
 """
-The SQLite database mirrors moalmanac-db/schemas/referenced: rebuilding each table
+The SQLite database mirrors moalmanac_db/schemas/referenced: rebuilding each table
 from the database gives back referenced/<table>.json exactly (record order, list
 order, values, and which keys are present; dict key order is not compared).
 """

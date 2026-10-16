@@ -35,7 +35,7 @@ Use `sudo -u moalmanac -H bash -c '...'` for multi-line commands like this one. 
 2. Create a static ip address to associate with the VM
 3. Add A and CNAME to zone under network services > cloud dns > and your zone, if you haven't already created one
 4. Create the `moalmanac` account and its conda install, as described in [Service account](#service-account).
-5. As `moalmanac` (`sudo -iu moalmanac`), clone this repository with its `moalmanac-db` submodule and build its environment. The application imports `moalmanac-db/utils/dereference.py` directly at every startup to build the dereferenced record cache it serves, so it will fail to start without the submodule checked out.
+5. As `moalmanac` (`sudo -iu moalmanac`), clone this repository with its `moalmanac-db` submodule and build its environment. The application imports `moalmanac_db/utils/dereference.py` directly at every startup to build the dereferenced record cache it serves, so it will fail to start without the submodule checked out.
 
    ```bash
    git clone --recurse-submodules https://github.com/vanallenlab/moalmanac-api.git /srv/moalmanac/moalmanac-api

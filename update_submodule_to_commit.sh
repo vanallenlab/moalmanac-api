@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SUBMODULE_PATH=moalmanac-db
+SUBMODULE_PATH=moalmanac_db
 COMMIT_HASH=$1
 # The Python used to regenerate docs/openapi.json; it needs this repo's requirements.
 PYTHON=${PYTHON:-python}

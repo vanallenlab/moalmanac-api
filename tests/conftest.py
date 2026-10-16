@@ -12,7 +12,7 @@ from app import database, populate_database
 from app.main import create_app
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-MOALMANAC_DB_ROOT = REPO_ROOT / "moalmanac-db"
+MOALMANAC_DB_ROOT = REPO_ROOT / "moalmanac_db"
 REFERENCED_ROOT = MOALMANAC_DB_ROOT / "referenced"
 DEREFERENCED_ROOT = MOALMANAC_DB_ROOT / "dereferenced"
 SCHEMA_ROOT = MOALMANAC_DB_ROOT / "schemas"
@@ -35,7 +35,7 @@ def load_json(path: pathlib.Path) -> dict[str, typing.Any]:
 def config_path(tmp_path_factory: pytest.TempPathFactory) -> str:
     """
     Writes a config file pointing at a SQLite file in a temporary directory, and
-    populates that database from moalmanac-db/referenced.
+    populates that database from moalmanac_db/referenced.
 
     Args:
         tmp_path_factory (pytest.TempPathFactory): Pytest's session temp directory factory.
@@ -118,10 +118,10 @@ def client(app: fastapi.FastAPI) -> fastapi.testclient.TestClient:
 
 def load_dereferenced(entity: str) -> dict[str, dict]:
     """
-    Loads every record for one entity from moalmanac-db/dereferenced, keyed by id.
+    Loads every record for one entity from moalmanac_db/dereferenced, keyed by id.
 
     Args:
-        entity (str): The entity's directory name under moalmanac-db/dereferenced.
+        entity (str): The entity's directory name under moalmanac_db/dereferenced.
 
     Returns:
         dict[str, dict]: The entity's records, keyed by `id`, in the same order
