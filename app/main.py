@@ -82,7 +82,14 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
             "The Molecular Oncology Almanac (MOAlmanac) is a paired knowledgebase and clinical interpretation "
             "algorithm for precision cancer medicine. Visit [our website](https://moalmanac.org) for more "
             "information.\n\n"
-            "**Filters.** Different filters combine with AND, and thus will return records matching both. For example: `?gene=BRAF&disease=Melanoma`. Repeating a filter combines its values with OR, and thus will return records matching either. For example: `?gene=BRAF&gene=KRAS`. On `/search`, `document`, `indication`, and `agent_id` instead narrow each proposition's statement aggregates; see that endpoint for details."
+            "**Filtering**\n\n"
+            "- Different filters combine with AND: `?gene=BRAF&disease=Melanoma` returns records "
+            "matching all of them.\n"
+            "- Repeating a filter combines its values with OR: `?gene=BRAF&gene=KRAS` returns records "
+            "matching any of them.\n"
+            "- Exception: on `/search`, the `document`, `indication`, and `agent_id` filters narrow "
+            "each proposition's statement aggregates rather than which propositions are returned. "
+            "See the `/search` endpoint for details."
         ),
         docs_url="/",
         license_info={
