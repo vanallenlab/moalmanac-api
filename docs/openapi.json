@@ -2876,7 +2876,7 @@
             "extensions": [
               {
                 "name": "last_updated",
-                "value": "2026-05-07",
+                "value": "2026-06-24",
                 "description": ""
               },
               {
@@ -6428,14 +6428,10 @@
                   "$ref": "#/components/schemas/Extension",
                   "properties": {
                     "name": {
-                      "const": "identification_number"
+                      "const": "publication_date"
                     },
                     "value": {
-                      "type": [
-                        "integer",
-                        "string",
-                        "null"
-                      ]
+                      "$ref": "#/components/schemas/Document.IsoDateOrNull"
                     }
                   }
                 },
@@ -6443,10 +6439,13 @@
                   "$ref": "#/components/schemas/Extension",
                   "properties": {
                     "name": {
-                      "const": "publication_date"
+                      "const": "regulatory_identifier"
                     },
                     "value": {
-                      "$ref": "#/components/schemas/Document.IsoDateOrNull"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   }
                 },
@@ -6548,14 +6547,10 @@
                   "$ref": "#/components/schemas/Extension",
                   "properties": {
                     "name": {
-                      "const": "identification_number"
+                      "const": "publication_date"
                     },
                     "value": {
-                      "type": [
-                        "integer",
-                        "string",
-                        "null"
-                      ]
+                      "$ref": "#/components/schemas/Document.IsoDateOrNull"
                     }
                   }
                 }
@@ -6565,10 +6560,13 @@
                   "$ref": "#/components/schemas/Extension",
                   "properties": {
                     "name": {
-                      "const": "publication_date"
+                      "const": "regulatory_identifier"
                     },
                     "value": {
-                      "$ref": "#/components/schemas/Document.IsoDateOrNull"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   }
                 }
@@ -6606,6 +6604,41 @@
           "extensions"
         ],
         "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "pattern": "^doc:fda:",
+                  "examples": [
+                    "doc:fda:string"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "extensions": {
+                  "contains": {
+                    "$ref": "#/components/schemas/Extension",
+                    "properties": {
+                      "name": {
+                        "const": "regulatory_identifier"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^(BLA|NDA)[0-9]{6}$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
         "examples": [
           {
             "id": "doc:fda:tafinlar",
@@ -6654,14 +6687,14 @@
                 "description": "The publication date for the initial version of this document."
               },
               {
-                "name": "identification_number",
-                "value": 202806,
-                "description": "Identification number used by the publishing organization."
-              },
-              {
                 "name": "publication_date",
                 "value": "2024-03-29",
                 "description": "The publication date for the document."
+              },
+              {
+                "name": "regulatory_identifier",
+                "value": "NDA202806",
+                "description": "Identifier assigned by the regulatory agency, such as an FDA application number (e.g. NDA208716, BLA125427) or an EMA product number (e.g. EMEA/H/C/006184)."
               },
               {
                 "name": "status",
@@ -8172,14 +8205,14 @@
                     "description": "The publication date for the initial version of this document."
                   },
                   {
-                    "name": "identification_number",
-                    "value": 202806,
-                    "description": "Identification number used by the publishing organization."
-                  },
-                  {
                     "name": "publication_date",
                     "value": "2024-03-29",
                     "description": "The publication date for the document."
+                  },
+                  {
+                    "name": "regulatory_identifier",
+                    "value": "NDA202806",
+                    "description": "Identifier assigned by the regulatory agency, such as an FDA application number (e.g. NDA208716, BLA125427) or an EMA product number (e.g. EMEA/H/C/006184)."
                   },
                   {
                     "name": "status",
@@ -8235,14 +8268,14 @@
                     "description": "The publication date for the initial version of this document."
                   },
                   {
-                    "name": "identification_number",
-                    "value": 202806,
-                    "description": "Identification number used by the publishing organization."
-                  },
-                  {
                     "name": "publication_date",
                     "value": "2013-05-29",
                     "description": "The publication date for the document."
+                  },
+                  {
+                    "name": "regulatory_identifier",
+                    "value": "NDA202806",
+                    "description": "Identifier assigned by the regulatory agency, such as an FDA application number (e.g. NDA208716, BLA125427) or an EMA product number (e.g. EMEA/H/C/006184)."
                   },
                   {
                     "name": "status",
@@ -9575,14 +9608,14 @@
                     "description": "The publication date for the initial version of this document."
                   },
                   {
-                    "name": "identification_number",
-                    "value": 202806,
-                    "description": "Identification number used by the publishing organization."
-                  },
-                  {
                     "name": "publication_date",
                     "value": "2024-03-29",
                     "description": "The publication date for the document."
+                  },
+                  {
+                    "name": "regulatory_identifier",
+                    "value": "NDA202806",
+                    "description": "Identifier assigned by the regulatory agency, such as an FDA application number (e.g. NDA208716, BLA125427) or an EMA product number (e.g. EMEA/H/C/006184)."
                   },
                   {
                     "name": "status",
@@ -9638,14 +9671,14 @@
                     "description": "The publication date for the initial version of this document."
                   },
                   {
-                    "name": "identification_number",
-                    "value": 202806,
-                    "description": "Identification number used by the publishing organization."
-                  },
-                  {
                     "name": "publication_date",
                     "value": "2013-05-29",
                     "description": "The publication date for the document."
+                  },
+                  {
+                    "name": "regulatory_identifier",
+                    "value": "NDA202806",
+                    "description": "Identifier assigned by the regulatory agency, such as an FDA application number (e.g. NDA208716, BLA125427) or an EMA product number (e.g. EMEA/H/C/006184)."
                   },
                   {
                     "name": "status",
@@ -10043,14 +10076,14 @@
                           "description": "The publication date for the initial version of this document."
                         },
                         {
-                          "name": "identification_number",
-                          "value": 202806,
-                          "description": "Identification number used by the publishing organization."
-                        },
-                        {
                           "name": "publication_date",
                           "value": "2024-03-29",
                           "description": "The publication date for the document."
+                        },
+                        {
+                          "name": "regulatory_identifier",
+                          "value": "NDA202806",
+                          "description": "Identifier assigned by the regulatory agency, such as an FDA application number (e.g. NDA208716, BLA125427) or an EMA product number (e.g. EMEA/H/C/006184)."
                         },
                         {
                           "name": "status",
@@ -10106,14 +10139,14 @@
                           "description": "The publication date for the initial version of this document."
                         },
                         {
-                          "name": "identification_number",
-                          "value": 202806,
-                          "description": "Identification number used by the publishing organization."
-                        },
-                        {
                           "name": "publication_date",
                           "value": "2013-05-29",
                           "description": "The publication date for the document."
+                        },
+                        {
+                          "name": "regulatory_identifier",
+                          "value": "NDA202806",
+                          "description": "Identifier assigned by the regulatory agency, such as an FDA application number (e.g. NDA208716, BLA125427) or an EMA product number (e.g. EMEA/H/C/006184)."
                         },
                         {
                           "name": "status",
@@ -10550,7 +10583,7 @@
             "license": "GPL-2.0",
             "release": "draft",
             "url": "https://moalmanac.org",
-            "last_updated": "2026-08-02"
+            "last_updated": "2026-10-08"
           }
         ]
       },

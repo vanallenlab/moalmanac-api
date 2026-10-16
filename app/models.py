@@ -543,16 +543,15 @@ class Documents(Base):
             nullable=True,
         )
     )
-    # Integer or string (or null) per the schema, so stored as JSON
-    identification_number = sqlalchemy.Column(
-        sqlalchemy.JSON,
-        nullable=True,
-    )
     publication_date: sqlalchemy.orm.Mapped[datetime.date | None] = (
         sqlalchemy.orm.mapped_column(
             sqlalchemy.Date,
             nullable=True,
         )
+    )
+    regulatory_identifier = sqlalchemy.Column(
+        sqlalchemy.String,
+        nullable=True,
     )
     status = sqlalchemy.Column(
         sqlalchemy.String,

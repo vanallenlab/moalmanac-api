@@ -320,8 +320,8 @@ TABLES: dict[str, TableSpec] = {
             "drug_name_brand",
             "drug_name_generic",
             "first_publication_date",
-            "identification_number",
             "publication_date",
+            "regulatory_identifier",
             "status",
         ),
         lists={
