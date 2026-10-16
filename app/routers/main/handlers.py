@@ -7,8 +7,9 @@ query parameters, joining through association tables where a filter reaches
 another entity (for example `?gene=BRAF` on `/propositions`). The route then calls
 `execute_query` for the matching ids and `serialize` to look them up in
 `app.state.dereferenced[entity]`. Because that cache already holds fully resolved,
-correctly ordered records (built by moalmanac-db's own `utils.dereference`), no
-handler builds or reorders a response dictionary itself.
+correctly ordered records (built by moalmanac-db's own
+`moalmanac_db.utils.dereference`), no handler builds or reorders a response
+dictionary itself.
 """
 
 import typing

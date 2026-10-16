@@ -1,5 +1,5 @@
 """
-SQLAlchemy models mirroring moalmanac-db/schemas/referenced.
+SQLAlchemy models mirroring moalmanac_db/schemas/referenced.
 
 Each entity table has one column per scalar field of its referenced schema, and the
 column name is the JSON key. Where the JSON key cannot be a Python attribute

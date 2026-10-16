@@ -120,7 +120,7 @@ def create_app(config_path: str = "config.ini") -> fastapi.FastAPI:
     if not os.path.exists(database_path):
         raise FileNotFoundError(
             f"{database_path} does not exist. Run "
-            "`python -m app.populate_database -i moalmanac-db/referenced -c "
+            "`python -m app.populate_database -i moalmanac_db/referenced -c "
             f"{config_path}` to create it.",
         )
 

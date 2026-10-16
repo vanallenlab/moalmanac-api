@@ -28,7 +28,7 @@ import pathlib
 import re
 import typing
 
-DB_DIRECTORY = pathlib.Path(__file__).parent.parent / "moalmanac-db"
+DB_DIRECTORY = pathlib.Path(__file__).parent.parent / "moalmanac_db"
 DEREFERENCED_DIRECTORY = DB_DIRECTORY / "dereferenced"
 SCHEMAS_DIRECTORY = DB_DIRECTORY / "schemas"
 COMPONENTS_PREFIX = "#/components/schemas/"

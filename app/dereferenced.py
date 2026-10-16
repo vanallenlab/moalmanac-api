@@ -1,13 +1,13 @@
 """
 Builds the in-memory cache of dereferenced records served by the API.
 
-The API's SQLite tables mirror moalmanac-db/schemas/referenced (see app.referenced).
-Endpoints instead serve records shaped like moalmanac-db/schemas/dereferenced, with
+The API's SQLite tables mirror moalmanac_db/schemas/referenced (see app.referenced).
+Endpoints instead serve records shaped like moalmanac_db/schemas/dereferenced, with
 foreign keys resolved to embedded objects. Rather than reimplementing that
 resolution, this module rebuilds the referenced tables from SQLite
 (`app.referenced.load_referenced`) and runs them through the moalmanac-db
-submodule's own `utils.dereference`, so the submodule stays the single source of
-truth for the output shape.
+submodule's own `moalmanac_db.utils.dereference`, so the submodule stays the single
+source of truth for the output shape.
 
 `build_cache` is called once, at startup (see app.main.create_app), and its result
 is stored on `app.state.dereferenced`. It is a plain read-only dict and is never
@@ -15,27 +15,12 @@ written to disk or mutated afterward.
 """
 
 import copy
-import pathlib
-import sys
 import typing
 
 import sqlalchemy.orm
 
 from app import referenced
-
-_MOALMANAC_DB_ROOT = (
-    pathlib
-    .Path(__file__)
-    .resolve()
-    .parents[1]
-    / "moalmanac-db"
-)
-if str(_MOALMANAC_DB_ROOT) not in sys.path:
-    sys.path.insert(0, str(_MOALMANAC_DB_ROOT))
-
-# This repository's own utils/ has no __init__.py, so moalmanac-db's utils package,
-# which does, is always the one imported here.
-from utils import dereference  # noqa: E402 (needs moalmanac-db on sys.path first)
+from moalmanac_db.utils import dereference
 
 # Every table `dereference.Database` needs to resolve foreign keys, keyed by the
 # same names as app.referenced.TABLES. `urls` has no entry in _CONCEPT_DIRS (it is
@@ -73,16 +58,16 @@ def build_cache(session: sqlalchemy.orm.Session) -> Cache:
 
     Rebuilds the referenced tables from SQLite, feeds them into a fresh
     `dereference.Database`, and dereferences each entity in the same order
-    `utils.dereference.write_all_concepts` uses. This is the entire dereferencing
-    logic; the API does not duplicate any of it.
+    `moalmanac_db.utils.dereference.write_all_concepts` uses. This is the entire
+    dereferencing logic; the API does not duplicate any of it.
 
     Args:
         session (sqlalchemy.orm.Session): The database session to read from.
 
     Returns:
         Cache: `{entity: {id: record}}` for every entity in
-        `utils.dereference._CONCEPT_DIRS`, each record equal to its file in
-        moalmanac-db/dereferenced/<entity>/. Dict order (both the outer entities and
+        `moalmanac_db.utils.dereference._CONCEPT_DIRS`, each record equal to its file in
+        moalmanac_db/dereferenced/<entity>/. Dict order (both the outer entities and
         each inner id) matches the referenced source, which callers rely on for
         deterministic, file-order output.
     """

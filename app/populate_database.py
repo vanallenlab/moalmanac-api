@@ -481,7 +481,7 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "--input",
         "-i",
-        default="moalmanac-db/referenced",
+        default="moalmanac_db/referenced",
         help="Directory for referenced moalmanac db json files",
     )
     arg_parser.add_argument(
