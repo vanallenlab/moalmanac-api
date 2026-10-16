@@ -355,6 +355,31 @@ def test_include_deprecated_returns_deprecated_records(
         assert [record["id"] for record in response.json()["data"]] == [deprecated_id]
 
 
+@pytest.mark.parametrize(
+    "path, params",
+    [
+        ("/documents", {"agent_id": "agent:org:fda"}),
+        ("/indications", {"agent_id": "agent:org:fda"}),
+        ("/statements", {"agent_id": "agent:org:fda", "gene": "BRAF"}),
+    ],
+)
+def test_agent_type_is_ignored_by_document_filters(
+    path: str,
+    params: dict[str, str],
+    client: fastapi.testclient.TestClient,
+):
+    """
+    Ensures agent_type, which is not a filter on these endpoints, does not change
+    their results, even alongside an agent filter that is.
+    """
+    expected = client.get(path, params=params).json()["data"]
+    assert expected
+
+    response = client.get(path, params={**params, "agent_type": "contributor"})
+    assert response.status_code == 200
+    assert [r["id"] for r in response.json()["data"]] == [r["id"] for r in expected]
+
+
 def test_contributions_include_records_lists_contributed_records(
     client: fastapi.testclient.TestClient,
 ):
