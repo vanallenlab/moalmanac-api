@@ -257,7 +257,7 @@ def test_search_by_document_narrows_aggregates_not_selection(
     "path, id_param, record_id",
     [
         ("/biomarkers", "biomarker_id", "bmkr:12"),
-        ("/diseases", "disease_id", "dis:oncotree:ALL"),
+        ("/diseases", "disease_id", "dis:ncit:C3167"),
         ("/genes", "gene_id", "gene:hgnc:76"),
         ("/therapies", "therapy_id", "tx:ncit:C62528"),
     ],
@@ -287,7 +287,7 @@ def test_id_parameter_returns_single_record(
     [
         ("/agents", "agent_name", "Food and Drug Administration", "agent:org:fda"),
         ("/biomarkers", "biomarker_name", "BCR::ABL1", "bmkr:12"),
-        ("/diseases", "disease_name", "Acute Lymphoid Leukemia", "dis:oncotree:ALL"),
+        ("/diseases", "disease_name", "Acute Lymphoblastic Leukemia", "dis:ncit:C3167"),
         ("/genes", "gene_name", "BRAF", "gene:hgnc:1097"),
         ("/strengths", "strength_name", "Approval", "str:ncit:C25425"),
         ("/therapies", "therapy_name", "Imatinib", "tx:ncit:C62035"),
