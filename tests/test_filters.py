@@ -257,7 +257,7 @@ def test_search_by_document_narrows_aggregates_not_selection(
     "path, id_param, record_id",
     [
         ("/biomarkers", "biomarker_id", "bmkr:12"),
-        ("/diseases", "disease_id", "dis:oncotree:ALL"),
+        ("/diseases", "disease_id", "dis:ncit:C3167"),
         ("/genes", "gene_id", "gene:hgnc:76"),
         ("/therapies", "therapy_id", "tx:ncit:C62528"),
     ],
@@ -287,7 +287,7 @@ def test_id_parameter_returns_single_record(
     [
         ("/agents", "agent_name", "Food and Drug Administration", "agent:org:fda"),
         ("/biomarkers", "biomarker_name", "BCR::ABL1", "bmkr:12"),
-        ("/diseases", "disease_name", "Acute Lymphoid Leukemia", "dis:oncotree:ALL"),
+        ("/diseases", "disease_name", "Acute Lymphoblastic Leukemia", "dis:ncit:C3167"),
         ("/genes", "gene_name", "BRAF", "gene:hgnc:1097"),
         ("/strengths", "strength_name", "Approval", "str:ncit:C25425"),
         ("/therapies", "therapy_name", "Imatinib", "tx:ncit:C62035"),
@@ -353,6 +353,31 @@ def test_include_deprecated_returns_deprecated_records(
     ):
         response = client.get(path, params=params)
         assert [record["id"] for record in response.json()["data"]] == [deprecated_id]
+
+
+@pytest.mark.parametrize(
+    "path, params",
+    [
+        ("/documents", {"agent_id": "agent:org:fda"}),
+        ("/indications", {"agent_id": "agent:org:fda"}),
+        ("/statements", {"agent_id": "agent:org:fda", "gene": "BRAF"}),
+    ],
+)
+def test_agent_type_is_ignored_by_document_filters(
+    path: str,
+    params: dict[str, str],
+    client: fastapi.testclient.TestClient,
+):
+    """
+    Ensures agent_type, which is not a filter on these endpoints, does not change
+    their results, even alongside an agent filter that is.
+    """
+    expected = client.get(path, params=params).json()["data"]
+    assert expected
+
+    response = client.get(path, params={**params, "agent_type": "contributor"})
+    assert response.status_code == 200
+    assert [r["id"] for r in response.json()["data"]] == [r["id"] for r in expected]
 
 
 def test_contributions_include_records_lists_contributed_records(

@@ -1,6 +1,6 @@
 """
 Each entity endpoint's `data` equals the records in
-moalmanac-db/dereferenced/<entity>/*.json exactly, and every record it returns
+moalmanac_db/dereferenced/<entity>/*.json exactly, and every record it returns
 validates against schemas/dereferenced/<entity>.schema.json. This is the plan's
 definition of done for the migration.
 """
@@ -65,7 +65,7 @@ def validator(entity: str, registry: Registry) -> jsonschema.Draft202012Validato
 
 def test_every_dereferenced_directory_has_an_endpoint():
     """
-    Ensures every moalmanac-db/dereferenced/<entity>/ directory has a matching
+    Ensures every moalmanac_db/dereferenced/<entity>/ directory has a matching
     endpoint, so a new upstream entity is not silently left unserved.
     """
     from tests.conftest import DEREFERENCED_ROOT

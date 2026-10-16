@@ -1,5 +1,6 @@
-import dotenv
 import os
+
+import dotenv
 import uvicorn
 
 from app.main import create_app

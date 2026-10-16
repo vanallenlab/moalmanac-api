@@ -7,8 +7,9 @@ query parameters, joining through association tables where a filter reaches
 another entity (for example `?gene=BRAF` on `/propositions`). The route then calls
 `execute_query` for the matching ids and `serialize` to look them up in
 `app.state.dereferenced[entity]`. Because that cache already holds fully resolved,
-correctly ordered records (built by moalmanac-db's own `utils.dereference`), no
-handler builds or reorders a response dictionary itself.
+correctly ordered records (built by moalmanac-db's own
+`moalmanac_db.utils.dereference`), no handler builds or reorders a response
+dictionary itself.
 """
 
 import typing
@@ -509,7 +510,8 @@ class Documents(BaseHandler):
     ) -> tuple[sqlalchemy.Select, set[type[models.Base]]]:
         """
         Filters by `document` (id), and `agent`/`agent_id` (delegated to
-        Agents.perform_joins once Documents is joined).
+        Agents.perform_joins once Documents is joined). `agent_type` is not a
+        filter on Documents, Indications, or Statements, so it is ignored.
 
         When `base_table` is Statements, joins through
         AssociationDocumentsAndStatements (`reportedIn`); when Indications, through
@@ -566,7 +568,11 @@ class Documents(BaseHandler):
 
         statement, joined_tables = Agents.perform_joins(
             statement=statement,
-            parameters=parameters,
+            parameters={
+                key: values
+                for key, values in parameters.items()
+                if key != "agent_type"
+            },
             base_table=models.Documents,
             joined_tables=joined_tables,
         )
