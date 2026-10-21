@@ -8029,7 +8029,7 @@
       },
       "Indication": {
         "title": "Indication",
-        "description": "Regulatory approval text and its source, with contributions and documents embedded. Root type `Indication` with one subtype per organization, selected by the id prefix `ind:{org}:`. `status` and `statement description` are extensions; HSE indications additionally carry `reimbursement_scheme` and `reimbursement_comment` extensions.",
+        "description": "Regulatory approval text and its source, with contributions and documents embedded. Root type `Indication` with one subtype per organization, selected by the id prefix `ind:{org}:`. `status` is an extension, and `statement description` is an optional extension present only on standalone indications (absent when embedded in a statement); HSE indications additionally carry `reimbursement_scheme` and `reimbursement_comment` extensions.",
         "$ref": "#/components/schemas/Indication.Indication",
         "allOf": [
           {
@@ -8352,19 +8352,6 @@
                     }
                   }
                 }
-              },
-              {
-                "contains": {
-                  "$ref": "#/components/schemas/Extension",
-                  "properties": {
-                    "name": {
-                      "const": "statement description"
-                    },
-                    "value": {
-                      "type": "string"
-                    }
-                  }
-                }
               }
             ]
           }
@@ -8441,19 +8428,6 @@
                             "Superseded",
                             "Withdrawn"
                           ]
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "contains": {
-                      "$ref": "#/components/schemas/Extension",
-                      "properties": {
-                        "name": {
-                          "const": "statement description"
-                        },
-                        "value": {
-                          "type": "string"
                         }
                       }
                     }
@@ -8576,19 +8550,6 @@
                         }
                       }
                     }
-                  },
-                  {
-                    "contains": {
-                      "$ref": "#/components/schemas/Extension",
-                      "properties": {
-                        "name": {
-                          "const": "statement description"
-                        },
-                        "value": {
-                          "type": "string"
-                        }
-                      }
-                    }
                   }
                 ]
               }
@@ -8661,19 +8622,6 @@
                         }
                       }
                     }
-                  },
-                  {
-                    "contains": {
-                      "$ref": "#/components/schemas/Extension",
-                      "properties": {
-                        "name": {
-                          "const": "statement description"
-                        },
-                        "value": {
-                          "type": "string"
-                        }
-                      }
-                    }
                   }
                 ]
               }
@@ -8743,19 +8691,6 @@
                             "Superseded",
                             "Withdrawn"
                           ]
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "contains": {
-                      "$ref": "#/components/schemas/Extension",
-                      "properties": {
-                        "name": {
-                          "const": "statement description"
-                        },
-                        "value": {
-                          "type": "string"
                         }
                       }
                     }
@@ -8860,19 +8795,6 @@
                             "Superseded",
                             "Withdrawn"
                           ]
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "contains": {
-                      "$ref": "#/components/schemas/Extension",
-                      "properties": {
-                        "name": {
-                          "const": "statement description"
-                        },
-                        "value": {
-                          "type": "string"
                         }
                       }
                     }
@@ -9613,7 +9535,24 @@
                       "const": "indication"
                     },
                     "value": {
-                      "$ref": "#/components/schemas/Indication"
+                      "$ref": "#/components/schemas/Indication",
+                      "properties": {
+                        "extensions": {
+                          "not": {
+                            "contains": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "const": "statement description"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -9645,7 +9584,24 @@
                       "const": "indication"
                     },
                     "value": {
-                      "$ref": "#/components/schemas/Indication"
+                      "$ref": "#/components/schemas/Indication",
+                      "properties": {
+                        "extensions": {
+                          "not": {
+                            "contains": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "const": "statement description"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
