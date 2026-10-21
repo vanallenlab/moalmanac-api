@@ -8029,7 +8029,7 @@
       },
       "Indication": {
         "title": "Indication",
-        "description": "Regulatory approval text and its source, with contributions and documents embedded. Root type `Indication` with one subtype per organization, selected by the id prefix `ind:{org}:`. `status` is an extension; HSE indications additionally carry `reimbursement_scheme` and `reimbursement_comment` extensions.",
+        "description": "Regulatory approval text and its source, with contributions and documents embedded. Root type `Indication` with one subtype per organization, selected by the id prefix `ind:{org}:`. `status` and `statement description` are extensions; HSE indications additionally carry `reimbursement_scheme` and `reimbursement_comment` extensions.",
         "$ref": "#/components/schemas/Indication.Indication",
         "allOf": [
           {
@@ -8290,6 +8290,11 @@
                 "name": "status",
                 "value": "Approved",
                 "description": "Current approval status."
+              },
+              {
+                "name": "statement description",
+                "value": "The U.S. Food and Drug Administration granted approval to dabrafenib for the treatment of patients with unresectable or metastatic melanoma with BRAF V600E mutation, as detected by an FDA-approved test.",
+                "description": "The description text for all Statements derived from this Indication."
               }
             ]
           }
@@ -8347,6 +8352,19 @@
                     }
                   }
                 }
+              },
+              {
+                "contains": {
+                  "$ref": "#/components/schemas/Extension",
+                  "properties": {
+                    "name": {
+                      "const": "statement description"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  }
+                }
               }
             ]
           }
@@ -8394,6 +8412,17 @@
                           ]
                         }
                       }
+                    },
+                    {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      }
                     }
                   ]
                 },
@@ -8412,6 +8441,19 @@
                             "Superseded",
                             "Withdrawn"
                           ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "contains": {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
                         }
                       }
                     }
@@ -8502,6 +8544,17 @@
                           ]
                         }
                       }
+                    },
+                    {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      }
                     }
                   ]
                 },
@@ -8520,6 +8573,19 @@
                             "Superseded",
                             "Withdrawn"
                           ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "contains": {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
                         }
                       }
                     }
@@ -8563,6 +8629,17 @@
                           ]
                         }
                       }
+                    },
+                    {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      }
                     }
                   ]
                 },
@@ -8581,6 +8658,19 @@
                             "Superseded",
                             "Withdrawn"
                           ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "contains": {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
                         }
                       }
                     }
@@ -8624,6 +8714,17 @@
                           ]
                         }
                       }
+                    },
+                    {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      }
                     }
                   ]
                 },
@@ -8642,6 +8743,19 @@
                             "Superseded",
                             "Withdrawn"
                           ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "contains": {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
                         }
                       }
                     }
@@ -8683,6 +8797,17 @@
                             "Superseded",
                             "Withdrawn"
                           ]
+                        }
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
                         }
                       }
                     },
@@ -8735,6 +8860,19 @@
                             "Superseded",
                             "Withdrawn"
                           ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "contains": {
+                      "$ref": "#/components/schemas/Extension",
+                      "properties": {
+                        "name": {
+                          "const": "statement description"
+                        },
+                        "value": {
+                          "type": "string"
                         }
                       }
                     }
