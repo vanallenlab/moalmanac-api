@@ -1,5 +1,5 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/Database-CC%20BY%204.0-informational)](./LICENSE)
-[![License: GPL v2](https://img.shields.io/badge/Code-GPL%20v2-informational)](./LICENSE-code.md)
+[![License: GPL v2](https://img.shields.io/badge/Code-GPL%20v2-informational)](./LICENSE-code)
 
 Application Program Interface (API) for the [Molecular Oncology Almanac's knowledge base](https://github.com/vanallenlab/moalmanac-db) and [browser](https://github.com/vanallenlab/moalmanac-browser/tree/main), available at: [https://api.moalmanac.org](https://api.moalmanac.org).
 
